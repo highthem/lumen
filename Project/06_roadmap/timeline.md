@@ -61,8 +61,8 @@
 - [x] Repo GitHub `highthem/lumen` créé + 1er commit
 - [x] App "Lumen Morning" créée dans App Store Connect (bundle `com.highthem.lumen`)
 - [x] Lumen.xcworkspace racine créé (workaround monorepo)
-- [x] Kit Claude Design préparé (`/sessions/lucid-youthful-darwin/lumen-design-kit/`)
-- [x] 5 docs PALO préparées (`/sessions/lucid-youthful-darwin/lumen-palo-docs/`)
+- [x] Kit Claude Design préparé (`Design/design-kit/`)
+- [x] 5 docs PALO préparées (`Design/palo-docs/`)
 - [ ] **EN COURS** Push workspace + scheme shared
 - [ ] **EN COURS** Setup Xcode Cloud workflows (1 = Xcode 16, 2 = Xcode 26)
 - [ ] **EN COURS** Configurer Secrets.xcconfig comme Base Configuration dans Xcode

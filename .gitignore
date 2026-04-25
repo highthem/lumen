@@ -1,0 +1,38 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Iconrstate
+build/
+DerivedData/
+*.dSYM.zip
+*.dSYM
+
+# Swift Package Manager
+.build/
+.swiftpm/
+
+# Pods / Carthage (if ever added)
+Pods/
+Carthage/Build/
+
+# Sed backup files
+*.bak
+*.bak2
+
+# Secrets — JAMAIS commiter
+Apple/lumen/Config/Secrets.xcconfig
+*.xcconfig.local
+
+# Logs
+*.log
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS / temp
+Thumbs.db
+.cache/
