@@ -21,7 +21,7 @@ Carthage/Build/
 *.bak2
 
 # Secrets — JAMAIS commiter
-Apple/lumen/Config/Secrets.xcconfig
+**/Secrets.xcconfig
 *.xcconfig.local
 
 # Logs

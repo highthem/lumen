@@ -27,6 +27,7 @@
 		C306593B2F9BEB75009D5785 /* lumen.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = lumen.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		C306594A2F9BEB76009D5785 /* lumenTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = lumenTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		C30659542F9BEB76009D5785 /* lumenUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = lumenUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		C313155B2F9D685500CA6678 /* lumen/Config/Secrets.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = lumen/Config/Secrets.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -79,6 +80,7 @@
 				C306594D2F9BEB76009D5785 /* lumenTests */,
 				C30659572F9BEB76009D5785 /* lumenUITests */,
 				C306593C2F9BEB75009D5785 /* Products */,
+				C313155B2F9D685500CA6678 /* lumen/Config/Secrets.xcconfig */,
 			);
 			sourceTree = "<group>";
 		};
@@ -271,6 +273,7 @@
 /* Begin XCBuildConfiguration section */
 		C306595C2F9BEB76009D5785 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = C313155B2F9D685500CA6678 /* lumen/Config/Secrets.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
@@ -335,6 +338,7 @@
 		};
 		C306595D2F9BEB76009D5785 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = C313155B2F9D685500CA6678 /* lumen/Config/Secrets.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
