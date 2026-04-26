@@ -104,14 +104,23 @@ Description texte des 10 écrans pour Claude Design. Pas de maquette ASCII : Cla
 
 ### Q3 — Gratitude
 - Titre : "Une gratitude ?"
-- Textarea 3 lignes (max 140 caractères, compteur discret)
-- Placeholder : "Un moment, une personne, une chose..."
+- **Input vocal par défaut** : gros bouton micro central (taille pouce, ~80pt), animation pulse subtile pendant l'écoute
+- Auto-stop après 2s de silence
+- Texte transcrit affiché en serif large dans la zone réponse
+- Bouton "Modifier" discret (passe au keyboard typing pour correction) + bouton "Recommencer"
+- Fallback typing : si permissions micro refusées ou langue non on-device → textarea 3 lignes (max 140 caractères, compteur discret)
+- Placeholder vocal : "Parle, je t'écoute..."
+- Placeholder typing fallback : "Un moment, une personne, une chose..."
 - CTA : "Suivant" (activé si > 0 caractère ou bouton Skip)
 
 ### Q4 — Intention
 - Titre : "Ton intention en un mot."
-- Input single-line grande typo (max 30 caractères, compteur)
-- Placeholder : "focus", "patience", "présence"...
+- **Input vocal par défaut** : même UI que Q3 (micro central + transcription)
+- Auto-stop court (1s de silence — un mot suffit)
+- Texte transcrit affiché en typo display
+- Fallback typing : input single-line grande typo (max 30 caractères, compteur)
+- Placeholder vocal : "Dis-le..."
+- Placeholder typing fallback : "focus", "patience", "présence"...
 - CTA : "Voir ma synthèse" (activé si > 0 caractère)
 
 ### Transitions
@@ -127,6 +136,7 @@ Description texte des 10 écrans pour Claude Design. Pas de maquette ASCII : Cla
   2. **Focus** (body, 1-2 actions suggérées)
   3. **Rappel** (italic, ton présence)
 - Badge discret "Hors-ligne" si fallback offline
+- **Bouton "Écouter"** (icône `speaker.wave.2`) à côté du titre — joue la synthèse à voix haute via TTS Apple natif, voix neural iOS 17+
 - Bouton "Régénérer" en bas (secondary, avec compteur 2/3 restantes)
 - Bouton "Continuer vers le dashboard" (primary)
 
@@ -151,6 +161,7 @@ Description texte des 10 écrans pour Claude Design. Pas de maquette ASCII : Cla
 
 - Sections :
   - **Rituel** : heure alarme par défaut, son, durée timer
+  - **Voice** (NEW, ADR-007) : toggle "Mode vocal par défaut" (true), choix voix TTS, vitesse lecture (0.8x/1x/1.2x), info "audio reste sur ton téléphone"
   - **IA** : rate limit info (read-only), provider status
   - **Monitoring éthique** : bouton "Exporter en JSON"
   - **Apparence** : dark / light / system

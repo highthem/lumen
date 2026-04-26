@@ -33,6 +33,13 @@
 - **AVFoundation** : audio en background, session `.playback` + `.duckOthers` (contrainte brief)
 - **Background Modes** : Audio, UIBackgroundTask pour clean-up court
 
+## Voice (input + output) — voir ADR-007
+
+- **Speech framework (`SFSpeechRecognizer`)** : input vocal (dictation Q3/Q4) en mode `requiresOnDeviceRecognition = true`. Aucun audio ne quitte le device.
+- **AVFoundation (`AVSpeechSynthesizer`)** : output vocal (TTS synthèse IA). Voix neural iOS 17+. 100% on-device.
+- Permissions Info.plist : `NSMicrophoneUsageDescription` + `NSSpeechRecognitionUsageDescription`.
+- Si on-device pas supporté pour la langue → fallback typing transparent (jamais cloud Apple).
+
 ## IA
 
 - **OpenAI GPT-4o-mini** (primaire cloud) — via appel REST direct (URLSession), pas de SDK

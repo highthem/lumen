@@ -89,8 +89,25 @@ Pattern **waterfall IA** (réutilisé du projet Skoul) :
 - Soumis au rate limiting.
 - Output en modal avec option "Fermer" uniquement (pas de conversation V1).
 
+## US-AI7 — Output vocal de la synthèse (NOUVEAU, voir ADR-007)
+**En tant qu'** utilisateur qui vient de finir le questionnaire
+**Je veux** pouvoir écouter ma synthèse à voix haute
+**Afin de** ne pas avoir à rester scotché à l'écran et pouvoir préparer ma matinée en parallèle (café, brossage de dents)
+
+**Critères d'acceptation :**
+- Bouton "Écouter" (icône `speaker.wave.2`) à côté de la synthèse texte.
+- Lit avec voix neural Apple (iOS 17+) en langue de l'utilisateur.
+- Vitesse normale par défaut, configurable dans Settings (0.8x / 1.0x / 1.2x).
+- Compatible Bluetooth / AirPods (route audio iOS par défaut).
+- Pause / Resume possible.
+- Auto-pause si l'utilisateur quitte l'écran (return ou app background).
+- Pas de log audio (l'audio n'est généré qu'à la demande, pas de cache).
+- Reduce Motion respecté : pas d'animation décorative pendant la lecture (juste icône speaker animée subtilement).
+- VoiceOver compatible (n'interrompt pas si VoiceOver actif — l'utilisateur a sa propre lecture vocale).
+
 ## Out of scope V1
 - Conversation multi-tour avec l'IA
 - Personnalisation du ton (formel / chaleureux / direct)
 - Export de l'historique de synthèses
 - Apprentissage des préférences via feedback explicite
+- Voix custom clonée (les voix Apple natives suffisent V1)

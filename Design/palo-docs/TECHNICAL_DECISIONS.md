@@ -10,6 +10,7 @@ Architecture Decision Records (ADRs) — every non-trivial technical choice in L
 | [ADR-004](#adr-004--ai-waterfall-with-apple-intelligence-and-offline-queue) | AI waterfall with Apple Intelligence and offline queue | Accepted |
 | [ADR-005](#adr-005--ethical-monitoring) | Ethical monitoring | Accepted |
 | [ADR-006](#adr-006--cicd-via-xcode-cloud-with-dual-xcode-version-strategy) | CI/CD via Xcode Cloud, dual Xcode version | Accepted |
+| [ADR-007](#adr-007--voice-integration-input--output) | Voice integration (input + output, on-device) | Accepted |
 
 ---
 
@@ -160,3 +161,32 @@ Settings → "Export my logs" generates a JSON file via `ShareSheet`. Settings �
 - Mental check before every push to `main`: "does this compile on Xcode 16?"
 
 **Secrets handling.** `OPENAI_API_KEY` and `ANTHROPIC_API_KEY` live as Xcode Cloud Environment Variables (marked Secret). `ci_scripts/ci_post_clone.sh` injects them into `lumen/Config/Secrets.xcconfig` at build time. Locally, developers copy `Secrets.xcconfig.sample` and fill their own keys; the real `Secrets.xcconfig` is gitignored.
+
+---
+
+## ADR-007 — Voice integration (input + output)
+
+**Context.** Initial spec required typing for Q3 (Gratitude, ≤140 chars) and Q4 (Intention, ≤30 chars). Typing on iOS at wake-up is high friction: tired eyes, clumsy fingers, the keyboard takes 50 % of the screen and breaks the calm posture. Symmetrically, forcing the user to read the AI synthesis on-screen keeps them locked to the device when they should be transitioning to the rest of their morning (coffee, brushing teeth).
+
+**Decision.** Add **voice input (dictation)** for Q3/Q4 and **voice output (TTS)** for the AI synthesis — in V1.
+
+| Capability | Apple framework | Cost | Privacy |
+|---|---|---|---|
+| Voice input | `Speech` (`SFSpeechRecognizer`) | 0 | On-device required (`requiresOnDeviceRecognition = true`) |
+| Voice output | `AVFoundation` (`AVSpeechSynthesizer`) | 0 | 100 % on-device, neural voices iOS 17+ |
+
+**Strict privacy stance.** `SFSpeechRecognitionRequest.requiresOnDeviceRecognition = true`. If on-device recognition isn't supported for the user's language (varies by device + language), **fallback to typing** rather than sending audio to Apple. Audio captured is **never persisted nor logged** — only the transcribed text is stored.
+
+**UX.**
+- Voice input (Q3 + Q4): central large microphone button (thumb-sized), subtle pulse animation during listening (consistent with the timer's breathing circle — `style_guide.md` motion level 2 "signature"). Auto-stop after 2 s of silence. Transcribed text displayed in serif. "Edit" button discreet (switches to keyboard for manual correction). Skip always available.
+- Voice output (synthesis): "Listen" button (`speaker.wave.2` icon) next to the synthesis text. Reads with iOS 17+ neural voice. Bluetooth / AirPods compatible. Pause / Resume.
+- Settings: toggle "Voice mode by default" (true), choice of TTS voice, playback speed (0.8x / 1x / 1.2x).
+
+**Justification.**
+1. **Strong product differentiator.** None of the four competitors (Fabulous, Alarmy, Opal, Rise) has voice I/O on the morning ritual. Clear market gap.
+2. **Aligned with "respect of the moment"** product posture — typing is an exception, not the rule.
+3. **Aligned with "ethical AI" stance** — audio never leaves the device, reinforces privacy promise.
+4. **Reasonable effort**: ~1.7 days total. Fits in Sprint 2.
+5. **Brief constraints respected**: zero third-party libs, native Apple frameworks, iOS 17+.
+
+**Permissions added to Info.plist:** `NSMicrophoneUsageDescription`, `NSSpeechRecognitionUsageDescription`. AudioSession coordination handled by `AudioSessionManager` to avoid conflict with the alarm sound (ADR-001).

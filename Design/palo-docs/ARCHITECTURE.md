@@ -80,6 +80,7 @@ lumen/
 ├── Infrastructure/
 │   ├── Notifications/
 │   ├── Audio/
+│   ├── Voice/                           // ADR-007: SpeechRecognizer + SpeechSynthesizer (on-device)
 │   ├── Network/
 │   └── Logging/
 ├── Shared/
@@ -173,6 +174,7 @@ User completes Q4 → QuestionnaireViewModel
 - **No Critical Alerts entitlement**: alarm reliability is best-effort outside Silent / Focus / DND modes (documented in ADR-001).
 - **64 scheduled notifications limit**: recurring alarms are re-scheduled on each trigger, not pre-scheduled in bulk.
 - **Apple Intelligence requires iOS 26+ and A17 Pro+**: gated by `#if canImport(FoundationModels)` and `@available(iOS 26.0, *)` checks. On unsupported devices, offline synthesis is queued and delivered when the network returns.
+- **Voice (ADR-007)**: Speech recognition forced on-device (`requiresOnDeviceRecognition = true`). If user's language isn't supported on-device, fallback to typing — never cloud Apple speech. Audio never persisted or logged. AVSpeechSynthesizer for TTS, fully on-device with iOS 17+ neural voices.
 
 ## Testing strategy
 

@@ -83,12 +83,25 @@ Je peux silencer une alarme et vivre le rituel complet sur simulateur ou device,
 | 14 | Onboarding 4 écrans | 0.25j | 10 mai |
 | 15 | Tests Domain IA + RateLimiter | 0.75j | 10 mai |
 
-**Total ~7,5 j-h** dans 7 jours calendaires (WBD + FTV la semaine → ~25h dispo soirs+weekend) = tendu.
+| 16 | **Voice input (Q3/Q4) — ADR-007** : `SpeechRecognizer.swift` (on-device, fallback typing) + UI bouton micro + animation pulse | 0.75j | 9-10 mai |
+| 17 | **Voice output (synthèse IA) — ADR-007** : `SpeechSynthesizer.swift` (voix neural iOS 17+) + bouton "Écouter" + Settings vocal | 0.5j | 10 mai |
+| 18 | Tests voice (mocks + AudioSession coordination avec alarme) | 0.25j | 10 mai |
+
+**Total ~9,2 j-h** dans 7 jours calendaires (WBD + FTV → ~25h soir+weekend) = **très tendu, voice ajoute 1,5j net**.
+
+### Mitigation effort
+Si Sprint 2 dérape vers J-2 (mardi 6 mai checkpoint), couper agressivement P1 :
+- Régénération manuelle IA (US-AI4) → V1.1
+- Fade-in son alarme (US-A7) → V1.1
+- Ask Lumen (US-AI6) → V1.1 si vraiment nécessaire
+Mais voice (US-Q6 + US-AI7) RESTE P0 — c'est le différenciateur produit.
 
 ### Risques sprint 2
 - IA waterfall testing complexe (mocks providers)
 - JSON parsing OpenAI si API change format
 - Rate limiter edge cases (reset à minuit)
+- **Voice on-device pas dispo pour la langue** → fallback typing à valider sur device test (US-Q6)
+- **AudioSession conflict** alarme vs voice input → testing soigné de la coordination (`AudioSessionManager`)
 
 ### Livrables fin sprint 2
 - Flow complet end-to-end testé

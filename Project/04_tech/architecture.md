@@ -152,6 +152,10 @@ Lumen/                              # racine du repo Git (highthem/lumen)
 │   ├── Audio/
 │   │   ├── AudioPlayer.swift
 │   │   └── AudioSessionManager.swift
+│   ├── Voice/                         # ADR-007 : input + output vocal on-device
+│   │   ├── SpeechRecognizer.swift     # SFSpeechRecognizer wrapper, requiresOnDeviceRecognition=true
+│   │   ├── SpeechSynthesizer.swift    # AVSpeechSynthesizer wrapper, voix neural iOS 17+
+│   │   └── VoicePermissions.swift     # micro + speech recognition permissions
 │   ├── Network/
 │   │   ├── HTTPClient.swift
 │   │   └── NetworkMonitor.swift
@@ -256,5 +260,7 @@ User ── completes Q4 ──► QuestionnaireViewModel
 
 - **SwiftData + concurrency** : `@ModelActor` obligatoire pour accès hors MainActor, documenté ADR.
 - **Background audio** : l'app doit avoir `UIBackgroundModes: audio` dans Info.plist, et activer/désactiver l'AudioSession proprement pour ne pas consommer batterie.
+- **Coordination AudioSession** : `AudioSessionManager` orchestre les 3 usages (alarme, voice input, voice output) pour éviter les conflits de category. Voir ADR-001 + ADR-007.
+- **Permissions Info.plist additionnelles pour voice** : `NSMicrophoneUsageDescription` + `NSSpeechRecognitionUsageDescription` (voir ADR-007).
 - **Notification limits** : iOS limite le nombre de notifications programmées en avance à 64. Si l'utilisateur a plusieurs alarmes récurrentes, on replanifie à chaque trigger, pas en masse à l'avance.
 - **xcconfig** : bien exclu du repo public (`.gitignore`).

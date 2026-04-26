@@ -83,6 +83,12 @@ Dépassement → UI claire ("Reviens demain pour une nouvelle question"), pas d'
 - Prompt haché, pas stocké en clair (impossible de reconstituer les réponses matinales d'un utilisateur à partir des logs).
 - `privacy_scope` comme champ explicite : si demain on ajoute des features qui élargissent le scope, c'est visible.
 
+### Voice integration (ADR-007) — engagements privacy supplémentaires
+- **L'audio capté pour la dictation N'EST JAMAIS persisté ni loggé.** Seul le texte transcrit est stocké (et seul le texte est transmis à l'IA cloud pour la synthèse).
+- **Reconnaissance vocale 100 % on-device** (`requiresOnDeviceRecognition = true`). Si la langue de l'utilisateur n'est pas supportée on-device → fallback typing, jamais cloud Apple speech.
+- **TTS (lecture synthèse) est on-device** via `AVSpeechSynthesizer` avec voix neural natives. Aucun audio généré n'est envoyé en cloud.
+- L'utilisateur peut désactiver input vocal et output vocal à tout moment dans Settings → Voice.
+
 ### Cost control
 - Rate limit côté client (pas de dépendance serveur pour le plafond).
 - Logs des tokens par provider pour analyser les coûts par session.

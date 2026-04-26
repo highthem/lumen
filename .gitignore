@@ -36,3 +36,6 @@ Carthage/Build/
 # OS / temp
 Thumbs.db
 .cache/
+
+# AI
+Design/*

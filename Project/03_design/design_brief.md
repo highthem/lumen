@@ -7,10 +7,11 @@ App iOS de rituel matinal. Flow : réveil doux → timer de présence → questi
 
 1. **Calme avant tout.** Zéro animation aggressive, zéro couleur saturée, pas de bruit visuel.
 2. **Respect du moment.** On vient d'ouvrir les yeux. Pas de surcharge cognitive, pas de texte dense, pas de bouton à choisir avec précision.
-3. **Identité, pas métriques.** Pas de graphiques, pas de chiffres mis en avant. Le produit est un miroir, pas un coach.
-4. **Typographie > iconographie.** Laisser respirer le texte, icônes minimalistes uniquement quand nécessaire.
-5. **Dark mode first.** L'utilisateur lance l'app dans une chambre sombre. Noir chaud par défaut, light mode en option.
-6. **Un geste, une décision.** Chaque écran propose 1 action principale. Les secondaires sont visibles mais discrètes.
+3. **Voice as primary input/output.** Au réveil, taper et lire un écran = friction. La dictation vocale est l'input par défaut pour Q3/Q4, et la synthèse IA est lisible à voix haute (TTS). Voir ADR-007.
+4. **Identité, pas métriques.** Pas de graphiques, pas de chiffres mis en avant. Le produit est un miroir, pas un coach.
+5. **Typographie > iconographie.** Laisser respirer le texte, icônes minimalistes uniquement quand nécessaire.
+6. **Dark mode first.** L'utilisateur lance l'app dans une chambre sombre. Noir chaud par défaut, light mode en option.
+7. **Un geste, une décision.** Chaque écran propose 1 action principale. Les secondaires sont visibles mais discrètes.
 
 ## Voice & tone
 

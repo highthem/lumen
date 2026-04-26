@@ -57,6 +57,7 @@ xcodebuild -project lumen.xcodeproj -scheme lumen -destination 'platform=iOS Sim
 - **SwiftData** for persistence — see ADR-002
 - **UserNotifications + AVFoundation** for the background alarm
 - **AI waterfall**: OpenAI (primary) → Anthropic Claude (cloud fallback) → Apple Intelligence on-device (iOS 26+ with A17 Pro+) → offline queue with deferred generation
+- **Voice I/O on-device** (ADR-007): `SFSpeechRecognizer` (`requiresOnDeviceRecognition = true`) for dictation on Q3/Q4 + `AVSpeechSynthesizer` (neural voices) for synthesis playback
 
 ## CI/CD
 

@@ -13,8 +13,10 @@ Référence : brief PALO + user stories.
 | F5 | Rate limiting local + monitoring éthique + export JSON | P0 | US-AI3, US-AI5 | 1-2 |
 | F6 | Dashboard 6 catégories | P0 | US-D1 à US-D3, US-D5 | 2 |
 | F7 | Ask Lumen (accès rapide IA depuis dashboard) | P0 | US-AI6 | 0,5 |
+| F7b | Voice input (dictation Q3/Q4, on-device) | P0 | US-Q6, ADR-007 | 0,75 |
+| F7c | Voice output (TTS synthèse IA, on-device) | P0 | US-AI7, ADR-007 | 0,5 |
 
-**Sous-total P0 :** ~10-13 jours de dev.
+**Sous-total P0 :** ~11-15 jours de dev.
 
 ## Features Polish (importants pour la soutenance)
 
