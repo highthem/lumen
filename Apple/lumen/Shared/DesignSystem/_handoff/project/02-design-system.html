@@ -1,0 +1,657 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lumen — Étape 2 · Design System</title>
+<style>
+:root{
+  /* Dark (primaire) */
+  --bg:#0F0D0B; --bg-2:#1A1714; --bg-3:#2A241F;
+  --line:#2E2822;
+  --ink:#F5EFE6; --ink-2:#9A8D7D; --ink-3:#6A5E51;
+  --accent:#E8C39E; --accent-2:#A68566;
+  --success:#7FA58A; --warning:#D4A853; --error:#C85A54;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:"Charter","Iowan Old Style","New York",ui-serif,Georgia,serif}
+.ui{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",sans-serif}
+.mono{font-family:ui-monospace,"SF Mono",Menlo,monospace}
+.wrap{max-width:1240px;margin:0 auto;padding:80px 56px 140px}
+
+.eyebrow{font-family:-apple-system,sans-serif;font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--ink-3);margin:0 0 16px}
+h1{font-weight:400;font-size:64px;line-height:1.05;letter-spacing:-0.015em;margin:0 0 24px}
+h2{font-weight:500;font-size:32px;line-height:1.15;letter-spacing:-0.01em;margin:0 0 12px}
+h3{font-weight:500;font-size:20px;letter-spacing:-0.005em;margin:0 0 8px;font-family:-apple-system,sans-serif}
+p{font-size:17px;line-height:1.55;color:var(--ink);margin:0 0 14px;max-width:62ch;text-wrap:pretty}
+p.lede{font-size:21px;line-height:1.5;color:var(--ink);max-width:60ch}
+.muted{color:var(--ink-2);font-size:14px;line-height:1.55;max-width:62ch}
+hr.rule{border:0;border-top:1px solid var(--line);margin:80px 0}
+
+header.top{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:64px;gap:32px}
+header.top .stamp{font-family:-apple-system,sans-serif;font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--ink-3);text-align:right;line-height:1.7}
+
+/* TOC */
+.toc{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin:48px 0 0}
+.toc a{font-family:-apple-system,sans-serif;font-size:13px;letter-spacing:.04em;color:var(--ink-2);text-decoration:none;padding:18px 16px;border-right:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;transition:color .15s}
+.toc a:last-child{border-right:0}
+.toc a:hover{color:var(--accent)}
+.toc a span.n{font-size:10px;letter-spacing:.2em;color:var(--ink-3)}
+
+/* Section header */
+.sec-head{display:grid;grid-template-columns:120px 1fr;gap:24px;margin-bottom:40px;align-items:baseline}
+.sec-head .num{font-family:-apple-system,sans-serif;font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--ink-3);padding-top:14px;border-top:1px solid var(--line)}
+
+/* Token cards */
+.token-grid{display:grid;gap:16px}
+.kv{display:grid;grid-template-columns:1fr auto;gap:16px;padding:14px 16px;background:var(--bg-2);border:1px solid var(--line);border-radius:12px;align-items:center;font-family:-apple-system,sans-serif;font-size:13px}
+.kv .key{color:var(--ink-2)}
+.kv .val{color:var(--ink);font-family:ui-monospace,"SF Mono",monospace}
+
+/* Color section */
+.color-cols{display:grid;grid-template-columns:1fr 1fr;gap:32px}
+.color-block{background:var(--bg-2);border:1px solid var(--line);border-radius:20px;padding:28px}
+.color-block.lite{background:#FAF6EF;border-color:#E5DDC9;color:#1F1A14}
+.color-block h3{margin-bottom:4px}
+.color-block .sub{font-family:-apple-system,sans-serif;font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-3);margin-bottom:24px}
+.color-block.lite .sub{color:#A89A88}
+.swatch-row{display:grid;grid-template-columns:1fr auto auto;gap:16px;padding:12px 14px;align-items:center;border-bottom:1px solid var(--line);font-family:-apple-system,sans-serif;font-size:13px}
+.color-block.lite .swatch-row{border-bottom-color:#E5DDC9}
+.swatch-row:last-child{border-bottom:0}
+.swatch-row .chip{width:32px;height:32px;border-radius:8px;border:1px solid rgba(255,255,255,.06)}
+.color-block.lite .swatch-row .chip{border-color:rgba(31,26,20,.08)}
+.swatch-row .name{display:flex;flex-direction:column;gap:2px}
+.swatch-row .name b{font-weight:500;color:inherit}
+.swatch-row .name span{color:var(--ink-3);font-size:11px}
+.color-block.lite .swatch-row .name span{color:#A89A88}
+.swatch-row .hex{font-family:ui-monospace,monospace;font-size:12px;color:var(--ink-2)}
+.color-block.lite .swatch-row .hex{color:#6B5F50}
+.swatch-row .ratio{font-family:ui-monospace,monospace;font-size:11px;padding:2px 8px;border-radius:999px;border:1px solid var(--line);color:var(--ink-2)}
+.color-block.lite .swatch-row .ratio{border-color:#E5DDC9;color:#6B5F50}
+
+/* Type scale */
+.type-scale{display:flex;flex-direction:column;gap:0;border-top:1px solid var(--line)}
+.type-row{display:grid;grid-template-columns:140px 1fr 200px;gap:32px;padding:24px 0;border-bottom:1px solid var(--line);align-items:center}
+.type-row .label{font-family:-apple-system,sans-serif;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-3)}
+.type-row .label b{display:block;color:var(--ink);font-size:13px;letter-spacing:.04em;text-transform:none;font-weight:500;margin-top:4px}
+.type-row .specimen{color:var(--ink);text-wrap:balance}
+.type-row .spec{font-family:ui-monospace,monospace;font-size:12px;color:var(--ink-2);line-height:1.6}
+
+/* Spacing visualization */
+.space-row{display:grid;grid-template-columns:80px 1fr 100px;gap:24px;align-items:center;padding:14px 0;border-bottom:1px solid var(--line);font-family:-apple-system,sans-serif;font-size:13px;color:var(--ink-2)}
+.space-row .bar{height:4px;background:var(--accent);border-radius:2px;opacity:.85}
+.space-row .px{font-family:ui-monospace,monospace;color:var(--ink);text-align:right}
+
+/* Radii row */
+.radii{display:grid;grid-template-columns:repeat(5,1fr);gap:16px}
+.radii .r{aspect-ratio:1.4/1;background:var(--bg-2);border:1px solid var(--line);display:flex;flex-direction:column;justify-content:flex-end;padding:18px;font-family:-apple-system,sans-serif;font-size:11px;letter-spacing:.04em;color:var(--ink-2)}
+.radii .r b{color:var(--ink);font-size:13px;font-weight:500;margin-bottom:2px}
+
+/* Component card */
+.comp{margin-bottom:64px}
+.comp-head{display:grid;grid-template-columns:1fr 1fr;gap:32px;margin-bottom:24px;align-items:baseline}
+.comp-head .name{font-family:-apple-system,sans-serif;font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--ink-3);margin-bottom:6px}
+.comp-stage{background:var(--bg-2);border:1px solid var(--line);border-radius:20px;padding:48px;display:flex;flex-direction:column;gap:32px}
+.comp-stage.lite{background:#FAF6EF;border-color:#E5DDC9}
+.states{display:grid;gap:24px}
+.state-row{display:grid;grid-template-columns:140px 1fr;gap:24px;align-items:center}
+.state-row .lbl{font-family:-apple-system,sans-serif;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-3)}
+.comp-stage.lite .state-row .lbl{color:#A89A88}
+
+/* Buttons (functional) */
+.btn{appearance:none;border:0;cursor:pointer;font-family:-apple-system,sans-serif;font-size:17px;font-weight:500;height:52px;padding:0 24px;border-radius:14px;display:inline-flex;align-items:center;justify-content:center;transition:transform 100ms ease-in-out, opacity 200ms;letter-spacing:-0.005em;width:100%;max-width:360px}
+.btn-primary{background:var(--accent);color:#1F1A14}
+.btn-secondary{background:transparent;color:var(--accent);border:1.5px solid var(--accent)}
+.btn-ghost{background:transparent;color:var(--ink-2);height:auto;padding:12px 16px}
+.btn-primary:hover{background:#F0CFAE}
+.btn-primary:active{transform:scale(.97)}
+.btn-primary.disabled{opacity:.4;pointer-events:none}
+.btn-primary.focused{box-shadow:0 0 0 3px rgba(232,195,158,.25)}
+
+.lite .btn-primary{background:#A67C52;color:#FAF6EF}
+.lite .btn-primary:hover{background:#8E6841}
+.lite .btn-secondary{color:#A67C52;border-color:#A67C52}
+.lite .btn-ghost{color:#6B5F50}
+
+/* Card */
+.card{background:var(--bg-2);border-radius:20px;padding:20px;display:flex;flex-direction:column;gap:8px;width:280px;border:1px solid var(--line)}
+.lite .card{background:#FFFFFF;border-color:transparent;box-shadow:0 4px 16px rgba(0,0,0,.06)}
+.card .icon{font-family:-apple-system,sans-serif;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-3)}
+.lite .card .icon{color:#A89A88}
+.card .h{font-family:-apple-system,sans-serif;font-size:13px;letter-spacing:.04em;color:var(--ink-2);font-weight:500;margin-top:8px}
+.lite .card .h{color:#6B5F50}
+.card .v{font-family:"Charter",serif;font-size:24px;line-height:1.2;color:var(--ink);letter-spacing:-0.01em}
+.lite .card .v{color:#1F1A14}
+.card .meta{font-family:-apple-system,sans-serif;font-size:12px;color:var(--ink-3);margin-top:auto;padding-top:8px}
+.lite .card .meta{color:#A89A88}
+.card.empty .v{color:var(--ink-3);font-style:italic}
+.lite .card.empty .v{color:#A89A88}
+
+/* TextField */
+.field{display:flex;flex-direction:column;gap:6px;width:360px;max-width:100%}
+.field label{font-family:-apple-system,sans-serif;font-size:12px;letter-spacing:.04em;color:var(--ink-2)}
+.lite .field label{color:#6B5F50}
+.field input,.field textarea{appearance:none;background:var(--bg-2);border:1px solid var(--line);border-radius:14px;padding:14px 16px;font-family:-apple-system,sans-serif;font-size:17px;color:var(--ink);outline:0;transition:border-color 200ms;font-weight:400}
+.lite .field input,.lite .field textarea{background:#FFFFFF;border-color:#E5DDC9;color:#1F1A14}
+.field input::placeholder{color:var(--ink-3)}
+.lite .field input::placeholder{color:#A89A88}
+.field input.focused{border-color:var(--accent);border-width:1.5px;padding:13.5px 15.5px}
+.lite .field input.focused{border-color:#A67C52}
+.field input.error{border-color:var(--error)}
+.field input.disabled{opacity:.4}
+
+/* Chips */
+.chip{display:inline-flex;align-items:center;gap:6px;font-family:-apple-system,sans-serif;font-size:14px;font-weight:500;padding:7px 14px;border-radius:8px;background:var(--bg-3);color:var(--ink-2);cursor:pointer;letter-spacing:-0.005em;border:1px solid transparent}
+.lite .chip{background:#F2ECDE;color:#6B5F50}
+.chip.selected{background:var(--accent);color:#1F1A14}
+.lite .chip.selected{background:#A67C52;color:#FAF6EF}
+.chip.disabled{opacity:.4;pointer-events:none}
+.chips{display:flex;flex-wrap:wrap;gap:8px;max-width:480px}
+
+/* Toast */
+.toast{display:flex;align-items:center;gap:12px;background:var(--bg-3);color:var(--ink);font-family:-apple-system,sans-serif;font-size:14px;padding:14px 18px;border-radius:14px;border:1px solid var(--line);max-width:420px}
+.lite .toast{background:#FFFFFF;border-color:#E5DDC9;color:#1F1A14;box-shadow:0 4px 16px rgba(0,0,0,.06)}
+.toast .dot{width:6px;height:6px;border-radius:999px;background:var(--accent);flex-shrink:0}
+.lite .toast .dot{background:#A67C52}
+
+/* Modal preview */
+.modal{width:380px;background:var(--bg-2);border-radius:28px;padding:28px;display:flex;flex-direction:column;gap:14px;border:1px solid var(--line)}
+.lite .modal{background:#FFFFFF;border-color:transparent;box-shadow:0 4px 16px rgba(0,0,0,.06)}
+.modal .h{font-family:-apple-system,sans-serif;font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--ink-3)}
+.lite .modal .h{color:#A89A88}
+.modal .q{font-family:"Charter",serif;font-size:24px;line-height:1.3;color:var(--ink);letter-spacing:-0.01em}
+.lite .modal .q{color:#1F1A14}
+.modal .a{font-family:-apple-system,sans-serif;font-size:15px;line-height:1.55;color:var(--ink-2)}
+.lite .modal .a{color:#6B5F50}
+.modal .meta{font-family:-apple-system,sans-serif;font-size:12px;color:var(--ink-3);display:flex;justify-content:space-between;padding-top:14px;border-top:1px solid var(--line);margin-top:6px}
+.lite .modal .meta{color:#A89A88;border-top-color:#E5DDC9}
+
+/* Mood */
+.mood{display:flex;gap:12px;align-items:center}
+.mood .e{width:56px;height:56px;border-radius:999px;display:flex;align-items:center;justify-content:center;font-size:28px;background:var(--bg-3);transition:transform 200ms, background 200ms}
+.lite .mood .e{background:#F2ECDE}
+.mood .e.selected{background:var(--accent);transform:scale(1.06)}
+.lite .mood .e.selected{background:#A67C52}
+
+/* Progress 4 segments */
+.progress{display:flex;gap:6px;width:280px}
+.progress .seg{flex:1;height:3px;border-radius:2px;background:var(--bg-3)}
+.lite .progress .seg{background:#E5DDC9}
+.progress .seg.done{background:var(--accent)}
+.lite .progress .seg.done{background:#A67C52}
+.progress .seg.current{background:var(--ink-2)}
+
+/* Breathing circle */
+.breath-stage{display:flex;align-items:center;justify-content:center;padding:32px;min-height:220px}
+.breath{width:160px;height:160px;border-radius:999px;border:1px solid var(--accent);position:relative;animation:breathe 4s ease-in-out infinite}
+.breath::before{content:"";position:absolute;inset:0;border-radius:999px;border:1px solid var(--accent);opacity:.35;transform:scale(.85)}
+.breath::after{content:"";position:absolute;inset:0;border-radius:999px;background:radial-gradient(circle at 50% 50%, rgba(232,195,158,.18), transparent 65%)}
+.lite .breath{border-color:#A67C52}
+.lite .breath::before{border-color:#A67C52}
+.lite .breath::after{background:radial-gradient(circle at 50% 50%, rgba(166,124,82,.14), transparent 65%)}
+@keyframes breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.045)}}
+@media (prefers-reduced-motion: reduce){.breath{animation:none}}
+
+/* Quote container */
+.quote{padding:32px;border-radius:28px;background:linear-gradient(180deg, rgba(232,195,158,0.06), transparent);border:1px solid var(--line);max-width:520px}
+.lite .quote{background:linear-gradient(180deg, rgba(166,124,82,0.05), transparent);border-color:#E5DDC9}
+.quote .body{font-family:"Charter",serif;font-size:28px;line-height:1.3;color:var(--ink);letter-spacing:-0.01em;text-wrap:balance}
+.lite .quote .body{color:#1F1A14}
+.quote .who{font-family:-apple-system,sans-serif;font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-3);margin-top:18px}
+.lite .quote .who{color:#A89A88}
+
+/* Spec sheet */
+.spec{margin-top:20px;border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.spec .row{display:grid;grid-template-columns:160px 1fr;gap:16px;padding:12px 16px;border-bottom:1px solid var(--line);font-family:-apple-system,sans-serif;font-size:13px}
+.spec .row:last-child{border-bottom:0}
+.spec .row .k{color:var(--ink-3);letter-spacing:.04em;text-transform:uppercase;font-size:11px}
+.spec .row .v{color:var(--ink-2);font-family:ui-monospace,monospace;font-size:12px;line-height:1.6}
+.spec .row .v b{color:var(--ink);font-weight:500}
+
+/* Motion timeline */
+.timeline{display:flex;flex-direction:column;gap:14px;border:1px solid var(--line);border-radius:14px;padding:20px;background:var(--bg-2)}
+.tl-row{display:grid;grid-template-columns:160px 1fr 80px;gap:16px;align-items:center;font-family:-apple-system,sans-serif;font-size:13px}
+.tl-row .lbl{color:var(--ink-2);letter-spacing:.02em}
+.tl-row .bar{position:relative;height:6px;background:var(--bg-3);border-radius:3px;overflow:hidden}
+.tl-row .bar i{position:absolute;left:0;top:0;height:100%;background:var(--accent);border-radius:3px}
+.tl-row .ms{font-family:ui-monospace,monospace;font-size:11px;color:var(--ink-3);text-align:right}
+
+/* A11y notes */
+.a11y{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:16px}
+.a11y .item{border:1px solid var(--line);border-radius:14px;padding:18px;background:var(--bg-2)}
+.a11y .item h4{font-family:-apple-system,sans-serif;font-size:13px;font-weight:500;margin:0 0 8px;color:var(--ink);letter-spacing:.02em}
+.a11y .item p{font-family:-apple-system,sans-serif;font-size:13px;color:var(--ink-2);margin:0;line-height:1.5}
+
+/* Voice samples */
+.voice{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.voice .s{padding:16px;border-radius:14px;font-family:"Charter",serif;font-size:18px;line-height:1.4;border:1px solid var(--line)}
+.voice .yes{background:rgba(127,165,138,0.06);border-color:rgba(127,165,138,0.3)}
+.voice .no{background:rgba(200,90,84,0.06);border-color:rgba(200,90,84,0.25);color:var(--ink-2);text-decoration:line-through;text-decoration-color:var(--error);text-decoration-thickness:1px}
+.voice .s .tag{display:block;font-family:-apple-system,sans-serif;font-size:10px;letter-spacing:.22em;text-transform:uppercase;margin-bottom:8px;text-decoration:none}
+.voice .yes .tag{color:var(--success)}
+.voice .no .tag{color:var(--error)}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+<header class="top">
+  <div>
+    <p class="eyebrow ui">Étape 02 / 05 · Design system minimal</p>
+    <h1>Tokens & composants.</h1>
+  </div>
+  <div class="stamp ui">
+    Lumen Morning<br>
+    Direction · A · Sable & papier<br>
+    v0.1 · 26 avril 2026
+  </div>
+</header>
+
+<p class="lede">Le système est volontairement court. Onze couleurs par mode, neuf tailles de typo, sept pas d'espacement, dix composants. Chaque composant a ses états documentés ; rien d'autre n'existe en V1.</p>
+
+<nav class="toc">
+  <a href="#tokens"><span>01 — Tokens</span><span class="n">↓</span></a>
+  <a href="#components"><span>02 — Composants</span><span class="n">↓</span></a>
+  <a href="#motion"><span>03 — Motion</span><span class="n">↓</span></a>
+  <a href="#voice"><span>04 — Voice & A11y</span><span class="n">↓</span></a>
+</nav>
+
+<hr class="rule">
+
+<!-- ========================= TOKENS ========================= -->
+<section id="tokens">
+  <div class="sec-head">
+    <div class="num ui">01 — Tokens</div>
+    <div>
+      <h2>Couleurs, typographie, espacement, rayons.</h2>
+      <p class="muted">Exportés en JSON dans <span class="mono">handoff/tokens.json</span>, prêts pour SwiftUI.</p>
+    </div>
+  </div>
+
+  <h3 style="margin-top:32px;margin-bottom:16px">Couleurs</h3>
+  <p class="muted" style="margin-bottom:24px">Tous les couples texte / fond passent WCAG AA. Ratios indiqués sur la colonne de droite.</p>
+
+  <div class="color-cols">
+    <div class="color-block">
+      <h3>Dark mode</h3>
+      <div class="sub">Primaire — l'app par défaut</div>
+      <div class="swatch-row"><div class="chip" style="background:#0F0D0B;border-color:#2E2822"></div><div class="name"><b>bg.primary</b><span>Background app</span></div><span class="hex">#0F0D0B</span></div>
+      <div class="swatch-row"><div class="chip" style="background:#1A1714"></div><div class="name"><b>bg.secondary</b><span>Surfaces, cards</span></div><span class="hex">#1A1714</span></div>
+      <div class="swatch-row"><div class="chip" style="background:#2A241F"></div><div class="name"><b>bg.tertiary</b><span>Hover, pressed, chips</span></div><span class="hex">#2A241F</span></div>
+      <div class="swatch-row"><div class="chip" style="background:#F5EFE6"></div><div class="name"><b>text.primary</b><span>Texte par défaut</span></div><span class="hex">#F5EFE6</span><span class="ratio mono">14.8 AAA</span></div>
+      <div class="swatch-row"><div class="chip" style="background:#9A8D7D"></div><div class="name"><b>text.secondary</b><span>Métadonnées</span></div><span class="hex">#9A8D7D</span><span class="ratio mono">5.6 AA</span></div>
+      <div class="swatch-row"><div class="chip" style="background:#6A5E51"></div><div class="name"><b>text.tertiary</b><span>Disabled, captions</span></div><span class="hex">#6A5E51</span><span class="ratio mono">3.0 AA·L</span></div>
+      <div class="swatch-row"><div class="chip" style="background:#E8C39E"></div><div class="name"><b>accent</b><span>CTA, indicateurs actifs</span></div><span class="hex">#E8C39E</span><span class="ratio mono">10.5 AAA</span></div>
+      <div class="swatch-row"><div class="chip" style="background:#A68566"></div><div class="name"><b>accent.muted</b><span>Bordures, gradients</span></div><span class="hex">#A68566</span></div>
+      <div class="swatch-row"><div class="chip" style="background:#7FA58A"></div><div class="name"><b>success</b></div><span class="hex">#7FA58A</span></div>
+      <div class="swatch-row"><div class="chip" style="background:#D4A853"></div><div class="name"><b>warning</b></div><span class="hex">#D4A853</span></div>
+      <div class="swatch-row"><div class="chip" style="background:#C85A54"></div><div class="name"><b>error</b></div><span class="hex">#C85A54</span></div>
+    </div>
+
+    <div class="color-block lite">
+      <h3>Light mode</h3>
+      <div class="sub">Secondaire — option utilisateur</div>
+      <div class="swatch-row"><div class="chip" style="background:#FAF6EF"></div><div class="name"><b>bg.primary</b><span>Background app</span></div><span class="hex">#FAF6EF</span></div>
+      <div class="swatch-row"><div class="chip" style="background:#FFFFFF"></div><div class="name"><b>bg.secondary</b><span>Cards (avec ombre)</span></div><span class="hex">#FFFFFF</span></div>
+      <div class="swatch-row"><div class="chip" style="background:#F2ECDE"></div><div class="name"><b>bg.tertiary</b><span>Chips, hover</span></div><span class="hex">#F2ECDE</span></div>
+      <div class="swatch-row"><div class="chip" style="background:#1F1A14"></div><div class="name"><b>text.primary</b><span>Texte par défaut</span></div><span class="hex">#1F1A14</span><span class="ratio mono">15.2 AAA</span></div>
+      <div class="swatch-row"><div class="chip" style="background:#6B5F50"></div><div class="name"><b>text.secondary</b><span>Métadonnées</span></div><span class="hex">#6B5F50</span><span class="ratio mono">5.5 AA</span></div>
+      <div class="swatch-row"><div class="chip" style="background:#A89A88"></div><div class="name"><b>text.tertiary</b><span>Disabled, captions</span></div><span class="hex">#A89A88</span></div>
+      <div class="swatch-row"><div class="chip" style="background:#A67C52"></div><div class="name"><b>accent</b><span>CTA, indicateurs actifs</span></div><span class="hex">#A67C52</span><span class="ratio mono">4.6 AA</span></div>
+      <div class="swatch-row"><div class="chip" style="background:#C9A882"></div><div class="name"><b>accent.muted</b></div><span class="hex">#C9A882</span></div>
+      <div class="swatch-row"><div class="chip" style="background:#5A7A65"></div><div class="name"><b>success</b></div><span class="hex">#5A7A65</span></div>
+      <div class="swatch-row"><div class="chip" style="background:#B08040"></div><div class="name"><b>warning</b></div><span class="hex">#B08040</span></div>
+      <div class="swatch-row"><div class="chip" style="background:#A04540"></div><div class="name"><b>error</b></div><span class="hex">#A04540</span></div>
+    </div>
+  </div>
+
+  <h3 style="margin-top:64px;margin-bottom:16px">Typographie</h3>
+  <p class="muted" style="margin-bottom:24px">Serif (New York) pour titres, citations et synthèse. Sans-serif (SF Pro) pour micro-copy, labels, UI. Toutes les tailles supportent Dynamic Type jusqu'à AccessibilityXXXL.</p>
+
+  <div class="type-scale">
+    <div class="type-row">
+      <div class="label ui">display<b>48 / Reg</b></div>
+      <div class="specimen" style="font-family:'Charter',serif;font-size:48px;font-weight:400;line-height:1.1;letter-spacing:-0.015em">Quelques minutes à toi.</div>
+      <div class="spec mono">family · serif<br>line-height · 1.1<br>tracking · -0.015em</div>
+    </div>
+    <div class="type-row">
+      <div class="label ui">title1<b>32 / Semi</b></div>
+      <div class="specimen" style="font-family:'Charter',serif;font-size:32px;font-weight:600;line-height:1.15;letter-spacing:-0.01em">Bonjour, Claire.</div>
+      <div class="spec mono">family · serif<br>line-height · 1.15<br>tracking · -0.01em</div>
+    </div>
+    <div class="type-row">
+      <div class="label ui">title2<b>24 / Semi</b></div>
+      <div class="specimen" style="font-family:'Charter',serif;font-size:24px;font-weight:600;line-height:1.2;letter-spacing:-0.005em">Une chose qui compte aujourd'hui ?</div>
+      <div class="spec mono">family · serif<br>line-height · 1.2</div>
+    </div>
+    <div class="type-row">
+      <div class="label ui">title3<b>20 / Med</b></div>
+      <div class="specimen ui" style="font-size:20px;font-weight:500">Énergie</div>
+      <div class="spec mono">family · sans-serif<br>line-height · 1.25</div>
+    </div>
+    <div class="type-row">
+      <div class="label ui">body<b>17 / Reg</b></div>
+      <div class="specimen ui" style="font-size:17px">Tu n'as pas encore fait ton rituel ce matin.</div>
+      <div class="spec mono">family · sans-serif<br>line-height · 1.5</div>
+    </div>
+    <div class="type-row">
+      <div class="label ui">callout<b>15 / Reg</b></div>
+      <div class="specimen ui" style="font-size:15px;color:var(--ink-2)">Tu pourras changer plus tard.</div>
+      <div class="spec mono">family · sans-serif<br>line-height · 1.45</div>
+    </div>
+    <div class="type-row">
+      <div class="label ui">footnote<b>13 / Reg</b></div>
+      <div class="specimen ui" style="font-size:13px;color:var(--ink-2);letter-spacing:.02em">2 questions restantes aujourd'hui</div>
+      <div class="spec mono">family · sans-serif<br>tracking · 0.02em</div>
+    </div>
+    <div class="type-row" style="border-bottom:0">
+      <div class="label ui">caption<b>11 / Reg</b></div>
+      <div class="specimen ui" style="font-size:11px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.22em">Lundi 11 mai</div>
+      <div class="spec mono">family · sans-serif<br>tracking · 0.18em<br>uppercase</div>
+    </div>
+  </div>
+
+  <h3 style="margin-top:64px;margin-bottom:16px">Espacement — grille 4pt</h3>
+  <div style="border-top:1px solid var(--line)">
+    <div class="space-row"><span>xs</span><div class="bar" style="width:4px"></div><span class="px">4 pt</span></div>
+    <div class="space-row"><span>s</span><div class="bar" style="width:8px"></div><span class="px">8 pt</span></div>
+    <div class="space-row"><span>m</span><div class="bar" style="width:16px"></div><span class="px">16 pt</span></div>
+    <div class="space-row"><span>l</span><div class="bar" style="width:24px"></div><span class="px">24 pt</span></div>
+    <div class="space-row"><span>xl</span><div class="bar" style="width:32px"></div><span class="px">32 pt</span></div>
+    <div class="space-row"><span>xxl</span><div class="bar" style="width:48px"></div><span class="px">48 pt</span></div>
+    <div class="space-row" style="border-bottom:0"><span>huge</span><div class="bar" style="width:64px"></div><span class="px">64 pt</span></div>
+  </div>
+
+  <h3 style="margin-top:64px;margin-bottom:16px">Rayons</h3>
+  <div class="radii">
+    <div class="r" style="border-radius:8px"><b>radius.s</b>8 pt — chips, tags</div>
+    <div class="r" style="border-radius:14px"><b>radius.m</b>14 pt — buttons, inputs</div>
+    <div class="r" style="border-radius:20px"><b>radius.l</b>20 pt — cards, modals</div>
+    <div class="r" style="border-radius:28px"><b>radius.xl</b>28 pt — quote, hero</div>
+    <div class="r" style="border-radius:999px"><b>radius.round</b>circulaire — breath</div>
+  </div>
+</section>
+
+<hr class="rule">
+
+<!-- ========================= COMPONENTS ========================= -->
+<section id="components">
+  <div class="sec-head">
+    <div class="num ui">02 — Composants</div>
+    <div>
+      <h2>Dix composants. Chacun documenté avec ses états.</h2>
+      <p class="muted">Pour chaque composant : un stage interactif (dark + light côte à côte sur les composants signatures), tous les états, et la spec props/behavior.</p>
+    </div>
+  </div>
+
+  <!-- Button -->
+  <div class="comp">
+    <div class="comp-head"><div><div class="name ui">Composant 01 / 10</div><h2>Button</h2></div><p class="muted">Trois variantes. Primary réservé à l'action principale de l'écran. Secondary pour l'alternative. Ghost pour les actions de retrait.</p></div>
+
+    <div class="comp-stage">
+      <div class="states">
+        <div class="state-row"><span class="lbl ui">Primary · default</span><button class="btn btn-primary">Commencer</button></div>
+        <div class="state-row"><span class="lbl ui">Primary · hover</span><button class="btn btn-primary" style="background:#F0CFAE">Commencer</button></div>
+        <div class="state-row"><span class="lbl ui">Primary · pressed</span><button class="btn btn-primary" style="transform:scale(.97)">Commencer</button></div>
+        <div class="state-row"><span class="lbl ui">Primary · focused</span><button class="btn btn-primary focused">Commencer</button></div>
+        <div class="state-row"><span class="lbl ui">Primary · disabled</span><button class="btn btn-primary disabled">Commencer</button></div>
+        <div class="state-row"><span class="lbl ui">Secondary</span><button class="btn btn-secondary">Snooze 5 min</button></div>
+        <div class="state-row"><span class="lbl ui">Ghost</span><button class="btn btn-ghost">Passer</button></div>
+      </div>
+    </div>
+
+    <div class="spec">
+      <div class="row"><span class="k">props</span><span class="v"><b>variant</b>: 'primary' · 'secondary' · 'ghost' &nbsp;|&nbsp; <b>title</b>: String &nbsp;|&nbsp; <b>action</b>: () → Void &nbsp;|&nbsp; <b>disabled</b>: Bool</span></div>
+      <div class="row"><span class="k">size</span><span class="v">primary/secondary · height 52pt · radius 14pt · full-width sur mobile · padding horizontal 24pt</span></div>
+      <div class="row"><span class="k">behavior</span><span class="v">.scaleEffect(0.97) on press · .easeInOut(100ms) · haptic <b>.medium</b> sur action critique uniquement</span></div>
+      <div class="row"><span class="k">a11y</span><span class="v">VoiceOver label requis · disabled annoncé · zone tap min 44×44pt (déjà 52pt)</span></div>
+    </div>
+  </div>
+
+  <!-- Card -->
+  <div class="comp">
+    <div class="comp-head"><div><div class="name ui">Composant 02 / 10</div><h2>Dashboard Card</h2></div><p class="muted">Six instances par dashboard. États : empty (pré-rituel), filled (post-rituel), pressed (interaction). Aucune ombre en dark mode, ombre douce en light.</p></div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
+      <div class="comp-stage">
+        <div class="states">
+          <div class="state-row"><span class="lbl ui">Filled</span><div class="card"><div class="icon ui">Énergie</div><div class="h">Comment</div><div class="v">Posée, un peu fatiguée.</div><div class="meta">07:14</div></div></div>
+          <div class="state-row"><span class="lbl ui">Empty</span><div class="card empty"><div class="icon ui">Gratitude</div><div class="h">Une phrase</div><div class="v">— en attente —</div></div></div>
+        </div>
+      </div>
+      <div class="comp-stage lite">
+        <div class="states">
+          <div class="state-row"><span class="lbl ui">Filled</span><div class="card"><div class="icon ui">Énergie</div><div class="h">Comment</div><div class="v">Posée, un peu fatiguée.</div><div class="meta">07:14</div></div></div>
+          <div class="state-row"><span class="lbl ui">Empty</span><div class="card empty"><div class="icon ui">Gratitude</div><div class="h">Une phrase</div><div class="v">— en attente —</div></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="spec">
+      <div class="row"><span class="k">props</span><span class="v"><b>category</b>: enum · <b>title</b>: String · <b>value</b>: String? · <b>timestamp</b>: Date? · <b>state</b>: 'empty' · 'filled'</span></div>
+      <div class="row"><span class="k">layout</span><span class="v">radius 20pt · padding 20pt · grille 2 colonnes · gap 12pt entre cards</span></div>
+      <div class="row"><span class="k">a11y</span><span class="v">VoiceOver : "Catégorie {title}, {value ou empty state}, ouvrir détail"</span></div>
+    </div>
+  </div>
+
+  <!-- TextField -->
+  <div class="comp">
+    <div class="comp-head"><div><div class="name ui">Composant 03 / 10</div><h2>TextField</h2></div><p class="muted">Single-line ou textarea (Q3, Q4). Border subtile au repos, accent quand focus.</p></div>
+
+    <div class="comp-stage">
+      <div class="states">
+        <div class="state-row"><span class="lbl ui">Default</span><div class="field"><label>Une gratitude ?</label><input placeholder="Un moment, une personne, une chose…"></div></div>
+        <div class="state-row"><span class="lbl ui">Focused</span><div class="field"><label>Une gratitude ?</label><input class="focused" value="le silence avant que les enfants se lèvent"></div></div>
+        <div class="state-row"><span class="lbl ui">Filled</span><div class="field"><label>Intention</label><input value="présence"></div></div>
+        <div class="state-row"><span class="lbl ui">Disabled</span><div class="field"><label>Intention</label><input class="disabled" value="présence"></div></div>
+      </div>
+    </div>
+
+    <div class="spec">
+      <div class="row"><span class="k">behavior</span><span class="v">border 1pt → 1.5pt accent en focus · transition 200ms · placeholder en text.tertiary</span></div>
+      <div class="row"><span class="k">counter</span><span class="v">Q3 max 140 car. · Q4 max 30 car. · counter en footnote / text.tertiary</span></div>
+    </div>
+  </div>
+
+  <!-- Chips -->
+  <div class="comp">
+    <div class="comp-head"><div><div class="name ui">Composant 04 / 10</div><h2>Chip</h2></div><p class="muted">Sélection mono ou multi (Q2 — priorité, Settings). Forme rectangle arrondi 8pt, jamais pilule.</p></div>
+
+    <div class="comp-stage">
+      <div class="chips">
+        <span class="chip">Travail</span>
+        <span class="chip selected">Corps</span>
+        <span class="chip">Relations</span>
+        <span class="chip">Énergie</span>
+        <span class="chip">Gratitude</span>
+        <span class="chip disabled">Intention</span>
+      </div>
+    </div>
+
+    <div class="spec">
+      <div class="row"><span class="k">states</span><span class="v">default · selected · disabled · pressed (scale 0.97)</span></div>
+      <div class="row"><span class="k">behavior</span><span class="v">tap toggle · transition 150ms · pas de haptic (utilisé en grille, pollue)</span></div>
+    </div>
+  </div>
+
+  <!-- Modal -->
+  <div class="comp">
+    <div class="comp-head"><div><div class="name ui">Composant 05 / 10</div><h2>Modal · half-sheet</h2></div><p class="muted">Présenté en .sheet() iOS natif avec detents medium. Utilisé pour Ask Lumen et Ask contextuel.</p></div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
+      <div class="comp-stage" style="padding:32px">
+        <div class="modal">
+          <div class="h ui">Ask Lumen</div>
+          <div class="q">Comment je peux écouter Karim sans projeter ?</div>
+          <div class="a">Pose une question, ne propose pas de solution. La présence suffit souvent.</div>
+          <div class="meta ui"><span>Hors-ligne</span><span>2 questions restantes</span></div>
+        </div>
+      </div>
+      <div class="comp-stage lite" style="padding:32px">
+        <div class="modal">
+          <div class="h ui">Ask Lumen</div>
+          <div class="q">Comment je peux écouter Karim sans projeter ?</div>
+          <div class="a">Pose une question, ne propose pas de solution. La présence suffit souvent.</div>
+          <div class="meta ui"><span>Hors-ligne</span><span>2 questions restantes</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="spec">
+      <div class="row"><span class="k">presentation</span><span class="v">.sheet() · detents [.medium, .large] · drag-to-dismiss enabled · pas de fond bloqué (pas de glass)</span></div>
+      <div class="row"><span class="k">streaming</span><span class="v">texte révélé caractère par caractère pendant l'appel IA — ~30 char/sec, fade-in subtil</span></div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="comp">
+    <div class="comp-head"><div><div class="name ui">Composant 06 / 10</div><h2>Toast</h2></div><p class="muted">Information douce. Slide-up + fade. Auto-dismiss 4s. Jamais d'erreur dure.</p></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
+      <div class="comp-stage" style="padding:32px"><div class="toast"><span class="dot"></span>Reviens demain pour une nouvelle question.</div></div>
+      <div class="comp-stage lite" style="padding:32px"><div class="toast"><span class="dot"></span>Reviens demain pour une nouvelle question.</div></div>
+    </div>
+  </div>
+
+  <!-- Mood selector -->
+  <div class="comp">
+    <div class="comp-head"><div><div class="name ui">Composant 07 / 10</div><h2>Mood emoji selector</h2></div><p class="muted">Q1 — Ressenti. Le SEUL endroit dans toute l'app où on autorise l'emoji. Cinq niveaux, sélection unique.</p></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
+      <div class="comp-stage" style="padding:32px"><div class="mood"><div class="e">😔</div><div class="e">😐</div><div class="e selected">🙂</div><div class="e">☺️</div><div class="e">✨</div></div></div>
+      <div class="comp-stage lite" style="padding:32px"><div class="mood"><div class="e">😔</div><div class="e">😐</div><div class="e selected">🙂</div><div class="e">☺️</div><div class="e">✨</div></div></div>
+    </div>
+    <div class="spec">
+      <div class="row"><span class="k">behavior</span><span class="v">tap selectionne · scale 1.06 · background → accent · les autres atténués 60% · haptic <b>.soft</b></span></div>
+      <div class="row"><span class="k">a11y</span><span class="v">VoiceOver labels : "Très bas", "Bas", "Posé", "Bien", "Lumineux" — pas l'emoji brut</span></div>
+    </div>
+  </div>
+
+  <!-- Progress -->
+  <div class="comp">
+    <div class="comp-head"><div><div class="name ui">Composant 08 / 10</div><h2>Progress · 4 segments</h2></div><p class="muted">Barre de progression du questionnaire. 4 segments distincts, jamais une barre continue.</p></div>
+    <div class="comp-stage" style="padding:32px;gap:24px">
+      <div class="state-row"><span class="lbl ui">Step 1 / 4</span><div class="progress"><div class="seg current"></div><div class="seg"></div><div class="seg"></div><div class="seg"></div></div></div>
+      <div class="state-row"><span class="lbl ui">Step 2 / 4</span><div class="progress"><div class="seg done"></div><div class="seg current"></div><div class="seg"></div><div class="seg"></div></div></div>
+      <div class="state-row"><span class="lbl ui">Step 3 / 4</span><div class="progress"><div class="seg done"></div><div class="seg done"></div><div class="seg current"></div><div class="seg"></div></div></div>
+      <div class="state-row"><span class="lbl ui">Step 4 / 4</span><div class="progress"><div class="seg done"></div><div class="seg done"></div><div class="seg done"></div><div class="seg current"></div></div></div>
+    </div>
+  </div>
+
+  <!-- Breathing circle -->
+  <div class="comp">
+    <div class="comp-head"><div><div class="name ui">Composant 09 / 10</div><h2>Breathing circle <em style="font-style:italic;color:var(--ink-2);font-weight:400">— signature</em></h2></div><p class="muted">Le composant signature de Lumen. Cercle pulsé sur cycle de 4s (ease-in-out, scale 1.0 → 1.04 → 1.0). Pas de chiffres. Reduce Motion → cercle statique.</p></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
+      <div class="comp-stage breath-stage"><div class="breath"></div></div>
+      <div class="comp-stage lite breath-stage"><div class="breath"></div></div>
+    </div>
+    <div class="spec">
+      <div class="row"><span class="k">animation</span><span class="v">scale 1.0 ↔ 1.045 · cycle 4s · ease-in-out · repeatForever(autoreverses) · pas de spring</span></div>
+      <div class="row"><span class="k">progress fill</span><span class="v">stroke conique 0 → 360° sur la durée timer · couleur accent · épaisseur 1.5pt</span></div>
+      <div class="row"><span class="k">end state</span><span class="v">pulse final scale 1.08 · fade 500ms · haptic <b>.soft</b> · push to questionnaire</span></div>
+      <div class="row"><span class="k">a11y</span><span class="v">VoiceOver : "Timer de présence en cours, {N} secondes restantes" annoncé toutes 30s · Reduce Motion → fade-in statique</span></div>
+    </div>
+  </div>
+
+  <!-- Quote -->
+  <div class="comp">
+    <div class="comp-head"><div><div class="name ui">Composant 10 / 10</div><h2>Quote container</h2></div><p class="muted">Hero du timer et de la synthèse IA. Serif display, gradient subtil de fond, jamais d'auteur en gras.</p></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
+      <div class="comp-stage" style="padding:32px"><div class="quote"><div class="body">Le matin a ses propres pensées. Laisse-les venir avant de leur répondre.</div><div class="who">— ton Lumen</div></div></div>
+      <div class="comp-stage lite" style="padding:32px"><div class="quote"><div class="body">Le matin a ses propres pensées. Laisse-les venir avant de leur répondre.</div><div class="who">— ton Lumen</div></div></div>
+    </div>
+  </div>
+
+</section>
+
+<hr class="rule">
+
+<!-- ========================= MOTION ========================= -->
+<section id="motion">
+  <div class="sec-head">
+    <div class="num ui">03 — Motion</div>
+    <div>
+      <h2>Trois niveaux. Functional, signature, decorative.</h2>
+      <p class="muted">Functional est invisible mais essentiel. Signature porte l'identité. Decorative est interdit par défaut.</p>
+    </div>
+  </div>
+
+  <h3 style="margin-bottom:16px">Durées</h3>
+  <div class="timeline">
+    <div class="tl-row"><span class="lbl">duration.instant</span><div class="bar"><i style="width:10%"></i></div><span class="ms">100 ms</span></div>
+    <div class="tl-row"><span class="lbl">duration.quick</span><div class="bar"><i style="width:20%"></i></div><span class="ms">200 ms</span></div>
+    <div class="tl-row"><span class="lbl">duration.smooth</span><div class="bar"><i style="width:30%"></i></div><span class="ms">300 ms</span></div>
+    <div class="tl-row"><span class="lbl">duration.slow</span><div class="bar"><i style="width:50%"></i></div><span class="ms">500 ms</span></div>
+    <div class="tl-row"><span class="lbl">duration.breath</span><div class="bar"><i style="width:100%"></i></div><span class="ms">4 000 ms</span></div>
+  </div>
+
+  <h3 style="margin-top:48px;margin-bottom:16px">Easings</h3>
+  <div class="spec">
+    <div class="row"><span class="k">standard</span><span class="v">ease-in-out — défaut, transitions, focus, hover</span></div>
+    <div class="row"><span class="k">decelerate</span><span class="v">cubic-bezier(0.0, 0.0, 0.2, 1) — entrées (apparition de la synthèse)</span></div>
+    <div class="row"><span class="k">accelerate</span><span class="v">cubic-bezier(0.4, 0.0, 1.0, 1.0) — sorties (dismiss modal)</span></div>
+    <div class="row"><span class="k">breath</span><span class="v">ease-in-out · cycle 4s autoreverses — cercle de présence</span></div>
+    <div class="row"><span class="k" style="color:var(--error)">interdit</span><span class="v">.spring(), bounce, parallaxe, rotation décorative</span></div>
+  </div>
+
+  <h3 style="margin-top:48px;margin-bottom:16px">Signature motions</h3>
+  <div class="spec">
+    <div class="row"><span class="k">cercle présence</span><span class="v">scale 1.0 → 1.045 → 1.0 · 4s · ease-in-out · repeatForever · stroke conique 0→360°</span></div>
+    <div class="row"><span class="k">reveal synthèse</span><span class="v">3 blocs · fade + slide-up 12pt · délai 250ms entre blocs · easing decelerate · 400ms par bloc</span></div>
+    <div class="row"><span class="k">questionnaire</span><span class="v">slide horizontal 24pt + crossfade · 350ms · ease-in-out · progress bar incrémentée en parallèle</span></div>
+    <div class="row"><span class="k">alarme foreground</span><span class="v">cercle pulse 2s · scale 1.0 → 1.08 · gradient bg ondulant 8s ease-in-out</span></div>
+  </div>
+
+  <h3 style="margin-top:48px;margin-bottom:16px">Haptics</h3>
+  <div class="spec">
+    <div class="row"><span class="k">.medium</span><span class="v">tap "Silence" alarme — UN seul tap fort dans la journée</span></div>
+    <div class="row"><span class="k">.soft</span><span class="v">fin du timer · sélection mood emoji</span></div>
+    <div class="row"><span class="k">.success</span><span class="v">synthèse IA prête à l'écran</span></div>
+    <div class="row"><span class="k" style="color:var(--error)">jamais</span><span class="v">transitions, hover, scroll, dans-questionnaire (pollue le calme)</span></div>
+  </div>
+</section>
+
+<hr class="rule">
+
+<!-- ========================= VOICE & A11Y ========================= -->
+<section id="voice">
+  <div class="sec-head">
+    <div class="num ui">04 — Voice & accessibilité</div>
+    <div>
+      <h2>Le ton fait partie du design system.</h2>
+      <p class="muted">La typographie peut être parfaite, si la copy crie ou félicite, le produit ment. Voici les règles, et des exemples côte à côte.</p>
+    </div>
+  </div>
+
+  <h3 style="margin-bottom:16px">Voice — exemples</h3>
+  <div class="voice">
+    <div class="s yes"><span class="tag ui">Oui</span>Quelques minutes à toi.</div>
+    <div class="s no"><span class="tag ui">Non</span>Bravo ! Tu as complété ton rituel !</div>
+    <div class="s yes"><span class="tag ui">Oui</span>Une chose qui te tient à cœur aujourd'hui ?</div>
+    <div class="s no"><span class="tag ui">Non</span>Allez, définis ta priorité du jour !!!</div>
+    <div class="s yes"><span class="tag ui">Oui</span>Reviens demain.</div>
+    <div class="s no"><span class="tag ui">Non</span>Oh non, tu as atteint ta limite quotidienne !</div>
+  </div>
+
+  <h3 style="margin-top:48px;margin-bottom:16px">Accessibilité — règles non négociables</h3>
+  <div class="a11y">
+    <div class="item"><h4 class="ui">Dynamic Type complet</h4><p class="ui">Toutes les tailles scalent jusqu'à AccessibilityXXXL. Tester systématiquement à xxxLarge ; aucun écran ne doit "casser" — préférer wrap, scroll, et empilage vertical aux troncatures.</p></div>
+    <div class="item"><h4 class="ui">Contraste WCAG AA minimum</h4><p class="ui">4.5:1 sous 18pt, 3.0:1 au-dessus. Toutes les couleurs ont été choisies pour passer (cf. ratios annotés sur la palette).</p></div>
+    <div class="item"><h4 class="ui">Reduce Motion</h4><p class="ui">Cercle de présence devient statique avec fade-in. Reveal synthèse devient un fade global de 300ms. Questionnaire perd le slide horizontal, garde le crossfade.</p></div>
+    <div class="item"><h4 class="ui">Reduce Transparency</h4><p class="ui">Aucun effet glass de toute façon en V1. Si .ultraThinMaterial est utilisé un jour : fallback bg.secondary opaque.</p></div>
+    <div class="item"><h4 class="ui">VoiceOver — labels critiques</h4><p class="ui">Mood selector lit les noms (« Posé », « Bien »…), pas l'emoji. Cercle de présence annonce le temps restant toutes les 30s. Toutes les cards dashboard sont lues comme « Catégorie {nom}, {valeur ou empty} ».</p></div>
+    <div class="item"><h4 class="ui">Hit targets</h4><p class="ui">Minimum 44×44pt partout (les boutons à 52pt sont déjà conformes). Mood emoji : disque de 56pt. Chips : padding 7×14, hauteur effective 32pt + 12pt de zone tap latérale.</p></div>
+  </div>
+
+  <p class="muted" style="margin-top:48px">Le système est compact volontairement. Si un nouveau composant émerge en cours d'étape 3, il rejoint cette page avec ses états avant d'être implémenté.</p>
+</section>
+
+<div style="margin-top:80px;border:1px solid var(--accent-2);border-radius:20px;padding:32px;background:linear-gradient(180deg, rgba(232,195,158,0.04), transparent)">
+  <p class="eyebrow ui" style="margin-bottom:8px">Prochaine étape</p>
+  <h2>Étape 3 — 10+ écrans en dark + light.</h2>
+  <p class="muted">Sur la base de ces tokens et composants, je vais maintenant produire les maquettes. Onboarding « living » (typographie animée, transitions cinétiques), dashboard idle/empty/post-rituel, alarme, timer, questionnaire 4 étapes, synthèse IA, détail catégorie, Ask Lumen, settings. Chaque écran : variante dark + light.</p>
+</div>
+
+</div>
+</body>
+</html>
