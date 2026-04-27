@@ -1,0 +1,182 @@
+[
+  {
+    "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "text": "Chaque matin est une nouvelle chance de choisir qui tu veux être.",
+    "author": null,
+    "lang": "fr"
+  },
+  {
+    "id": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+    "text": "La gratitude transforme ce que nous avons en suffisamment.",
+    "author": "Melody Beattie",
+    "lang": "fr"
+  },
+  {
+    "id": "c3d4e5f6-a7b8-9012-cdef-123456789012",
+    "text": "Commence là où tu es. Utilise ce que tu as. Fais ce que tu peux.",
+    "author": "Arthur Ashe",
+    "lang": "fr"
+  },
+  {
+    "id": "d4e5f6a7-b8c9-0123-def0-234567890123",
+    "text": "La paix commence avec un sourire.",
+    "author": "Mère Teresa",
+    "lang": "fr"
+  },
+  {
+    "id": "e5f6a7b8-c9d0-1234-ef01-345678901234",
+    "text": "Ce n'est pas la montagne que nous conquérons, mais nous-mêmes.",
+    "author": "Edmund Hillary",
+    "lang": "fr"
+  },
+  {
+    "id": "f6a7b8c9-d0e1-2345-f012-456789012345",
+    "text": "Prends soin de tes pensées car elles deviennent tes mots.",
+    "author": null,
+    "lang": "fr"
+  },
+  {
+    "id": "a7b8c9d0-e1f2-3456-0123-567890123456",
+    "text": "Aujourd'hui est riche de possibilités. Choisis l'intention.",
+    "author": null,
+    "lang": "fr"
+  },
+  {
+    "id": "b8c9d0e1-f2a3-4567-1234-678901234567",
+    "text": "Le bonheur n'est pas quelque chose de prêt à l'emploi. Il vient de vos propres actions.",
+    "author": "Dalai Lama",
+    "lang": "fr"
+  },
+  {
+    "id": "c9d0e1f2-a3b4-5678-2345-789012345678",
+    "text": "Sois le changement que tu veux voir dans le monde.",
+    "author": "Gandhi",
+    "lang": "fr"
+  },
+  {
+    "id": "d0e1f2a3-b4c5-6789-3456-890123456789",
+    "text": "Le secret de ta vie future est caché dans ta routine quotidienne.",
+    "author": "Mike Murdock",
+    "lang": "fr"
+  },
+  {
+    "id": "e1f2a3b4-c5d6-7890-4567-901234567890",
+    "text": "Chaque jour est une opportunité d'apprendre quelque chose de nouveau.",
+    "author": null,
+    "lang": "fr"
+  },
+  {
+    "id": "f2a3b4c5-d6e7-8901-5678-012345678901",
+    "text": "L'énergie que tu mets dans ton matin détermine ta journée.",
+    "author": null,
+    "lang": "fr"
+  },
+  {
+    "id": "a3b4c5d6-e7f8-9012-6789-123456789012",
+    "text": "Ta présence est ton pouvoir. Sois ici, maintenant.",
+    "author": null,
+    "lang": "fr"
+  },
+  {
+    "id": "b4c5d6e7-f8a9-0123-7890-234567890123",
+    "text": "La discipline est choisir entre ce que tu veux maintenant et ce que tu veux le plus.",
+    "author": "Abraham Lincoln",
+    "lang": "fr"
+  },
+  {
+    "id": "c5d6e7f8-a9b0-1234-8901-345678901234",
+    "text": "Un petit progrès chaque jour donne de grands résultats.",
+    "author": null,
+    "lang": "fr"
+  },
+  {
+    "id": "d6e7f8a9-b0c1-2345-9012-456789012345",
+    "text": "The morning is wiser than the evening.",
+    "author": "Russian Proverb",
+    "lang": "en"
+  },
+  {
+    "id": "e7f8a9b0-c1d2-3456-0123-567890123456",
+    "text": "Every morning you have two choices: continue to sleep with your dreams or wake up and chase them.",
+    "author": null,
+    "lang": "en"
+  },
+  {
+    "id": "f8a9b0c1-d2e3-4567-1234-678901234567",
+    "text": "Gratitude turns what we have into enough.",
+    "author": null,
+    "lang": "en"
+  },
+  {
+    "id": "a9b0c1d2-e3f4-5678-2345-789012345678",
+    "text": "Do what you can, with what you have, where you are.",
+    "author": "Theodore Roosevelt",
+    "lang": "en"
+  },
+  {
+    "id": "b0c1d2e3-f4a5-6789-3456-890123456789",
+    "text": "Your only limit is your mind.",
+    "author": null,
+    "lang": "en"
+  },
+  {
+    "id": "c1d2e3f4-a5b6-7890-4567-901234567890",
+    "text": "Believe you can and you're halfway there.",
+    "author": "Theodore Roosevelt",
+    "lang": "en"
+  },
+  {
+    "id": "d2e3f4a5-b6c7-8901-5678-012345678901",
+    "text": "Start where you are. Use what you have. Do what you can.",
+    "author": "Arthur Ashe",
+    "lang": "en"
+  },
+  {
+    "id": "e3f4a5b6-c7d8-9012-6789-123456789012",
+    "text": "The secret of getting ahead is getting started.",
+    "author": "Mark Twain",
+    "lang": "en"
+  },
+  {
+    "id": "f4a5b6c7-d8e9-0123-7890-234567890123",
+    "text": "Small daily improvements over time lead to stunning results.",
+    "author": null,
+    "lang": "en"
+  },
+  {
+    "id": "a5b6c7d8-e9f0-1234-8901-345678901234",
+    "text": "You are enough. You have enough. You do enough.",
+    "author": null,
+    "lang": "en"
+  },
+  {
+    "id": "b6c7d8e9-f0a1-2345-9012-456789012345",
+    "text": "Peace begins with a smile.",
+    "author": "Mother Teresa",
+    "lang": "en"
+  },
+  {
+    "id": "c7d8e9f0-a1b2-3456-0123-567890123456",
+    "text": "Today is a new beginning. Make it count.",
+    "author": null,
+    "lang": "en"
+  },
+  {
+    "id": "d8e9f0a1-b2c3-4567-1234-678901234567",
+    "text": "Happiness is not ready-made. It comes from your own actions.",
+    "author": "Dalai Lama",
+    "lang": "en"
+  },
+  {
+    "id": "e9f0a1b2-c3d4-5678-2345-789012345678",
+    "text": "The energy you bring to your morning shapes your day.",
+    "author": null,
+    "lang": "en"
+  },
+  {
+    "id": "f0a1b2c3-d4e5-6789-3456-890123456789",
+    "text": "Be present. Be intentional. Be kind to yourself.",
+    "author": null,
+    "lang": "en"
+  }
+]

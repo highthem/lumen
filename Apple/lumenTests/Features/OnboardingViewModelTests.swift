@@ -1,0 +1,135 @@
+import Testing
+import Foundation
+@testable import lumen
+
+final class MockOnboardingScheduler: AlarmScheduling, @unchecked Sendable {
+    private let lock = NSLock()
+    private var _scheduledAlarms: [Alarm] = []
+    private var _authRequested = false
+    var authorizationResult: Bool = true
+
+    var scheduledAlarms: [Alarm] { lock.withLock { _scheduledAlarms } }
+    var authRequested: Bool { lock.withLock { _authRequested } }
+
+    func requestAuthorizationIfNeeded() async throws -> Bool {
+        lock.withLock { _authRequested = true }
+        return authorizationResult
+    }
+
+    func schedule(_ alarm: Alarm) async throws {
+        lock.withLock { _scheduledAlarms.append(alarm) }
+    }
+
+    func cancel(id: UUID) async throws {}
+    func cancelAll() async throws {}
+    func snooze(id: UUID, minutes: Int) async throws {}
+}
+
+@Suite("OnboardingViewModel")
+struct OnboardingViewModelTests {
+
+    @Test("default step is welcome")
+    @MainActor
+    func defaultStepIsWelcome() {
+        let scheduler = MockOnboardingScheduler()
+        let repo = MockAlarmRepository()
+        let vm = OnboardingViewModel(
+            scheduler: scheduler,
+            scheduleAlarm: ScheduleAlarm(repository: repo, scheduler: scheduler)
+        )
+        #expect(vm.step == .welcome)
+    }
+
+    @Test("advance cycles through all steps")
+    @MainActor
+    func advanceCyclesThroughSteps() {
+        let scheduler = MockOnboardingScheduler()
+        let repo = MockAlarmRepository()
+        let vm = OnboardingViewModel(
+            scheduler: scheduler,
+            scheduleAlarm: ScheduleAlarm(repository: repo, scheduler: scheduler)
+        )
+        #expect(vm.step == .welcome)
+        vm.advance()
+        #expect(vm.step == .pitch)
+        vm.advance()
+        #expect(vm.step == .permissions)
+        vm.advance()
+        #expect(vm.step == .firstAlarm)
+        vm.advance()
+        #expect(vm.step == .firstAlarm)
+    }
+
+    @Test("goBack from welcome stays at welcome")
+    @MainActor
+    func goBackFromWelcomeStaysAtWelcome() {
+        let scheduler = MockOnboardingScheduler()
+        let repo = MockAlarmRepository()
+        let vm = OnboardingViewModel(
+            scheduler: scheduler,
+            scheduleAlarm: ScheduleAlarm(repository: repo, scheduler: scheduler)
+        )
+        vm.goBack()
+        #expect(vm.step == .welcome)
+    }
+
+    @Test("requestNotificationAuthorization sets authorized true when granted")
+    @MainActor
+    func notificationAuthorizationGranted() async {
+        let scheduler = MockOnboardingScheduler()
+        scheduler.authorizationResult = true
+        let repo = MockAlarmRepository()
+        let vm = OnboardingViewModel(
+            scheduler: scheduler,
+            scheduleAlarm: ScheduleAlarm(repository: repo, scheduler: scheduler)
+        )
+        await vm.requestNotificationAuthorization()
+        #expect(vm.notificationsAuthorized == true)
+        #expect(scheduler.authRequested == true)
+    }
+
+    @Test("requestNotificationAuthorization sets authorized false when denied")
+    @MainActor
+    func notificationAuthorizationDenied() async {
+        let scheduler = MockOnboardingScheduler()
+        scheduler.authorizationResult = false
+        let repo = MockAlarmRepository()
+        let vm = OnboardingViewModel(
+            scheduler: scheduler,
+            scheduleAlarm: ScheduleAlarm(repository: repo, scheduler: scheduler)
+        )
+        await vm.requestNotificationAuthorization()
+        #expect(vm.notificationsAuthorized == false)
+    }
+
+    @Test("scheduleFirstAlarm saves repo and schedules")
+    @MainActor
+    func scheduleFirstAlarmPersistsAndSchedules() async throws {
+        OnboardingFlag.reset()
+        let scheduler = MockOnboardingScheduler()
+        let repo = MockAlarmRepository()
+        let vm = OnboardingViewModel(
+            scheduler: scheduler,
+            scheduleAlarm: ScheduleAlarm(repository: repo, scheduler: scheduler)
+        )
+        try await vm.scheduleFirstAlarm()
+        #expect(repo.alarms.count == 1)
+        #expect(scheduler.scheduledAlarms.count == 1)
+        OnboardingFlag.reset()
+    }
+
+    @Test("scheduleFirstAlarm marks onboarding completed")
+    @MainActor
+    func scheduleFirstAlarmMarksCompleted() async throws {
+        OnboardingFlag.reset()
+        let scheduler = MockOnboardingScheduler()
+        let repo = MockAlarmRepository()
+        let vm = OnboardingViewModel(
+            scheduler: scheduler,
+            scheduleAlarm: ScheduleAlarm(repository: repo, scheduler: scheduler)
+        )
+        try await vm.scheduleFirstAlarm()
+        #expect(OnboardingFlag.isCompleted == true)
+        OnboardingFlag.reset()
+    }
+}
