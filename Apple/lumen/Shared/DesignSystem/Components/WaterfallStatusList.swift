@@ -4,6 +4,7 @@ struct WaterfallStatusList: View {
     struct Step: Identifiable {
         let id = UUID()
         let label: String
+        var sublabel: String? = nil
         let status: Status
         let statusLabel: String
 
@@ -39,9 +40,16 @@ struct WaterfallStatusList: View {
                     }
                     .frame(width: 11)
 
-                    Text(step.label)
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundStyle(LumenColor.textPrimary)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(step.label)
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundStyle(LumenColor.textPrimary)
+                        if let sub = step.sublabel {
+                            Text(sub)
+                                .font(.system(size: 12))
+                                .foregroundStyle(LumenColor.textSecondary)
+                        }
+                    }
 
                     Spacer()
 

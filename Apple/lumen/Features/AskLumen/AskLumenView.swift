@@ -31,29 +31,47 @@ struct AskLumenView: View {
                         }
                     }
 
-                    // Question input
-                    ZStack(alignment: .topLeading) {
-                        if vm.question.isEmpty {
-                            Text("Pose ta question…")
+                    // Question input — text field + mic affordance
+                    HStack(alignment: .top, spacing: 10) {
+                        ZStack(alignment: .topLeading) {
+                            if vm.question.isEmpty {
+                                Text("Pose ta question…")
+                                    .font(.system(size: 19, design: .serif))
+                                    .foregroundStyle(LumenColor.textTertiary)
+                                    .padding(.top, 14)
+                                    .padding(.leading, 18)
+                                    .allowsHitTesting(false)
+                            }
+                            TextField("", text: $vm.question, axis: .vertical)
+                                .lineLimit(2...5)
                                 .font(.system(size: 19, design: .serif))
-                                .foregroundStyle(LumenColor.textTertiary)
-                                .padding(.top, 14)
-                                .padding(.leading, 18)
-                                .allowsHitTesting(false)
+                                .foregroundStyle(LumenColor.textPrimary)
+                                .padding(.horizontal, 14)
+                                .padding(.vertical, 12)
+                                .frame(minHeight: 84, alignment: .topLeading)
+                                .background(LumenColor.bgSecondary)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                        .stroke(LumenColor.divider, lineWidth: 1)
+                                )
+                                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
                         }
-                        TextEditor(text: $vm.question)
-                            .font(.system(size: 19, design: .serif))
-                            .foregroundStyle(LumenColor.textPrimary)
-                            .padding(.horizontal, 14)
-                            .padding(.vertical, 8)
-                            .frame(minHeight: 110)
-                            .scrollContentBackground(.hidden)
-                            .background(LumenColor.bgSecondary)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                    .stroke(LumenColor.divider, lineWidth: 1)
-                            )
-                            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+
+                        AskMicButton(state: vm.micState,
+                                     onPressDown: { vm.startDictation() },
+                                     onPressUp: { Task { await vm.stopDictation() } })
+                    }
+
+                    if vm.micState == .listening {
+                        HStack(spacing: 8) {
+                            Circle()
+                                .fill(LumenColor.accent)
+                                .frame(width: 7, height: 7)
+                            Text("on écoute")
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundStyle(LumenColor.accent.opacity(0.85))
+                            Spacer()
+                        }
                     }
 
                     // Response area
@@ -138,5 +156,62 @@ struct AskLumenView: View {
                 .padding(.top, 4)
             }
         }
+    }
+}
+
+// MARK: - Compact mic affordance for the question input
+
+private struct AskMicButton: View {
+    let state: MicState
+    let onPressDown: () -> Void
+    let onPressUp: () -> Void
+
+    @State private var pressed = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var breath: CGFloat = 1.0
+
+    private let size: CGFloat = 44
+
+    var body: some View {
+        ZStack {
+            Group {
+                if state == .listening {
+                    Circle().fill(LumenColor.accent)
+                } else {
+                    Circle()
+                        .fill(LumenColor.accent.opacity(0.12))
+                        .overlay(Circle().strokeBorder(LumenColor.accent, lineWidth: 1.2))
+                }
+            }
+            .frame(width: size, height: size)
+            .scaleEffect(state == .listening && !reduceMotion ? breath : 1.0)
+
+            Image(systemName: "mic.fill")
+                .font(.system(size: 16, weight: .medium))
+                .foregroundStyle(state == .listening ? LumenColor.bgPrimary : LumenColor.accent)
+        }
+        .frame(width: size + 12, height: size + 12)
+        .contentShape(Circle())
+        .onChange(of: state) { _, newState in
+            if newState == .listening && !reduceMotion {
+                withAnimation(.easeInOut(duration: 4).repeatForever(autoreverses: true)) {
+                    breath = 1.06
+                }
+            } else {
+                breath = 1.0
+            }
+        }
+        .gesture(
+            DragGesture(minimumDistance: 0)
+                .onChanged { _ in
+                    if !pressed { pressed = true; onPressDown() }
+                }
+                .onEnded { _ in
+                    if pressed { pressed = false; onPressUp() }
+                }
+        )
+        .accessibilityElement()
+        .accessibilityLabel(state == .listening ? "Relâche pour arrêter la dictée" : "Maintiens pour dicter ta question")
+        .accessibilityAddTraits(.isButton)
     }
 }

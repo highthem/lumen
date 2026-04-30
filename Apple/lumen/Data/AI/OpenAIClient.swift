@@ -58,6 +58,22 @@ final class OpenAIClient: AIProviderClient, @unchecked Sendable {
         )
     }
 
+    /// Cheap auth check. Hits `GET /v1/models` and inspects the status code.
+    /// 200 → valid, 401 → invalid, anything else → network or service error.
+    func ping(apiKey: String) async throws -> Bool {
+        let request = HTTPRequest(
+            url: URL(string: "https://api.openai.com/v1/models")!,
+            method: "GET",
+            headers: ["Authorization": "Bearer \(apiKey)"],
+            body: nil,
+            timeoutSeconds: 8
+        )
+        let response = try await httpClient.send(request)
+        if (200..<300).contains(response.statusCode) { return true }
+        if response.statusCode == 401 || response.statusCode == 403 { return false }
+        throw AIError.providerFailed("openai-ping-\(response.statusCode)")
+    }
+
     // MARK: - Helpers
 
     private func resolvedAPIKey() throws -> String {

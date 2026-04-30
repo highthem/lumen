@@ -57,6 +57,34 @@ final class AnthropicClient: AIProviderClient, @unchecked Sendable {
         )
     }
 
+    /// Cheap auth check using a 1-token messages request. Anthropic does not
+    /// expose a free GET /models endpoint that returns auth status without
+    /// scopes, so we use the messages endpoint with a minimal payload and
+    /// inspect the status code.
+    func ping(apiKey: String) async throws -> Bool {
+        let body: [String: Any] = [
+            "model": "claude-haiku-4-5-20251001",
+            "max_tokens": 1,
+            "messages": [["role": "user", "content": "ping"]]
+        ]
+        let bodyData = try JSONSerialization.data(withJSONObject: body)
+        let request = HTTPRequest(
+            url: URL(string: "https://api.anthropic.com/v1/messages")!,
+            method: "POST",
+            headers: [
+                "x-api-key": apiKey,
+                "anthropic-version": "2023-06-01",
+                "Content-Type": "application/json"
+            ],
+            body: bodyData,
+            timeoutSeconds: 8
+        )
+        let response = try await httpClient.send(request)
+        if (200..<300).contains(response.statusCode) { return true }
+        if response.statusCode == 401 || response.statusCode == 403 { return false }
+        throw AIError.providerFailed("anthropic-ping-\(response.statusCode)")
+    }
+
     // MARK: - Helpers
 
     private func resolvedAPIKey() throws -> String {

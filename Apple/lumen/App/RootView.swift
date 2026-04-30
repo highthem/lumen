@@ -21,6 +21,10 @@ struct RootView: View {
     @State private var selectedTab: Int = 0
     @State private var showAskLumen = false
     @State private var dashboardRefreshKey: Int = 0
+    @State private var splashFinished: Bool = false
+    /// Live-bound to the same UserDefaults key SettingsViewModel writes to —
+    /// so the user's "Apparence" choice is applied immediately to the whole app.
+    @AppStorage(AppAppearance.storageKey) private var appearanceRaw: String = AppAppearance.system.rawValue
     private let composition: CompositionRoot
 
     init(composition: CompositionRoot = CompositionRoot()) {
@@ -46,7 +50,24 @@ struct RootView: View {
     }
 
     var body: some View {
-        if !hasCompletedOnboarding {
+        rootBody
+            .preferredColorScheme(currentAppearance.preferredColorScheme)
+    }
+
+    private var currentAppearance: AppAppearance {
+        AppAppearance(rawValue: appearanceRaw) ?? .system
+    }
+
+    @ViewBuilder
+    private var rootBody: some View {
+        if !splashFinished {
+            SplashView(onComplete: {
+                withAnimation(.easeOut(duration: 0.20)) {
+                    splashFinished = true
+                }
+            })
+            .transition(.opacity)
+        } else if !hasCompletedOnboarding {
             OnboardingFlowView(
                 vm: OnboardingViewModel(
                     scheduler: composition.alarmScheduler,
@@ -54,6 +75,7 @@ struct RootView: View {
                 ),
                 onComplete: { hasCompletedOnboarding = true }
             )
+            .transition(.opacity)
         } else {
             mainTabView
                 .task {
@@ -94,7 +116,8 @@ struct RootView: View {
                         vm: AskLumenViewModel(
                             category: nil,
                             aiSynthesis: composition.aiSynthesisService,
-                            rateLimiter: composition.rateLimiter
+                            rateLimiter: composition.rateLimiter,
+                            dictation: composition.dictateAnswer
                         ),
                         isPresented: $showAskLumen
                     )
@@ -167,7 +190,15 @@ struct RootView: View {
                 tts: composition.speechSynthesizer,
                 exportLogs: composition.exportEthicalLogs,
                 eraseLogs: composition.eraseEthicalLogs
-            )
+            ),
+            makeAdvancedVM: {
+                SettingsAdvancedViewModel(
+                    keyStore: composition.userAPIKeyStore,
+                    openAIClient: composition.openAIClient,
+                    anthropicClient: composition.anthropicClient
+                )
+            },
+            keyStore: composition.userAPIKeyStore
         )
     }
 

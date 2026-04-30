@@ -224,18 +224,8 @@ struct DashboardHomeView: View {
     // MARK: - Ask Lumen FAB
 
     private var askLumenFAB: some View {
-        Button(action: onAskLumen) {
-            Text("?")
-                .font(.system(size: 22, weight: .medium, design: .serif))
-                .italic()
-                .foregroundStyle(LumenColor.bgPrimary)
-                .frame(width: 56, height: 56)
-                .background(
-                    Circle().fill(LumenColor.accent)
-                )
-                .shadow(color: .black.opacity(0.25), radius: 12, x: 0, y: 8)
-        }
-        .padding(.trailing, LumenSpacing.l)
-        .padding(.bottom, LumenSpacing.l)
+        AskLumenFAB(action: onAskLumen)
+            .padding(.trailing, LumenSpacing.l)
+            .padding(.bottom, LumenSpacing.l)
     }
 }

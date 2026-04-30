@@ -59,10 +59,8 @@ struct Q4IntentionView: View {
         ZStack {
             switch state {
             case .default:
-                Text("Dis-le…")
-                    .font(.system(size: 19, design: .serif))
-                    .italic()
-                    .foregroundStyle(LumenColor.textPrimary.opacity(0.42))
+                // Default — empty reveal area; mic + labels carry the CTA.
+                Color.clear
 
             case .listening:
                 LiveTranscript(
@@ -93,23 +91,43 @@ struct Q4IntentionView: View {
 
     @ViewBuilder
     private var micArea: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: 14) {
             MicCTA(
                 isListening: state == .listening,
                 onPressDown: { vm.startDictation(for: .intention) },
                 onPressUp: { Task { await vm.stopDictation(for: .intention) } }
             )
 
-            if state == .listening {
-                HStack(spacing: 6) {
+            switch state {
+            case .default:
+                VStack(spacing: 4) {
+                    Text("Tap pour parler")
+                        .font(.system(size: 15, weight: .medium))
+                        .tracking(-0.075)
+                        .foregroundStyle(LumenColor.textPrimary.opacity(0.75))
+                    Button {
+                        vm.intentionEditingByKeyboard = true
+                    } label: {
+                        Text("ou écrire au clavier")
+                            .font(.system(size: 13, design: .serif))
+                            .italic()
+                            .foregroundStyle(LumenColor.textSecondary)
+                    }
+                    .buttonStyle(.plain)
+                }
+
+            case .listening:
+                HStack(spacing: 8) {
                     Circle()
                         .fill(LumenColor.accent)
-                        .frame(width: 5, height: 5)
+                        .frame(width: 7, height: 7)
                     Text("on écoute")
-                        .font(.system(size: 13, design: .serif))
-                        .italic()
-                        .foregroundStyle(LumenColor.accent.opacity(0.7))
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundStyle(LumenColor.accent.opacity(0.85))
                 }
+
+            default:
+                EmptyView()
             }
         }
     }
@@ -119,20 +137,8 @@ struct Q4IntentionView: View {
         HStack(spacing: 24) {
             switch state {
             case .default:
-                Spacer()
-                Button {
-                    vm.intentionEditingByKeyboard = true
-                } label: {
-                    HStack(spacing: 6) {
-                        Image(systemName: "keyboard")
-                            .font(.system(size: 13))
-                        Text("Écrire au clavier")
-                            .font(.system(size: 13))
-                    }
-                    .foregroundStyle(LumenColor.textSecondary)
-                }
-                .buttonStyle(.plain)
-                Spacer()
+                // The keyboard fallback lives below the mic now; this row stays empty.
+                EmptyView()
 
             case .listening:
                 Spacer()
@@ -175,7 +181,7 @@ struct Q4IntentionView: View {
                 Button {
                     vm.intentionEditingByKeyboard = false
                 } label: {
-                    Text("Tu peux aussi reparler →")
+                    Text("← Tu peux aussi reparler")
                         .font(.system(size: 13, design: .serif))
                         .italic()
                         .foregroundStyle(LumenColor.textSecondary)
@@ -187,22 +193,14 @@ struct Q4IntentionView: View {
     }
 
     private var editingPanel: some View {
-        TextField("présence", text: $vm.intentionWord)
-            .multilineTextAlignment(.center)
-            .font(.system(size: 64, weight: .medium, design: .serif))
-            .italic()
-            .tracking(-1.12)
-            .foregroundStyle(LumenColor.accent)
-            .padding(.bottom, 8)
-            .overlay(
-                Rectangle()
-                    .fill(LumenColor.accent)
-                    .frame(height: 1)
-                    .padding(.horizontal, 30),
-                alignment: .bottom
-            )
-            .frame(maxWidth: 280)
-            .lineLimit(1)
-            .minimumScaleFactor(0.4)
+        SerifUnderlineField(
+            text: $vm.intentionWord,
+            placeholder: "présence",
+            fontSize: 64,
+            tracking: -1.12,
+            lineSpacing: 0,
+            color: LumenColor.accent,
+            maxWidth: 280
+        )
     }
 }

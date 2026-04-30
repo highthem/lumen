@@ -31,6 +31,12 @@ struct SynthesisView: View {
             }
         }
         .task { await vm.load() }
+        .onDisappear {
+            // Speech synthesis is on a long-lived AVSpeechSynthesizer; without
+            // an explicit stop here the voice keeps reading after the screen
+            // is dismissed (continuer / regenerate).
+            Task { await vm.stopTTS() }
+        }
     }
 
     // MARK: - Loading
@@ -51,16 +57,20 @@ struct SynthesisView: View {
 
     private func readyView(response: AIResponse) -> some View {
         VStack(alignment: .leading, spacing: LumenSpacing.l) {
-            // Top header: "Ton matin" eyebrow on the left, listen button + AI badge on the right
-            HStack(alignment: .center) {
-                Eyebrow("Ton matin")
-                Spacer()
-                if response.provider == .apple {
-                    AppleIntelligenceBadge(shimmer: true)
+            // Top header: "Ton matin" eyebrow + on-device badge when relevant.
+            // The listen control moves to a full-width premium player below.
+            VStack(alignment: .leading, spacing: 6) {
+                HStack(alignment: .center) {
+                    Eyebrow("Ton matin")
+                    Spacer()
+                    if response.provider == .apple {
+                        AppleIntelligenceBadge(shimmer: true)
+                    }
                 }
-                SpeakerButton(isPlaying: vm.ttsPlaying) {
-                    Task { await vm.toggleTTS() }
-                }
+                Text(headerDateLabel)
+                    .font(.system(size: 30, weight: .medium, design: .serif))
+                    .tracking(-0.30)
+                    .foregroundStyle(LumenColor.textPrimary)
             }
 
             // Three synthesis blocks (reading focus dims non-current ones during TTS)
@@ -76,34 +86,55 @@ struct SynthesisView: View {
 
             Spacer(minLength: 16)
 
-            // Footer
+            // Premium full-width listen player (V8 signature)
+            ListenPlayer(
+                isPlaying: vm.ttsPlaying,
+                progress: ttsProgress,
+                durationLabel: "≈ 38 s",
+                elapsedLabel: vm.ttsPlaying ? "Lecture · paragraphe \(vm.ttsCurrentBlock + 1) sur 3" : nil,
+                onTap: { Task { await vm.toggleTTS() } }
+            )
+
+            // Footer actions
             VStack(alignment: .leading, spacing: LumenSpacing.m) {
-                Text(footerHint)
-                    .font(.system(size: 12))
-                    .foregroundStyle(LumenColor.textTertiary)
-
                 if !vm.ttsPlaying {
-                    SecondaryCTA(
-                        "Régénérer",
-                        isEnabled: vm.remainingRegens > 0
-                    ) {
-                        Task { await vm.regenerate() }
+                    HStack(spacing: 12) {
+                        SecondaryCTA(
+                            "Régénérer",
+                            isEnabled: vm.remainingRegens > 0
+                        ) {
+                            Task { await vm.regenerate() }
+                        }
+                        PrimaryCTA("Continuer →") {
+                            onComplete()
+                        }
                     }
-                }
 
-                PrimaryCTA("Continuer vers le dashboard") {
-                    onComplete()
+                    Text("Régénérations · \(vm.remainingRegens) / 3 restantes")
+                        .font(.system(size: 12))
+                        .foregroundStyle(LumenColor.textTertiary)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                } else {
+                    PrimaryCTA("Continuer →") {
+                        onComplete()
+                    }
                 }
             }
         }
     }
 
-    private var footerHint: String {
-        if vm.ttsPlaying {
-            return "Lecture · paragraphe \(vm.ttsCurrentBlock + 1) sur 3"
-        } else {
-            return "Régénérations · \(vm.remainingRegens) / 3 restantes"
-        }
+    private var headerDateLabel: String {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "fr_FR")
+        formatter.dateFormat = "EEEE d MMMM."
+        return formatter.string(from: Date()).capitalized
+    }
+
+    private var ttsProgress: Double {
+        guard vm.ttsPlaying else { return 0 }
+        // 3-block synthesis — block index gives a coarse-grained progress
+        // until the speech synthesizer exposes elapsed time.
+        return (Double(vm.ttsCurrentBlock) + 0.5) / 3.0
     }
 
     private func intentionBlock(text: String, isSupport: Bool) -> some View {

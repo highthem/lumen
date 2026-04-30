@@ -1,10 +1,14 @@
 import Foundation
 import Observation
+import SwiftUI
 
 enum AppAppearance: String, CaseIterable, Identifiable, Sendable {
     case system
     case dark
     case light
+
+    /// UserDefaults key shared between the Settings VM and the root SwiftUI view.
+    static let storageKey = "lumen.settings.appearance"
 
     var id: String { rawValue }
 
@@ -13,6 +17,15 @@ enum AppAppearance: String, CaseIterable, Identifiable, Sendable {
         case .system: return "Système"
         case .dark:   return "Sombre"
         case .light:  return "Clair"
+        }
+    }
+
+    /// `nil` means "follow system" — that's what `.preferredColorScheme(nil)` expects.
+    var preferredColorScheme: ColorScheme? {
+        switch self {
+        case .system: return nil
+        case .dark:   return .dark
+        case .light:  return .light
         }
     }
 }
@@ -33,7 +46,7 @@ final class SettingsViewModel {
     }
     var selectedSpeed: SpeedOption
     var appearance: AppAppearance {
-        didSet { UserDefaults.standard.set(appearance.rawValue, forKey: "lumen.settings.appearance") }
+        didSet { UserDefaults.standard.set(appearance.rawValue, forKey: AppAppearance.storageKey) }
     }
     var availableVoices: [TTSVoice] = []
 
@@ -57,7 +70,7 @@ final class SettingsViewModel {
         // M1: default ON when key has never been set
         self.voiceModeEnabled = (UserDefaults.standard.object(forKey: "lumen.settings.voiceDefault") as? Bool) ?? true
 
-        let storedAppearance = UserDefaults.standard.string(forKey: "lumen.settings.appearance")
+        let storedAppearance = UserDefaults.standard.string(forKey: AppAppearance.storageKey)
             .flatMap { AppAppearance(rawValue: $0) } ?? .system
         self.appearance = storedAppearance
 
@@ -81,9 +94,17 @@ final class SettingsViewModel {
 
     func exportLogsFile() async throws -> URL {
         let data = try await exportLogs.execute()
+
+        // Stamp the filename with the current date so multiple exports don't
+        // collide and the receiving app shows a meaningful name.
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.dateFormat = "yyyy-MM-dd-HHmmss"
+        let stamp = formatter.string(from: Date())
+
         let url = FileManager.default.temporaryDirectory
-            .appendingPathComponent("lumen-ethical-logs.json")
-        try data.write(to: url)
+            .appendingPathComponent("lumen-ethical-logs-\(stamp).json")
+        try data.write(to: url, options: .atomic)
         return url
     }
 

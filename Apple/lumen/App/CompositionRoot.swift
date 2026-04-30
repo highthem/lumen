@@ -27,6 +27,9 @@ final class CompositionRoot {
     let speechRecognizer: SpeechRecognizer
     let speechSynthesizer: SpeechSynthesizer
     let quoteProvider: any QuoteProviding
+    let userAPIKeyStore: UserAPIKeyStore
+    let openAIClient: OpenAIClient
+    let anthropicClient: AnthropicClient
 
     // Use cases
     let startRitual: StartRitual
@@ -119,6 +122,14 @@ final class CompositionRoot {
         let httpClient = URLSessionHTTPClient()
         let openaiClient = OpenAIClient(httpClient: httpClient)
         let anthropicClient = AnthropicClient(httpClient: httpClient)
+        self.openAIClient = openaiClient
+        self.anthropicClient = anthropicClient
+
+        // User-provided API keys (BYOK). Loaded asynchronously after init so
+        // the synthesis path picks up the user's key on the first attempt.
+        let userKeyStore = UserAPIKeyStore()
+        self.userAPIKeyStore = userKeyStore
+        Task { await userKeyStore.load() }
 
         // On-device AI (canImport gate)
         let onDeviceClient: any AIProviderClient

@@ -44,6 +44,7 @@ final class MockRateLimiter: RateLimiting, @unchecked Sendable {
     var canProceedResult = true
     var consumeCallCount = 0
     var resetCallCount = 0
+    var remainingSlotsResult = 3
     private let lock = NSLock()
 
     func canProceed(action: AIAction) async -> Bool { canProceedResult }
@@ -54,6 +55,10 @@ final class MockRateLimiter: RateLimiting, @unchecked Sendable {
 
     func reset() async {
         lock.withLock { resetCallCount += 1 }
+    }
+
+    func remainingSlots(action: AIAction) async -> Int {
+        remainingSlotsResult
     }
 }
 

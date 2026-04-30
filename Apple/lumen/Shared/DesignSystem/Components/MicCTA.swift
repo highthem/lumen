@@ -1,9 +1,9 @@
 import SwiftUI
 
-/// V3 Sunrise Echo mic: 96pt circle, no microphone glyph.
-/// - idle:        thin accent ring + serif left double-quote (`"`) at 46pt italic
-/// - listening:   radial gradient bloom + 4s breathing + single arc tracing 0→360°
-/// - transcribed: muted ring + serif `·` at 32pt
+/// V8 mic CTA: 120pt circle, real microphone glyph.
+/// - idle:        1.5pt accent border, 12% accent fill, mic outline glyph (42pt)
+/// - listening:   solid accent fill, 4s breathing scale, two outward concentric ring waves
+/// - transcribed: thin accent border, faded mic glyph
 struct MicCTA: View {
     let isListening: Bool
     let onPressDown: () -> Void
@@ -11,87 +11,56 @@ struct MicCTA: View {
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var pressed = false
-    @State private var breathPhase: CGFloat = 0
-    @State private var arcAngle: Double = 0
-    @State private var arcOpacity: Double = 0.2
+    @State private var breathScale: CGFloat = 1.0
+    @State private var ring1Scale: CGFloat = 0.95
+    @State private var ring1Opacity: Double = 0.55
+    @State private var ring2Scale: CGFloat = 0.95
+    @State private var ring2Opacity: Double = 0.55
 
+    private let buttonSize: CGFloat = 120
     private let breathCycle: TimeInterval = 4.0
-    private let buttonSize: CGFloat = 96
-
-    private var state: VisualState {
-        // The transcribed visual is driven by the parent — when neither listening
-        // nor empty. We can't see the text from here, so the parent picks idle vs
-        // transcribed via a flag we won't add right now: both share the inset-ring
-        // chrome and only the glyph differs. Keep visual state binary here; the
-        // serif `·` for transcribed is a parent-rendered detail in the mockup but
-        // visually equivalent to idle for this 96pt button.
-        isListening ? .listening : .idle
-    }
-
-    private enum VisualState { case idle, listening }
 
     var body: some View {
         ZStack {
-            // Listening: tracing arc just outside the button
+            // Listening: two concentric ring waves expanding outward
             if isListening {
-                Circle()
-                    .trim(from: 0, to: arcAngle / 360)
-                    .stroke(LumenColor.accent.opacity(arcOpacity), style: StrokeStyle(lineWidth: 1, lineCap: .round))
-                    .rotationEffect(.degrees(-90))
-                    .frame(width: buttonSize + 16, height: buttonSize + 16)
+                ringWave(scale: ring1Scale, opacity: ring1Opacity)
+                ringWave(scale: ring2Scale, opacity: ring2Opacity)
             }
 
             // Main button
             ZStack {
                 if isListening {
-                    Circle()
-                        .fill(
-                            RadialGradient(
-                                colors: [
-                                    LumenColor.accent.opacity(0.55),
-                                    LumenColor.accent.opacity(0.18),
-                                    LumenColor.accent.opacity(0.04),
-                                    .clear
-                                ],
-                                center: .init(x: 0.5, y: 0.6),
-                                startRadius: 0,
-                                endRadius: buttonSize / 2
-                            )
-                        )
-                    Circle()
-                        .strokeBorder(LumenColor.accent.opacity(0.55), lineWidth: 1)
+                    Circle().fill(LumenColor.accent)
                 } else {
                     Circle()
-                        .strokeBorder(LumenColor.accent.opacity(0.45), lineWidth: 1)
+                        .fill(LumenColor.accent.opacity(0.12))
+                        .overlay(
+                            Circle().strokeBorder(LumenColor.accent, lineWidth: 1.5)
+                        )
                 }
 
-                if !isListening {
-                    Text("\u{201C}") // left double quotation mark
-                        .font(.system(size: 46, design: .serif))
-                        .italic()
-                        .foregroundStyle(LumenColor.accent)
-                        .offset(y: -2)
-                }
+                MicGlyph(size: 42, color: isListening ? LumenColor.bgPrimary : LumenColor.accent)
             }
             .frame(width: buttonSize, height: buttonSize)
-            .scaleEffect(isListening && !reduceMotion ? (1.0 + breathPhase * 0.03) : 1.0)
+            .scaleEffect(isListening && !reduceMotion ? breathScale : 1.0)
             .shadow(
-                color: isListening ? LumenColor.accent.opacity(0.18) : .clear,
+                color: isListening ? LumenColor.accent.opacity(0.20) : .clear,
                 radius: 30, x: 0, y: 0
             )
         }
-        .frame(width: buttonSize + 24, height: buttonSize + 24)
+        .frame(width: buttonSize + 40, height: buttonSize + 40)
         .contentShape(Circle())
         .onChange(of: isListening) { _, listening in
             if listening && !reduceMotion {
                 withAnimation(.easeInOut(duration: breathCycle).repeatForever(autoreverses: true)) {
-                    breathPhase = 1
+                    breathScale = 1.03
                 }
-                animateArc()
+                animateRings()
             } else {
-                breathPhase = 0
-                arcAngle = 0
-                arcOpacity = 0.2
+                breathScale = 1.0
+                ring1Scale = 0.95; ring1Opacity = 0.55
+                ring2Scale = 0.95; ring2Opacity = 0.55
             }
         }
         .gesture(
@@ -114,12 +83,75 @@ struct MicCTA: View {
         .accessibilityAddTraits(.isButton)
     }
 
-    private func animateArc() {
-        // 0 → 360° over half the cycle, then 360 → 0 (mock effect of trace+retrace).
-        // SwiftUI animations of trim respect repeatForever with autoreverses.
-        withAnimation(.easeInOut(duration: breathCycle / 2).repeatForever(autoreverses: true)) {
-            arcAngle = 360
-            arcOpacity = 0.65
+    private func ringWave(scale: CGFloat, opacity: Double) -> some View {
+        Circle()
+            .strokeBorder(LumenColor.accent, lineWidth: 1.5)
+            .frame(width: buttonSize + 20, height: buttonSize + 20)
+            .scaleEffect(scale)
+            .opacity(opacity)
+    }
+
+    private func animateRings() {
+        // First ring
+        withAnimation(.easeOut(duration: breathCycle).repeatForever(autoreverses: false)) {
+            ring1Scale = 1.45
+            ring1Opacity = 0
         }
+        // Second ring offset by half a cycle
+        DispatchQueue.main.asyncAfter(deadline: .now() + breathCycle / 2) {
+            withAnimation(.easeOut(duration: breathCycle).repeatForever(autoreverses: false)) {
+                ring2Scale = 1.45
+                ring2Opacity = 0
+            }
+        }
+    }
+}
+
+/// Outline microphone glyph used inside MicCTA (matches the SVG in `_chrome.jsx`).
+private struct MicGlyph: View {
+    var size: CGFloat = 42
+    var color: Color
+
+    var body: some View {
+        ZStack {
+            // Capsule (microphone capsule)
+            RoundedRectangle(cornerRadius: size * 0.21, style: .continuous)
+                .fill(color)
+                .frame(width: size * 0.34, height: size * 0.55)
+                .offset(y: -size * 0.10)
+
+            // Cradle arc (open-bottom curve)
+            CradleArc()
+                .stroke(color, style: StrokeStyle(lineWidth: 1.6, lineCap: .round))
+                .frame(width: size * 0.72, height: size * 0.36)
+                .offset(y: size * 0.16)
+
+            // Stand line
+            Rectangle()
+                .fill(color)
+                .frame(width: 1.6, height: size * 0.12)
+                .offset(y: size * 0.40)
+
+            // Base bar
+            Rectangle()
+                .fill(color)
+                .frame(width: size * 0.30, height: 1.6)
+                .offset(y: size * 0.48)
+        }
+        .frame(width: size, height: size)
+    }
+}
+
+private struct CradleArc: Shape {
+    func path(in rect: CGRect) -> Path {
+        var p = Path()
+        p.addArc(
+            center: CGPoint(x: rect.midX, y: rect.minY),
+            radius: rect.width / 2,
+            startAngle: .degrees(0),
+            endAngle: .degrees(180),
+            clockwise: false
+        )
+        return p
     }
 }

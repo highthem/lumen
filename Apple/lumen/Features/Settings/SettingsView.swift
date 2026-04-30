@@ -2,11 +2,16 @@ import SwiftUI
 
 struct SettingsView: View {
     @State var vm: SettingsViewModel
-    @State private var exportURL: URL?
-    @State private var showExportSheet = false
+    @State private var exportItem: ExportItem?
     @State private var showEraseAlert = false
     @State private var eraseError: String?
-    @State private var showAskLumen = false
+    @State private var exportError: String?
+
+    /// Builds the BYOK Mode-avancé screen on demand.
+    let makeAdvancedVM: () -> SettingsAdvancedViewModel
+
+    /// Live BYOK store — drives the badge + advanced row sub-label.
+    var keyStore: UserAPIKeyStore
 
     var body: some View {
         NavigationStack {
@@ -14,6 +19,8 @@ struct SettingsView: View {
                 rituelSection
                 voiceSection
                 aiSection
+                quotaSection
+                advancedSection
                 ethicalSection
                 appearanceSection
                 aboutSection
@@ -21,12 +28,22 @@ struct SettingsView: View {
             .scrollContentBackground(.hidden)
             .background(LumenColor.bgPrimary)
             .navigationTitle("Réglages")
-            .onAppear { vm.load() }
-        }
-        .sheet(isPresented: $showExportSheet) {
-            if let url = exportURL {
-                ShareSheet(activityItems: [url])
+            .toolbar {
+                if keyStore.hasKey {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Text("● Clé personnelle")
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundStyle(LumenColor.accent)
+                    }
+                }
             }
+            .onAppear {
+                vm.load()
+                Task { await keyStore.load() }
+            }
+        }
+        .sheet(item: $exportItem) { item in
+            ShareSheet(activityItems: [item.url])
         }
         .alert("Effacer les logs ?", isPresented: $showEraseAlert) {
             Button("Effacer", role: .destructive) {
@@ -41,6 +58,14 @@ struct SettingsView: View {
             Button("Annuler", role: .cancel) {}
         } message: {
             Text("Toutes tes données de monitoring éthique seront supprimées définitivement.")
+        }
+        .alert("Export impossible", isPresented: Binding(
+            get: { exportError != nil },
+            set: { if !$0 { exportError = nil } }
+        )) {
+            Button("OK", role: .cancel) { exportError = nil }
+        } message: {
+            Text(exportError ?? "")
         }
     }
 
@@ -91,30 +116,72 @@ struct SettingsView: View {
     }
 
     private var aiSection: some View {
-        Section("Intelligence Artificielle") {
+        Section("IA") {
             WaterfallStatusList(steps: [
                 WaterfallStatusList.Step(
-                    label: "OpenAI GPT-4o-mini",
-                    status: hasOpenAIKey ? .live : .warn,
-                    statusLabel: hasOpenAIKey ? "Actif" : "Clé manquante"
-                ),
-                WaterfallStatusList.Step(
-                    label: "Anthropic Claude",
-                    status: hasAnthropicKey ? .live : .warn,
-                    statusLabel: hasAnthropicKey ? "Actif" : "Clé manquante"
+                    label: "Lumen AI",
+                    sublabel: keyStore.hasKey ? "Cloud · clé personnelle" : "Cloud · primaire",
+                    status: .live,
+                    statusLabel: "En cours"
                 ),
                 WaterfallStatusList.Step(
                     label: "Apple Intelligence",
+                    sublabel: "On-device · iPhone 15 Pro et plus",
                     status: appleIntelligenceStatus,
                     statusLabel: appleIntelligenceLabel
                 ),
                 WaterfallStatusList.Step(
-                    label: "File d'attente hors-ligne",
+                    label: "File d'attente",
+                    sublabel: "Si pas de réseau · génération différée",
                     status: .standby,
-                    statusLabel: "Secours"
+                    statusLabel: "Stand-by"
                 )
             ])
+
+            Text(keyStore.hasKey
+                 ? "Lumen AI utilise ta clé personnelle. Aucune réponse n'est stockée sur nos serveurs."
+                 : "Lumen AI s'appuie sur OpenAI et Anthropic. Aucune réponse n'est stockée sur nos serveurs.")
+                .font(.system(size: 13, design: .serif))
+                .italic()
+                .foregroundStyle(LumenColor.textTertiary)
+                .fixedSize(horizontal: false, vertical: true)
         }
+    }
+
+    private var quotaSection: some View {
+        Section("Quotas") {
+            Text(keyStore.hasKey
+                 ? "Illimité · clé personnelle active."
+                 : "3 synthèses par jour · 3 questions « Ask Lumen ».")
+                .font(.system(size: 14))
+                .foregroundStyle(LumenColor.textPrimary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    private var advancedSection: some View {
+        Section {
+            NavigationLink {
+                SettingsAdvancedView(vm: makeAdvancedVM())
+            } label: {
+                HStack {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Mode avancé")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundStyle(LumenColor.textPrimary)
+                        Text(advancedSubLabel)
+                            .font(.system(size: 12))
+                            .foregroundStyle(LumenColor.textSecondary)
+                    }
+                    Spacer()
+                }
+            }
+        }
+    }
+
+    private var advancedSubLabel: String {
+        guard keyStore.hasKey else { return "Utiliser ma propre clé API" }
+        return "Ta clé \(keyStore.provider.displayName) · active"
     }
 
     private var ethicalSection: some View {
@@ -122,9 +189,11 @@ struct SettingsView: View {
             Button("Exporter en JSON") {
                 Task {
                     do {
-                        exportURL = try await vm.exportLogsFile()
-                        showExportSheet = true
-                    } catch {}
+                        let url = try await vm.exportLogsFile()
+                        exportItem = ExportItem(url: url)
+                    } catch {
+                        exportError = error.localizedDescription
+                    }
                 }
             }
             .foregroundStyle(LumenColor.accent)
@@ -168,14 +237,6 @@ struct SettingsView: View {
 
     // MARK: - Helpers
 
-    private var hasOpenAIKey: Bool {
-        APIKeyResolver.isPresent(infoKey: "OPENAI_API_KEY")
-    }
-
-    private var hasAnthropicKey: Bool {
-        APIKeyResolver.isPresent(infoKey: "ANTHROPIC_API_KEY")
-    }
-
     private var appleIntelligenceStatus: WaterfallStatusList.Step.Status {
         #if canImport(FoundationModels)
         if #available(iOS 26.0, *) {
@@ -188,10 +249,10 @@ struct SettingsView: View {
     private var appleIntelligenceLabel: String {
         #if canImport(FoundationModels)
         if #available(iOS 26.0, *) {
-            return AppleIntelligenceProvider.isAvailable ? "Disponible" : "Non disponible"
+            return AppleIntelligenceProvider.isAvailable ? "Disponible" : "Indispo"
         }
         #endif
-        return "Non disponible"
+        return "Indispo"
     }
 
     private var appVersion: String {
@@ -203,13 +264,32 @@ struct SettingsView: View {
     }
 }
 
+// MARK: - Export item (drives the share sheet via .sheet(item:))
+
+struct ExportItem: Identifiable {
+    let id = UUID()
+    let url: URL
+}
+
 // MARK: - ShareSheet wrapper
 
 private struct ShareSheet: UIViewControllerRepresentable {
     let activityItems: [Any]
 
     func makeUIViewController(context: Context) -> UIActivityViewController {
-        UIActivityViewController(activityItems: activityItems, applicationActivities: nil)
+        let vc = UIActivityViewController(activityItems: activityItems, applicationActivities: nil)
+        // iPad needs a popover anchor; without it the sheet silently fails to present.
+        if let popover = vc.popoverPresentationController {
+            let anchor = UIApplication.shared.connectedScenes
+                .compactMap { ($0 as? UIWindowScene)?.keyWindow }
+                .first
+            popover.sourceView = anchor
+            if let bounds = anchor?.bounds {
+                popover.sourceRect = CGRect(x: bounds.midX, y: bounds.midY, width: 0, height: 0)
+            }
+            popover.permittedArrowDirections = []
+        }
+        return vc
     }
 
     func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}

@@ -36,6 +36,21 @@ struct AlarmRingingView: View {
 
             AlarmSunrise()
 
+            // Soft radial scrim behind the greeting block — keeps the
+            // typography readable through the rising sunrise gradient.
+            RadialGradient(
+                colors: [
+                    LumenColor.bgPrimary.opacity(0.55),
+                    LumenColor.bgPrimary.opacity(0.25),
+                    .clear
+                ],
+                center: UnitPoint(x: 0.5, y: 0.38),
+                startRadius: 40,
+                endRadius: 280
+            )
+            .allowsHitTesting(false)
+            .ignoresSafeArea()
+
             TimelineView(.periodic(from: .now, by: 30)) { context in
                 content(now: context.date)
             }
@@ -74,12 +89,14 @@ struct AlarmRingingView: View {
                     .padding(.top, 4)
 
                 Text(Self.copyVariants[copyVariant])
-                    .font(.system(size: 18, design: .serif))
+                    .font(.system(size: 30, weight: .medium, design: .serif))
                     .italic()
-                    .foregroundStyle(LumenColor.textPrimary.opacity(0.7))
+                    .tracking(-0.45)
+                    .foregroundStyle(LumenColor.textPrimary)
                     .multilineTextAlignment(.center)
-                    .frame(maxWidth: 280)
-                    .padding(.top, 6)
+                    .frame(maxWidth: 320)
+                    .shadow(color: LumenColor.bgPrimary.opacity(0.45), radius: 18, x: 0, y: 0)
+                    .padding(.top, 12)
             }
             .padding(.top, 36)
             .frame(maxWidth: .infinity)
