@@ -7,6 +7,7 @@ enum SynthesisState: Sendable {
     case ready(AIResponse)
     case queued
     case rateLimited
+    case missingAPIKey
     case error(String)
 }
 
@@ -81,14 +82,18 @@ final class SynthesisViewModel {
             case .queued:
                 state = .queued
             }
+        } catch let error as AIError {
+            switch error {
+            case .missingAPIKey: state = .missingAPIKey
+            case .rateLimited:   state = .rateLimited
+            default:             state = .error(String(describing: error))
+            }
         } catch {
             state = .error(error.localizedDescription)
         }
     }
 
     private func updateRemainingRegens() async {
-        let used = await rateLimiter.canProceed(action: .manualRegeneration)
-        // canProceed returns true if we can still go — derive remaining from shared cap (3)
-        remainingRegens = used ? 3 : 0
+        remainingRegens = await rateLimiter.remainingSlots(action: .manualRegeneration)
     }
 }

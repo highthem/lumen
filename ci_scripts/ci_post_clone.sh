@@ -17,14 +17,20 @@ SECRETS_FILE="$CONFIG_DIR/Secrets.xcconfig"
 
 mkdir -p "$CONFIG_DIR"
 
+missing=0
 if [ -z "$OPENAI_API_KEY" ]; then
-  echo "⚠️  OPENAI_API_KEY not set — using placeholder"
-  OPENAI_API_KEY="MISSING_IN_CI"
+  echo "✗ OPENAI_API_KEY is not set in Xcode Cloud workflow secrets" >&2
+  missing=1
 fi
 
 if [ -z "$ANTHROPIC_API_KEY" ]; then
-  echo "⚠️  ANTHROPIC_API_KEY not set — using placeholder"
-  ANTHROPIC_API_KEY="MISSING_IN_CI"
+  echo "✗ ANTHROPIC_API_KEY is not set in Xcode Cloud workflow secrets" >&2
+  missing=1
+fi
+
+if [ "$missing" -eq 1 ]; then
+  echo "Set them at App Store Connect → Xcode Cloud → Workflow → Environment (Secret)." >&2
+  exit 1
 fi
 
 cat > "$SECRETS_FILE" <<XCC

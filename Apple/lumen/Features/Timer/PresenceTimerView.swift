@@ -9,32 +9,43 @@ struct PresenceTimerView: View {
             LumenColor.bgPrimary.ignoresSafeArea()
 
             VStack(spacing: 0) {
+                Eyebrow("Présence · 60 secondes")
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .padding(.top, 36)
+
                 Spacer()
 
-                BreathingCircle()
-                    .padding(.bottom, LumenSpacing.xl)
+                VStack(spacing: 48) {
+                    if let quote = vm.quote {
+                        VStack(spacing: 12) {
+                            Text(quote.text)
+                                .font(.system(size: 26, weight: .regular, design: .serif))
+                                .tracking(-0.26)
+                                .lineSpacing(6)
+                                .multilineTextAlignment(.center)
+                                .foregroundStyle(LumenColor.textPrimary)
+                                .frame(maxWidth: 280)
 
-                if let quote = vm.quote {
-                    Text(quote.text)
-                        .font(.system(size: 24, weight: .regular, design: .serif))
-                        .italic()
-                        .multilineTextAlignment(.center)
-                        .lineLimit(4)
-                        .foregroundStyle(LumenColor.textPrimary.opacity(0.75))
-                        .padding(.horizontal, LumenSpacing.xl)
-                        .padding(.bottom, LumenSpacing.s)
-
-                    if let author = quote.author {
-                        Text("— \(author)")
-                            .lumenFont(.caption)
-                            .foregroundStyle(LumenColor.textTertiary)
+                            if let author = quote.author {
+                                Text("— \(author)")
+                                    .font(.system(size: 12))
+                                    .tracking(2)
+                                    .textCase(.uppercase)
+                                    .foregroundStyle(LumenColor.textTertiary)
+                            }
+                        }
                     }
+
+                    BreathingCircle()
                 }
 
                 Spacer()
 
-                GhostCTA(title: "Passer") {
-                    vm.skip()
+                HStack {
+                    Spacer()
+                    GhostCTA(title: "Passer →") {
+                        vm.skip()
+                    }
                 }
                 .padding(.bottom, LumenSpacing.l)
             }

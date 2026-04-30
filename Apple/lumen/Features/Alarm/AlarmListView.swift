@@ -11,6 +11,8 @@ struct AlarmListView: View {
             List {
                 ForEach(vm.alarms) { alarm in
                     alarmRow(alarm)
+                        .listRowBackground(LumenColor.bgSecondary)
+                        .listRowSeparatorTint(LumenColor.divider)
                         .swipeActions {
                             Button(role: .destructive) {
                                 Task { await vm.delete(alarm) }
@@ -23,7 +25,9 @@ struct AlarmListView: View {
                         }
                 }
             }
-            .navigationTitle("Alarmes")
+            .scrollContentBackground(.hidden)
+            .background(LumenColor.bgPrimary)
+            .navigationTitle("Réveil")
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
@@ -57,12 +61,15 @@ struct AlarmListView: View {
     @ViewBuilder
     private func alarmRow(_ alarm: Alarm) -> some View {
         HStack {
-            VStack(alignment: .leading, spacing: LumenSpacing.xs) {
+            VStack(alignment: .leading, spacing: 4) {
                 Text(timeString(from: alarm.time))
-                    .lumenFont(.title2)
-                    .foregroundStyle(LumenColor.textPrimary)
+                    .font(.system(size: 32, weight: .medium, design: .serif))
+                    .tracking(-0.32)
+                    .foregroundStyle(alarm.isActive ? LumenColor.textPrimary : LumenColor.textTertiary)
                 Text(recurrenceLabel(alarm.recurrence))
-                    .lumenFont(.footnote)
+                    .font(.system(size: 12))
+                    .tracking(2)
+                    .textCase(.uppercase)
                     .foregroundStyle(LumenColor.textSecondary)
             }
             Spacer()
@@ -71,8 +78,9 @@ struct AlarmListView: View {
                 set: { _ in Task { await vm.toggle(alarm) } }
             ))
             .labelsHidden()
+            .tint(LumenColor.accent)
         }
-        .padding(.vertical, LumenSpacing.xs)
+        .padding(.vertical, 8)
     }
 
     private func timeString(from date: Date) -> String {

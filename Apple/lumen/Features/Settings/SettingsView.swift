@@ -169,13 +169,11 @@ struct SettingsView: View {
     // MARK: - Helpers
 
     private var hasOpenAIKey: Bool {
-        let key = Bundle.main.object(forInfoDictionaryKey: "OPENAI_API_KEY") as? String
-        return !(key?.isEmpty ?? true)
+        APIKeyResolver.isPresent(infoKey: "OPENAI_API_KEY")
     }
 
     private var hasAnthropicKey: Bool {
-        let key = Bundle.main.object(forInfoDictionaryKey: "ANTHROPIC_API_KEY") as? String
-        return !(key?.isEmpty ?? true)
+        APIKeyResolver.isPresent(infoKey: "ANTHROPIC_API_KEY")
     }
 
     private var appleIntelligenceStatus: WaterfallStatusList.Step.Status {

@@ -35,23 +35,31 @@ final class NotificationActionsHandler: NSObject, UNUserNotificationCenterDelega
             return
         }
 
-        let snooze = self.snooze
-        let cancel = self.cancel
-        let appState = self.appState
-
-        Task {
-            switch actionId {
-            case LumenNotificationAction.snooze.rawValue:
-                try? await snooze.execute(alarmId: uuid)
-
-            case LumenNotificationAction.silence.rawValue:
-                try? await cancel.execute(alarmId: uuid)
-                await appState.send(.alarmSilenced)
-
-            default:
-                await appState.send(.alarmFired(alarmId: uuid))
-            }
+        // Hop to MainActor so we can safely touch @MainActor-isolated state.
+        // We only capture Sendable values (UUID + String) and call the handler
+        // there — never blocking on UI-restoration work that might assert
+        // when the scene is still being connected (lock-screen launch case).
+        Task { @MainActor in
+            await self.handle(actionId: actionId, alarmId: uuid)
             completionHandler()
+        }
+    }
+
+    @MainActor
+    private func handle(actionId: String, alarmId: UUID) async {
+        switch actionId {
+        case LumenNotificationAction.snooze.rawValue:
+            try? await snooze.execute(alarmId: alarmId)
+
+        case LumenNotificationAction.silence.rawValue:
+            try? await cancel.execute(alarmId: alarmId)
+            await appState.send(.alarmSilenced)
+
+        default:
+            // Default tap (or unknown action) — surface the ringing alarm.
+            // RootView gates the actual fullScreenCover on scenePhase == .active
+            // so this is safe even when the app is launching from lock screen.
+            await appState.send(.alarmFired(alarmId: alarmId))
         }
     }
 

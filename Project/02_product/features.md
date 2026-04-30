@@ -15,8 +15,10 @@ Référence : brief PALO + user stories.
 | F7 | Ask Lumen (accès rapide IA depuis dashboard) | P0 | US-AI6 | 0,5 |
 | F7b | Voice input (dictation Q3/Q4, on-device) | P0 | US-Q6, ADR-007 | 0,75 |
 | F7c | Voice output (TTS synthèse IA, on-device) | P0 | US-AI7, ADR-007 | 0,5 |
+| F7d | BYO API key (mode avancé Settings) + Keychain | P0 | US-AI8 | 1 |
+| F7e | Rebrand UI "Lumen AI" (waterfall caché derrière 1 nom) | P0 | ADR-004 update | 0,25 |
 
-**Sous-total P0 :** ~11-15 jours de dev.
+**Sous-total P0 :** ~12-16 jours de dev.
 
 ## Features Polish (importants pour la soutenance)
 

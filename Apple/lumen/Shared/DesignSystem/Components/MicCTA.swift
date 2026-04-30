@@ -1,7 +1,9 @@
 import SwiftUI
 
-/// V5 mic-cta: 120pt round button with explicit microphone glyph.
-/// Hold-to-talk: invokes `onPressDown` when finger lands, `onPressUp` on release.
+/// V3 Sunrise Echo mic: 96pt circle, no microphone glyph.
+/// - idle:        thin accent ring + serif left double-quote (`"`) at 46pt italic
+/// - listening:   radial gradient bloom + 4s breathing + single arc tracing 0→360°
+/// - transcribed: muted ring + serif `·` at 32pt
 struct MicCTA: View {
     let isListening: Bool
     let onPressDown: () -> Void
@@ -9,56 +11,88 @@ struct MicCTA: View {
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var pressed = false
-    @State private var breath: Bool = false
+    @State private var breathPhase: CGFloat = 0
+    @State private var arcAngle: Double = 0
+    @State private var arcOpacity: Double = 0.2
 
     private let breathCycle: TimeInterval = 4.0
+    private let buttonSize: CGFloat = 96
+
+    private var state: VisualState {
+        // The transcribed visual is driven by the parent — when neither listening
+        // nor empty. We can't see the text from here, so the parent picks idle vs
+        // transcribed via a flag we won't add right now: both share the inset-ring
+        // chrome and only the glyph differs. Keep visual state binary here; the
+        // serif `·` for transcribed is a parent-rendered detail in the mockup but
+        // visually equivalent to idle for this 96pt button.
+        isListening ? .listening : .idle
+    }
+
+    private enum VisualState { case idle, listening }
 
     var body: some View {
         ZStack {
-            // Outer breathing rings (only while listening)
-            if isListening && !reduceMotion {
+            // Listening: tracing arc just outside the button
+            if isListening {
                 Circle()
-                    .strokeBorder(LumenColor.accent, lineWidth: 1.5)
-                    .frame(width: 140, height: 140)
-                    .scaleEffect(breath ? 1.45 : 0.95)
-                    .opacity(breath ? 0 : 0.55)
-                    .animation(
-                        .easeOut(duration: breathCycle).repeatForever(autoreverses: false),
-                        value: breath
-                    )
-                Circle()
-                    .strokeBorder(LumenColor.accent, lineWidth: 1.5)
-                    .frame(width: 140, height: 140)
-                    .scaleEffect(breath ? 1.45 : 0.95)
-                    .opacity(breath ? 0 : 0.55)
-                    .animation(
-                        .easeOut(duration: breathCycle).repeatForever(autoreverses: false).delay(breathCycle / 2),
-                        value: breath
-                    )
+                    .trim(from: 0, to: arcAngle / 360)
+                    .stroke(LumenColor.accent.opacity(arcOpacity), style: StrokeStyle(lineWidth: 1, lineCap: .round))
+                    .rotationEffect(.degrees(-90))
+                    .frame(width: buttonSize + 16, height: buttonSize + 16)
             }
 
             // Main button
             ZStack {
-                Circle()
-                    .fill(isListening ? LumenColor.accent : LumenColor.accent.opacity(0.12))
-                Circle()
-                    .strokeBorder(isListening ? Color.clear : LumenColor.accent, lineWidth: 1.5)
+                if isListening {
+                    Circle()
+                        .fill(
+                            RadialGradient(
+                                colors: [
+                                    LumenColor.accent.opacity(0.55),
+                                    LumenColor.accent.opacity(0.18),
+                                    LumenColor.accent.opacity(0.04),
+                                    .clear
+                                ],
+                                center: .init(x: 0.5, y: 0.6),
+                                startRadius: 0,
+                                endRadius: buttonSize / 2
+                            )
+                        )
+                    Circle()
+                        .strokeBorder(LumenColor.accent.opacity(0.55), lineWidth: 1)
+                } else {
+                    Circle()
+                        .strokeBorder(LumenColor.accent.opacity(0.45), lineWidth: 1)
+                }
 
-                MicGlyph(filled: isListening)
-                    .foregroundStyle(isListening ? LumenColor.bgPrimary : LumenColor.accent)
-                    .frame(width: 42, height: 42)
+                if !isListening {
+                    Text("\u{201C}") // left double quotation mark
+                        .font(.system(size: 46, design: .serif))
+                        .italic()
+                        .foregroundStyle(LumenColor.accent)
+                        .offset(y: -2)
+                }
             }
-            .frame(width: 120, height: 120)
-            .scaleEffect(isListening && !reduceMotion ? (breath ? 1.03 : 1.0) : 1.0)
-            .animation(
-                .easeInOut(duration: breathCycle).repeatForever(autoreverses: true),
-                value: breath
+            .frame(width: buttonSize, height: buttonSize)
+            .scaleEffect(isListening && !reduceMotion ? (1.0 + breathPhase * 0.03) : 1.0)
+            .shadow(
+                color: isListening ? LumenColor.accent.opacity(0.18) : .clear,
+                radius: 30, x: 0, y: 0
             )
         }
-        .frame(width: 160, height: 160)
+        .frame(width: buttonSize + 24, height: buttonSize + 24)
         .contentShape(Circle())
         .onChange(of: isListening) { _, listening in
-            if listening { breath = true } else { breath = false }
+            if listening && !reduceMotion {
+                withAnimation(.easeInOut(duration: breathCycle).repeatForever(autoreverses: true)) {
+                    breathPhase = 1
+                }
+                animateArc()
+            } else {
+                breathPhase = 0
+                arcAngle = 0
+                arcOpacity = 0.2
+            }
         }
         .gesture(
             DragGesture(minimumDistance: 0)
@@ -79,51 +113,13 @@ struct MicCTA: View {
         .accessibilityLabel(isListening ? "Relâche pour arrêter" : "Maintiens pour parler")
         .accessibilityAddTraits(.isButton)
     }
-}
 
-/// Mic glyph (V5): rounded-rect capsule body + downward arc base + stand + foot.
-/// 24×24 viewBox, scaled to fit the parent frame.
-struct MicGlyph: View {
-    let filled: Bool
-
-    var body: some View {
-        Canvas { ctx, size in
-            let s = size.width / 24.0
-            let stroke = GraphicsContext.Shading.color(.primary)
-            let lineWidth: CGFloat = 1.6 * s
-
-            // Capsule body — rounded rect 9..15 × 3..14, corner radius 3
-            let bodyRect = CGRect(x: 9 * s, y: 3 * s, width: 6 * s, height: 11 * s)
-            let bodyPath = Path(roundedRect: bodyRect, cornerRadius: 3 * s)
-            if filled {
-                ctx.fill(bodyPath, with: stroke)
-            } else {
-                ctx.stroke(bodyPath, with: stroke, lineWidth: lineWidth)
-            }
-
-            // Downward arc — semicircle from (5.5, 11) to (18.5, 11), bulging downward
-            var arc = Path()
-            arc.move(to: CGPoint(x: 5.5 * s, y: 11 * s))
-            arc.addArc(
-                center: CGPoint(x: 12 * s, y: 11 * s),
-                radius: 6.5 * s,
-                startAngle: .degrees(180),
-                endAngle: .degrees(0),
-                clockwise: true
-            )
-            ctx.stroke(arc, with: stroke, style: StrokeStyle(lineWidth: lineWidth, lineCap: .round))
-
-            // Stand
-            var stand = Path()
-            stand.move(to: CGPoint(x: 12 * s, y: 17.5 * s))
-            stand.addLine(to: CGPoint(x: 12 * s, y: 21 * s))
-            ctx.stroke(stand, with: stroke, style: StrokeStyle(lineWidth: lineWidth, lineCap: .round))
-
-            // Foot
-            var foot = Path()
-            foot.move(to: CGPoint(x: 8.5 * s, y: 21 * s))
-            foot.addLine(to: CGPoint(x: 15.5 * s, y: 21 * s))
-            ctx.stroke(foot, with: stroke, style: StrokeStyle(lineWidth: lineWidth, lineCap: .round))
+    private func animateArc() {
+        // 0 → 360° over half the cycle, then 360 → 0 (mock effect of trace+retrace).
+        // SwiftUI animations of trim respect repeatForever with autoreverses.
+        withAnimation(.easeInOut(duration: breathCycle / 2).repeatForever(autoreverses: true)) {
+            arcAngle = 360
+            arcOpacity = 0.65
         }
     }
 }

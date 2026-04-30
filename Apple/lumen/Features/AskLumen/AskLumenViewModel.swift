@@ -15,24 +15,34 @@ final class AskLumenViewModel {
     var question: String = ""
     var response: AIResponse?
     var state: AskState = .idle
+    var remainingAsks: Int = 3
 
     let category: DashboardCategory?
     private let aiSynthesis: any AISynthesisService
+    private let rateLimiter: any RateLimiting
 
-    init(category: DashboardCategory? = nil, aiSynthesis: any AISynthesisService) {
+    init(
+        category: DashboardCategory? = nil,
+        aiSynthesis: any AISynthesisService,
+        rateLimiter: any RateLimiting
+    ) {
         self.category = category
         self.aiSynthesis = aiSynthesis
+        self.rateLimiter = rateLimiter
 
         if let category {
             question = "À propos de \(category.displayName.lowercased()), "
         }
     }
 
+    func loadRemaining() async {
+        remainingAsks = await rateLimiter.remainingSlots(action: .askLumenDashboard)
+    }
+
     func ask() async {
         guard !question.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
         state = .loading
 
-        // Build a synthetic answer payload from the question text
         let placeholderAnswer = QuestionnaireAnswer(
             ritualId: UUID(),
             payload: .intention(word: question),
@@ -52,8 +62,16 @@ final class AskLumenViewModel {
             case .queued:
                 state = .rateLimited
             }
+        } catch let error as AIError {
+            switch error {
+            case .rateLimited:   state = .rateLimited
+            case .missingAPIKey: state = .error("Clés API manquantes — voir Réglages.")
+            default:             state = .error(String(describing: error))
+            }
         } catch {
             state = .error(error.localizedDescription)
         }
+
+        await loadRemaining()
     }
 }

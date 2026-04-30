@@ -46,20 +46,43 @@ final class RateLimiterTests: XCTestCase {
         XCTAssertFalse(second, "Second auto synthesis same day should be blocked")
     }
 
-    // MARK: - Test 2: shared cap is 3 per day for manual / askLumen
+    // MARK: - Test 2: manual regen and askLumen each have their own cap of 3
 
-    func testSharedBucketCappedAt3() async {
+    func testManualAndAskLumenAreSeparateBuckets() async {
         let clock = MockClock()
         let sut = makeSut(clock: clock)
 
-        for i in 0..<3 {
-            let allowed = await sut.canProceed(action: .manualRegeneration)
-            XCTAssertTrue(allowed, "Request \(i + 1) should be allowed")
-            await sut.consume(action: .manualRegeneration)
-        }
+        // Burn the manual regen bucket
+        for _ in 0..<3 { await sut.consume(action: .manualRegeneration) }
 
-        let blocked = await sut.canProceed(action: .askLumenDashboard)
-        XCTAssertFalse(blocked, "4th request should be blocked (shared cap reached)")
+        let manualBlocked = await sut.canProceed(action: .manualRegeneration)
+        XCTAssertFalse(manualBlocked, "manualRegeneration should be capped after 3")
+
+        let askStillOpen = await sut.canProceed(action: .askLumenDashboard)
+        XCTAssertTrue(askStillOpen, "askLumenDashboard should be independent of manual regen")
+    }
+
+    // MARK: - Test 5: remainingSlots reflects consumed count
+
+    func testRemainingSlotsDecrements() async {
+        let clock = MockClock()
+        let sut = makeSut(clock: clock)
+
+        let r0 = await sut.remainingSlots(action: .manualRegeneration)
+        XCTAssertEqual(r0, 3, "fresh bucket should have 3 slots")
+
+        await sut.consume(action: .manualRegeneration)
+        let r1 = await sut.remainingSlots(action: .manualRegeneration)
+        XCTAssertEqual(r1, 2)
+
+        await sut.consume(action: .manualRegeneration)
+        await sut.consume(action: .manualRegeneration)
+        let r3 = await sut.remainingSlots(action: .manualRegeneration)
+        XCTAssertEqual(r3, 0, "exhausted bucket should report 0")
+
+        // askLumen unaffected
+        let rAsk = await sut.remainingSlots(action: .askLumenDashboard)
+        XCTAssertEqual(rAsk, 3)
     }
 
     // MARK: - Test 3: counters reset on new day

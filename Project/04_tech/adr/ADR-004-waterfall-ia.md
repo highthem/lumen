@@ -35,6 +35,23 @@ Pre-check `NetworkReachability` : si offline détecté dès le départ, on saute
 
 Pattern hérité du projet **Skoul** où le waterfall a été éprouvé en prod (OpenAI → Gemini Firebase → Apple Intelligence). Ici simplifié et adapté au brief.
 
+### Rebrand "Lumen AI" (UI seulement)
+
+Dans l'UI, la chaîne cloud (OpenAI + Anthropic) est exposée comme un seul service nommé **"Lumen AI"**. L'utilisateur ne voit pas les noms de providers, sauf dans une mention légale discrète ("Lumen AI s'appuie sur OpenAI et Anthropic").
+
+Bénéfice : on peut changer de provider cloud sans toucher l'UI, et le framing produit est plus simple ("Lumen AI / Apple Intelligence / File d'attente" — 3 niveaux clairs au lieu de 4 services nommés).
+
+### Mode BYO API key (Bring Your Own)
+
+L'utilisateur peut entrer sa propre clé OpenAI ou Anthropic dans Settings → Mode avancé. Quand activé :
+- Les appels Lumen AI partent directement avec la clé utilisateur (jamais via nos serveurs).
+- **Rate limit levé** côté app (l'utilisateur paie son usage au provider).
+- Le `EthicalLog` continue à fonctionner normalement, avec un nouveau champ `usingPersonalKey: true`.
+- La clé est stockée dans **Keychain iOS** (`kSecAttrAccessibleWhenUnlockedThisDeviceOnly`, pas de sync iCloud).
+- À la suppression de la clé : retour automatique au mode Lumen AI standard avec rate limit.
+
+Voir US-AI8 pour les critères d'acceptation détaillés.
+
 ## Détail d'implémentation
 
 ### Protocole Domain

@@ -15,7 +15,7 @@ struct Q4IntentionView: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 22) {
+        VStack(alignment: .leading, spacing: LumenSpacing.l) {
             ProgressDots4(current: 3)
 
             VStack(alignment: .leading, spacing: 8) {
@@ -28,12 +28,18 @@ struct Q4IntentionView: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
 
-            VStack(spacing: 28) {
+            VStack(spacing: 36) {
                 Spacer(minLength: 0)
-                centerStage
+                revealArea
+                if state != .editing {
+                    micArea
+                }
                 Spacer(minLength: 0)
             }
             .frame(maxWidth: .infinity)
+
+            ghostActionsRow
+                .frame(maxWidth: .infinity, minHeight: 32)
 
             FooterRow(
                 backTitle: "Retour",
@@ -49,147 +55,154 @@ struct Q4IntentionView: View {
     }
 
     @ViewBuilder
-    private var centerStage: some View {
-        if state == .editing {
-            editingPanel
-        } else if state == .transcribed {
-            transcribedPanel
-        } else {
-            VStack(spacing: 14) {
-                MicCTA(
-                    isListening: state == .listening,
-                    onPressDown: { vm.startDictation(for: .intention) },
-                    onPressUp: { Task { await vm.stopDictation(for: .intention) } }
-                )
-
-                if state == .listening {
-                    listeningSupport
-                } else {
-                    defaultSupport
-                }
-            }
-        }
-    }
-
-    private var defaultSupport: some View {
-        VStack(spacing: 4) {
-            Text("Maintiens pour parler")
-                .font(.system(size: 15, weight: .medium))
-                .foregroundStyle(LumenColor.textPrimary.opacity(0.75))
-
-            Button {
-                vm.intentionEditingByKeyboard = true
-            } label: {
-                Text("ou écrire au clavier")
-                    .font(.system(size: 13, design: .serif))
+    private var revealArea: some View {
+        ZStack {
+            switch state {
+            case .default:
+                Text("Dis-le…")
+                    .font(.system(size: 19, design: .serif))
                     .italic()
-                    .foregroundStyle(LumenColor.textSecondary)
-            }
-            .buttonStyle(.plain)
-        }
-    }
+                    .foregroundStyle(LumenColor.textPrimary.opacity(0.42))
 
-    private var listeningSupport: some View {
-        VStack(spacing: 14) {
-            HStack(spacing: 8) {
-                Circle()
-                    .fill(LumenColor.accent)
-                    .frame(width: 7, height: 7)
-                Text("on écoute")
-                    .font(.system(size: 13, weight: .medium))
-                    .foregroundStyle(LumenColor.accent)
-            }
-
-            if !vm.intentionWord.isEmpty {
+            case .listening:
                 LiveTranscript(
                     text: vm.intentionWord,
-                    font: .system(size: 56, weight: .medium, design: .serif),
+                    font: .system(size: 64, weight: .medium, design: .serif),
                     color: LumenColor.accent,
                     isItalic: true,
-                    charDelay: .milliseconds(130)
+                    charDelay: .milliseconds(120)
                 )
                 .lineLimit(1)
                 .minimumScaleFactor(0.4)
+
+            case .transcribed:
+                Text(vm.intentionWord)
+                    .font(.system(size: 64, weight: .medium, design: .serif))
+                    .italic()
+                    .tracking(-1.28)
+                    .foregroundStyle(LumenColor.accent)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.4)
+
+            case .editing:
+                editingPanel
+            }
+        }
+        .frame(minHeight: 130)
+    }
+
+    @ViewBuilder
+    private var micArea: some View {
+        VStack(spacing: 12) {
+            MicCTA(
+                isListening: state == .listening,
+                onPressDown: { vm.startDictation(for: .intention) },
+                onPressUp: { Task { await vm.stopDictation(for: .intention) } }
+            )
+
+            if state == .listening {
+                HStack(spacing: 6) {
+                    Circle()
+                        .fill(LumenColor.accent)
+                        .frame(width: 5, height: 5)
+                    Text("on écoute")
+                        .font(.system(size: 13, design: .serif))
+                        .italic()
+                        .foregroundStyle(LumenColor.accent.opacity(0.7))
+                }
             }
         }
     }
 
-    private var transcribedPanel: some View {
-        VStack(spacing: 28) {
-            Text(vm.intentionWord)
-                .font(.system(size: 64, weight: .medium, design: .serif))
-                .italic()
-                .tracking(-1.28)
-                .foregroundStyle(LumenColor.accent)
-                .lineLimit(1)
-                .minimumScaleFactor(0.4)
-
-            VStack(spacing: 10) {
-                actionStackButton(systemImage: nil, glyph: "↺", label: "Refaire") {
-                    vm.resetIntention()
-                }
-                actionStackButton(systemImage: "keyboard", glyph: nil, label: "Modifier") {
+    @ViewBuilder
+    private var ghostActionsRow: some View {
+        HStack(spacing: 24) {
+            switch state {
+            case .default:
+                Spacer()
+                Button {
                     vm.intentionEditingByKeyboard = true
+                } label: {
+                    HStack(spacing: 6) {
+                        Image(systemName: "keyboard")
+                            .font(.system(size: 13))
+                        Text("Écrire au clavier")
+                            .font(.system(size: 13))
+                    }
+                    .foregroundStyle(LumenColor.textSecondary)
                 }
+                .buttonStyle(.plain)
+                Spacer()
+
+            case .listening:
+                Spacer()
+                Button {
+                    Task { await vm.stopDictation(for: .intention) }
+                } label: {
+                    Text("Annuler")
+                        .font(.system(size: 13))
+                        .foregroundStyle(LumenColor.textSecondary)
+                }
+                .buttonStyle(.plain)
+                Spacer()
+
+            case .transcribed:
+                Spacer()
+                Button {
+                    vm.resetIntention()
+                } label: {
+                    Text("↺ Recommencer")
+                        .font(.system(size: 13))
+                        .foregroundStyle(LumenColor.textSecondary)
+                }
+                .buttonStyle(.plain)
+                Button {
+                    vm.intentionEditingByKeyboard = true
+                } label: {
+                    HStack(spacing: 6) {
+                        Image(systemName: "keyboard")
+                            .font(.system(size: 13))
+                        Text("Modifier")
+                            .font(.system(size: 13))
+                    }
+                    .foregroundStyle(LumenColor.textSecondary)
+                }
+                .buttonStyle(.plain)
+                Spacer()
+
+            case .editing:
+                Spacer()
+                Button {
+                    vm.intentionEditingByKeyboard = false
+                } label: {
+                    Text("Tu peux aussi reparler →")
+                        .font(.system(size: 13, design: .serif))
+                        .italic()
+                        .foregroundStyle(LumenColor.textSecondary)
+                }
+                .buttonStyle(.plain)
+                Spacer()
             }
         }
     }
 
     private var editingPanel: some View {
-        VStack(spacing: 12) {
-            TextField("présence", text: $vm.intentionWord)
-                .multilineTextAlignment(.center)
-                .font(.system(size: 56, weight: .medium, design: .serif))
-                .italic()
-                .tracking(-1.12)
-                .foregroundStyle(LumenColor.accent)
-                .padding(.bottom, 8)
-                .overlay(
-                    Rectangle()
-                        .fill(LumenColor.accent)
-                        .frame(height: 1)
-                        .padding(.horizontal, 30),
-                    alignment: .bottom
-                )
-                .frame(maxWidth: 280)
-                .lineLimit(1)
-                .minimumScaleFactor(0.4)
-
-            Button {
-                vm.intentionEditingByKeyboard = false
-            } label: {
-                Text("← Tu peux aussi reparler")
-                    .font(.system(size: 13, design: .serif))
-                    .italic()
-                    .foregroundStyle(LumenColor.textSecondary)
-            }
-            .buttonStyle(.plain)
-        }
-    }
-
-    @ViewBuilder
-    private func actionStackButton(systemImage: String?, glyph: String?, label: String, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            HStack(spacing: 8) {
-                if let systemImage {
-                    Image(systemName: systemImage)
-                        .font(.system(size: 15, weight: .medium))
-                }
-                if let glyph {
-                    Text(glyph)
-                        .font(.system(size: 17))
-                }
-                Text(label)
-                    .font(.system(size: 17, weight: .medium))
-            }
+        TextField("présence", text: $vm.intentionWord)
+            .multilineTextAlignment(.center)
+            .font(.system(size: 64, weight: .medium, design: .serif))
+            .italic()
+            .tracking(-1.12)
             .foregroundStyle(LumenColor.accent)
-            .frame(maxWidth: .infinity)
-            .frame(height: 56)
-            .background(
-                RoundedRectangle(cornerRadius: LumenRadius.m, style: .continuous)
-                    .stroke(LumenColor.accent, lineWidth: 1.5)
+            .padding(.bottom, 8)
+            .overlay(
+                Rectangle()
+                    .fill(LumenColor.accent)
+                    .frame(height: 1)
+                    .padding(.horizontal, 30),
+                alignment: .bottom
             )
-        }
-        .buttonStyle(.plain)
+            .frame(maxWidth: 280)
+            .lineLimit(1)
+            .minimumScaleFactor(0.4)
     }
 }

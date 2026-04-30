@@ -104,6 +104,7 @@
 				C30659372F9BEB75009D5785 /* Sources */,
 				C30659382F9BEB75009D5785 /* Frameworks */,
 				C30659392F9BEB75009D5785 /* Resources */,
+				D1E7C0DE000000000000A001 /* Inject API keys into Info.plist */,
 			);
 			buildRules = (
 			);
@@ -232,6 +233,28 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		D1E7C0DE000000000000A001 /* Inject API keys into Info.plist */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Inject API keys into Info.plist";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "set -eu\nINFO_PLIST=\"${TARGET_BUILD_DIR}/${INFOPLIST_PATH}\"\nif [ ! -f \"${INFO_PLIST}\" ]; then\n  echo \"warning: Info.plist not found at ${INFO_PLIST}\"\n  exit 0\nfi\ninject() {\n  local key=\"$1\"\n  local value=\"$2\"\n  if [ -z \"${value}\" ]; then\n    echo \"warning: ${key} build setting is empty — skipping injection\"\n    return\n  fi\n  /usr/libexec/PlistBuddy -c \"Delete :${key}\" \"${INFO_PLIST}\" >/dev/null 2>&1 || true\n  /usr/libexec/PlistBuddy -c \"Add :${key} string ${value}\" \"${INFO_PLIST}\"\n}\ninject OPENAI_API_KEY \"${OPENAI_API_KEY:-}\"\ninject ANTHROPIC_API_KEY \"${ANTHROPIC_API_KEY:-}\"\n/usr/libexec/PlistBuddy -c \"Delete :UIBackgroundModes\" \"${INFO_PLIST}\" >/dev/null 2>&1 || true\n/usr/libexec/PlistBuddy -c \"Add :UIBackgroundModes array\" \"${INFO_PLIST}\"\n/usr/libexec/PlistBuddy -c \"Add :UIBackgroundModes:0 string audio\" \"${INFO_PLIST}\"\necho \"Injected OPENAI_API_KEY, ANTHROPIC_API_KEY, UIBackgroundModes into Info.plist\"\n";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		C30659372F9BEB75009D5785 /* Sources */ = {
@@ -396,6 +419,7 @@
 		};
 		C306595F2F9BEB76009D5785 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = C313155B2F9D685500CA6678 /* lumen/Config/Secrets.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -403,6 +427,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 2PBSCWRZ37;
 				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_ANTHROPIC_API_KEY = "$(ANTHROPIC_API_KEY)";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Lumen utilise le micro pour transcrire ta réponse au questionnaire matinal. L'audio reste sur ton téléphone.";
@@ -438,6 +463,7 @@
 		};
 		C30659602F9BEB76009D5785 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = C313155B2F9D685500CA6678 /* lumen/Config/Secrets.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -445,6 +471,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 2PBSCWRZ37;
 				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_ANTHROPIC_API_KEY = "$(ANTHROPIC_API_KEY)";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Lumen utilise le micro pour transcrire ta réponse au questionnaire matinal. L'audio reste sur ton téléphone.";

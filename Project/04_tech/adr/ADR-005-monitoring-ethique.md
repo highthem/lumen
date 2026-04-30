@@ -60,14 +60,22 @@ func detectFlags(in text: String) -> [ContentSafetyFlag] {
 
 Si un flag `selfHarmCue` est détecté : l'appel IA est **remplacé** par un template de redirection vers une ressource de soutien (numéros d'urgence localisés), pas de cloud, pas de risque de réponse inappropriée.
 
-### Pilier 3 — Rate limiting local
+### Pilier 3 — Rate limiting local (conditionnel selon BYO API key)
 
-Voir ADR-004 (waterfall IA). Limites :
+**Mode standard (Lumen AI, clés Highthem) — limites :**
 - 1 synthèse auto / jour
 - 3 interactions manuelles / jour (régénération + Ask Lumen, budget partagé)
 - Reset à minuit local
 
 Dépassement → UI claire ("Reviens demain pour une nouvelle question"), pas d'erreur technique.
+
+**Mode BYO API key (clé personnelle utilisateur) :**
+- **Rate limit levé** (l'utilisateur paie son usage directement à OpenAI ou Anthropic).
+- Le compteur s'affiche en Settings sous la forme *"Quotas — Illimité (clé personnelle)"* pour la transparence.
+- L'`EthicalLog` enregistre `usingPersonalKey: true` (champ ajouté) pour distinguer les sessions où la clé Highthem n'est pas consommée.
+- La clé personnelle n'est jamais loggée elle-même, ni en clear ni en hash — elle vit uniquement dans Keychain iOS.
+
+Voir US-AI8 (Project/02_product/user_stories/ai_synthesis.md) pour le détail des critères d'acceptation et US-AI8 dans le BYO flow.
 
 ### Pilier 4 — Export JSON et transparence utilisateur
 

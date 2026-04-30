@@ -49,8 +49,17 @@ final class CompositionRoot {
             EthicalLogEntity.self,
             PendingSynthesisEntity.self
         ])
-        let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
-        let container = try! ModelContainer(for: schema, configurations: [config])
+        let container: ModelContainer
+        do {
+            let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
+            container = try ModelContainer(for: schema, configurations: [config])
+        } catch {
+            // On-disk store failed (corrupted, schema migration, low storage).
+            // Fall back to in-memory so the app still launches; user can re-create alarms.
+            print("⚠️ ModelContainer on-disk init failed — falling back to in-memory: \(error)")
+            let memConfig = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
+            container = try! ModelContainer(for: schema, configurations: [memConfig])
+        }
         self.modelContainer = container
 
         // Alarm (Sprint 1)
@@ -86,9 +95,19 @@ final class CompositionRoot {
         let logRepo = SwiftDataEthicalLogRepository(modelContainer: container)
         self.ethicalLogRepository = logRepo
 
-        // Rate limiter & ethical logger
+        // Rate limiter & ethical logger.
+        // One-shot migration: previous build used a shared counter for both
+        // manual regen and ask-lumen. If a user hit 3 failed attempts on the
+        // old build (e.g. because of missing API keys), they would land on a
+        // "rate limited" state on first attempt today. Reset stale counters
+        // once when this build first runs.
         let limiter = RateLimiter()
         self.rateLimiter = limiter
+        let migrationKey = "lumen.ratelimiter.migrated.v2"
+        if !UserDefaults.standard.bool(forKey: migrationKey) {
+            UserDefaults.standard.set(true, forKey: migrationKey)
+            Task { await limiter.resetAllForMigration() }
+        }
 
         let logger = EthicalLogger(repository: logRepo)
         self.ethicalLogger = logger

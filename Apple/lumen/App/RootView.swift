@@ -14,11 +14,13 @@ enum RitualFlowState: Equatable {
 // MARK: - RootView
 
 struct RootView: View {
+    @Environment(\.scenePhase) private var scenePhase
     @State private var appState: AppStateMachine.State = .idle
     @State private var hasCompletedOnboarding: Bool = OnboardingFlag.isCompleted
     @State private var ritualFlow: RitualFlowState = .none
     @State private var selectedTab: Int = 0
     @State private var showAskLumen = false
+    @State private var dashboardRefreshKey: Int = 0
     private let composition: CompositionRoot
 
     init(composition: CompositionRoot = CompositionRoot()) {
@@ -33,6 +35,14 @@ struct RootView: View {
     private var ringingAlarmId: UUID? {
         if case .alarmRinging(let id) = appState { return id }
         return nil
+    }
+
+    /// Gate the ringing fullScreenCover on scene activation: when the user taps
+    /// the notification while locked, the app launches headless and SwiftUI
+    /// asserts inside _performBlockAfterCATransactionCommitSynchronizes if we
+    /// try to mount a cover before the window scene is connected.
+    private var shouldShowAlarmCover: Bool {
+        isAlarmRinging && scenePhase == .active
     }
 
     var body: some View {
@@ -51,17 +61,21 @@ struct RootView: View {
                         appState = state
                     }
                 }
-                .fullScreenCover(isPresented: .constant(isAlarmRinging)) {
+                .fullScreenCover(isPresented: .constant(shouldShowAlarmCover)) {
                     if let alarmId = ringingAlarmId {
                         AlarmRingingView(
-                            alarm: Alarm(id: alarmId, time: Date()),
+                            alarmId: alarmId,
+                            alarmRepository: composition.alarmRepository,
+                            audioPlayer: composition.audioPlayer,
                             onSnooze: {
                                 Task {
+                                    await composition.audioPlayer.stop()
                                     try? await composition.snoozeAlarm.execute(alarmId: alarmId)
                                 }
                             },
                             onSilence: {
                                 Task {
+                                    await composition.audioPlayer.stop()
                                     try? await composition.cancelAlarm.execute(alarmId: alarmId)
                                     await composition.appStateMachine.send(.alarmSilenced)
                                 }
@@ -79,10 +93,14 @@ struct RootView: View {
                     AskLumenView(
                         vm: AskLumenViewModel(
                             category: nil,
-                            aiSynthesis: composition.aiSynthesisService
+                            aiSynthesis: composition.aiSynthesisService,
+                            rateLimiter: composition.rateLimiter
                         ),
                         isPresented: $showAskLumen
                     )
+                    .presentationDetents([.medium, .large])
+                    .presentationDragIndicator(.hidden)
+                    .presentationCornerRadius(28)
                 }
         }
     }
@@ -118,6 +136,7 @@ struct RootView: View {
                 buildDashboard: composition.buildDashboardSnapshot,
                 alarmRepository: composition.alarmRepository
             ),
+            refreshKey: dashboardRefreshKey,
             onStartRitual: { ritualFlow = .timer },
             onNavigateToAlarms: { selectedTab = 1 },
             onAskLumen: { showAskLumen = true }
@@ -191,6 +210,9 @@ struct RootView: View {
                 ),
                 onComplete: {
                     ritualFlow = .none
+                    // Force the dashboard's .task(id:) to re-run so the newly
+                    // saved ritual appears immediately without a tab switch.
+                    dashboardRefreshKey &+= 1
                 }
             )
         }

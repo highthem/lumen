@@ -61,14 +61,7 @@ final class OpenAIClient: AIProviderClient, @unchecked Sendable {
     // MARK: - Helpers
 
     private func resolvedAPIKey() throws -> String {
-        guard let raw = Bundle.main.object(forInfoDictionaryKey: "OPENAI_API_KEY") as? String else {
-            throw AIError.missingAPIKey
-        }
-        let key = raw.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !key.isEmpty, !key.hasPrefix("REPLACE_ME"), !key.hasPrefix("$(") else {
-            throw AIError.missingAPIKey
-        }
-        return key
+        try APIKeyResolver.resolve(infoKey: "OPENAI_API_KEY")
     }
 
     private struct GenerationOutput: Decodable {

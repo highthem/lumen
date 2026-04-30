@@ -62,14 +62,13 @@ final class WaterfallAISynthesisService: AISynthesisService, @unchecked Sendable
             return .ready(template)
         }
 
-        // Consume rate limit slot
-        await rateLimiter.consume(action: action)
-
         // Online path
         if reachability.isReachable {
+            var sawMissingKey = false
             for client in cloudClients {
                 do {
                     let attempt = try await client.synthesize(prompt: prompt, ritualId: ritualId, mode: mode)
+                    await rateLimiter.consume(action: action)
                     try? await ethicalLogger.logSynthesis(
                         provider: AIProvider(rawValue: client.name) ?? .openai,
                         mode: mode,
@@ -80,8 +79,12 @@ final class WaterfallAISynthesisService: AISynthesisService, @unchecked Sendable
                         flags: flags
                     )
                     return .ready(attempt.response)
+                } catch let error as AIError {
+                    if case .missingAPIKey = error { sawMissingKey = true }
+                    print("⚠️ AI provider \(client.name) failed: \(error)")
+                    continue
                 } catch {
-                    // Try next provider
+                    print("⚠️ AI provider \(client.name) failed: \(error)")
                     continue
                 }
             }
@@ -90,6 +93,7 @@ final class WaterfallAISynthesisService: AISynthesisService, @unchecked Sendable
             if onDeviceAvailable() {
                 do {
                     let attempt = try await onDevice.synthesize(prompt: prompt, ritualId: ritualId, mode: mode)
+                    await rateLimiter.consume(action: action)
                     try? await ethicalLogger.logSynthesis(
                         provider: .apple,
                         mode: mode,
@@ -101,11 +105,16 @@ final class WaterfallAISynthesisService: AISynthesisService, @unchecked Sendable
                     )
                     return .ready(attempt.response)
                 } catch {
-                    // Fall through to queue
+                    print("⚠️ On-device AI failed: \(error)")
                 }
             }
 
-            // Queue for later
+            // If every cloud provider explicitly failed with missingAPIKey,
+            // surface that to the caller so the UI can offer "open Settings".
+            if sawMissingKey && !onDeviceAvailable() {
+                throw AIError.missingAPIKey
+            }
+
             try? await queue.enqueue(answers: answers, ritualId: ritualId)
             try? await ethicalLogger.logQueued(promptHash: promptHash)
             return .queued(estimatedDelivery: nil)
@@ -115,6 +124,7 @@ final class WaterfallAISynthesisService: AISynthesisService, @unchecked Sendable
         if onDeviceAvailable() {
             do {
                 let attempt = try await onDevice.synthesize(prompt: prompt, ritualId: ritualId, mode: .fallbackOnDevice)
+                await rateLimiter.consume(action: action)
                 try? await ethicalLogger.logSynthesis(
                     provider: .apple,
                     mode: .fallbackOnDevice,
@@ -126,7 +136,7 @@ final class WaterfallAISynthesisService: AISynthesisService, @unchecked Sendable
                 )
                 return .ready(attempt.response)
             } catch {
-                // Fall through to queue
+                print("⚠️ Offline on-device AI failed: \(error)")
             }
         }
 

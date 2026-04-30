@@ -105,9 +105,41 @@ Pattern **waterfall IA** (réutilisé du projet Skoul) :
 - Reduce Motion respecté : pas d'animation décorative pendant la lecture (juste icône speaker animée subtilement).
 - VoiceOver compatible (n'interrompt pas si VoiceOver actif — l'utilisateur a sa propre lecture vocale).
 
+## US-AI8 — BYO (Bring Your Own) API key — power user mode
+**En tant qu'** utilisateur power user qui consomme beaucoup ou veut un contrôle total
+**Je veux** entrer ma propre clé OpenAI ou Anthropic
+**Afin de** sauter les limites quotidiennes Lumen et payer mon usage directement au provider
+
+**Critères d'acceptation :**
+- Settings → IA → "Mode avancé · Utiliser ma propre clé API"
+- Choix provider : OpenAI ou Anthropic (radio)
+- Champ Clé API masked (style password) avec support paste depuis presse-papier
+- Bouton "Tester la clé" : envoie un appel minimal au provider pour valider
+- Si valide : enregistrement dans **Keychain iOS** (jamais en clear, jamais en `UserDefaults`)
+- Si invalide : message d'erreur clair, clé non enregistrée
+- Quand clé personnelle active : **rate limit levé** (synthèses + Ask Lumen illimités, contraint uniquement par les quotas du provider de l'utilisateur)
+- Badge subtil "Clé personnelle" en haut de Settings → IA
+- Bouton "Supprimer ma clé" en bas, rouge, avec double confirmation
+- À la suppression : retour automatique au mode Lumen AI avec rate limit standard
+- Compatible avec le mode offline / Apple Intelligence : la clé personnelle s'applique uniquement aux appels cloud
+
+**Privacy & sécurité :**
+- Stockage Keychain avec attribut `kSecAttrAccessibleWhenUnlockedThisDeviceOnly` (pas sync iCloud)
+- La clé n'est JAMAIS loggée dans EthicalLog (le `provider` reste `openai` / `anthropic`, sans révéler que c'est la clé user)
+- La clé n'est JAMAIS envoyée à un serveur tiers — seulement à OpenAI/Anthropic directement, comme dans le mode standard
+- Disclaimer clair en début de mode avancé : "Ta clé est consommée directement, sans passer par nos serveurs."
+- À l'uninstall de l'app : la clé est supprimée par iOS automatiquement
+
+**Pourquoi c'est important :**
+- Démontre la confiance produit ("on n'oblige pas à utiliser nos clés")
+- Différenciateur fort vs concurrents (Fabulous, Calm forcent leur subscription)
+- Aligné avec la posture privacy-first ("ta clé, ton usage, ton paiement")
+- Permet aux power users (devs, early adopters) d'utiliser Lumen sans limite
+
 ## Out of scope V1
 - Conversation multi-tour avec l'IA
 - Personnalisation du ton (formel / chaleureux / direct)
 - Export de l'historique de synthèses
 - Apprentissage des préférences via feedback explicite
 - Voix custom clonée (les voix Apple natives suffisent V1)
+- Support Gemini / Mistral / autres providers en BYO (V1 = OpenAI + Anthropic seulement)

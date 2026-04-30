@@ -4,4 +4,5 @@ protocol RateLimiting: Sendable {
     func canProceed(action: AIAction) async -> Bool
     func consume(action: AIAction) async
     func reset() async
+    func remainingSlots(action: AIAction) async -> Int
 }

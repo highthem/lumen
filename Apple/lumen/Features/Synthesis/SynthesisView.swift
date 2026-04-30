@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 struct SynthesisView: View {
     @State var vm: SynthesisViewModel
@@ -19,6 +20,8 @@ struct SynthesisView: View {
                         queuedView
                     case .rateLimited:
                         rateLimitedView
+                    case .missingAPIKey:
+                        missingKeyView
                     case .error(let msg):
                         errorView(msg: msg)
                     }
@@ -47,49 +50,45 @@ struct SynthesisView: View {
     // MARK: - Ready
 
     private func readyView(response: AIResponse) -> some View {
-        VStack(alignment: .leading, spacing: LumenSpacing.xl) {
-            // Speaker + optional badge
-            HStack {
-                SpeakerButton(isPlaying: vm.ttsPlaying) {
-                    Task { await vm.toggleTTS() }
-                }
+        VStack(alignment: .leading, spacing: LumenSpacing.l) {
+            // Top header: "Ton matin" eyebrow on the left, listen button + AI badge on the right
+            HStack(alignment: .center) {
+                Eyebrow("Ton matin")
                 Spacer()
                 if response.provider == .apple {
                     AppleIntelligenceBadge(shimmer: true)
                 }
+                SpeakerButton(isPlaying: vm.ttsPlaying) {
+                    Task { await vm.toggleTTS() }
+                }
             }
 
-            // Three synthesis blocks
-            synthesisBlock(
-                eyebrow: "INTENTION",
-                text: response.intention,
-                blockIndex: 0,
-                isSupportTemplate: response.provider == .supportTemplate
-            )
+            // Three synthesis blocks (reading focus dims non-current ones during TTS)
+            VStack(alignment: .leading, spacing: LumenSpacing.l) {
+                intentionBlock(text: response.intention, isSupport: response.provider == .supportTemplate)
 
-            if !response.focus.isEmpty {
-                synthesisBlock(
-                    eyebrow: "FOCUS",
-                    text: response.focus.joined(separator: "\n"),
-                    blockIndex: 1,
-                    isSupportTemplate: false
-                )
+                if !response.focus.isEmpty {
+                    focusBlock(text: response.focus.joined(separator: "\n"))
+                }
+
+                reminderBlock(text: response.reminder, isSupport: response.provider == .supportTemplate)
             }
 
-            synthesisBlock(
-                eyebrow: "RAPPEL",
-                text: response.reminder,
-                blockIndex: 2,
-                isSupportTemplate: response.provider == .supportTemplate
-            )
+            Spacer(minLength: 16)
 
-            // Regenerate + Continue
-            VStack(spacing: LumenSpacing.m) {
-                SecondaryCTA(
-                    "Régénérer (\(vm.remainingRegens)/3)",
-                    isEnabled: vm.remainingRegens > 0
-                ) {
-                    Task { await vm.regenerate() }
+            // Footer
+            VStack(alignment: .leading, spacing: LumenSpacing.m) {
+                Text(footerHint)
+                    .font(.system(size: 12))
+                    .foregroundStyle(LumenColor.textTertiary)
+
+                if !vm.ttsPlaying {
+                    SecondaryCTA(
+                        "Régénérer",
+                        isEnabled: vm.remainingRegens > 0
+                    ) {
+                        Task { await vm.regenerate() }
+                    }
                 }
 
                 PrimaryCTA("Continuer vers le dashboard") {
@@ -99,26 +98,71 @@ struct SynthesisView: View {
         }
     }
 
-    private func synthesisBlock(
-        eyebrow: String,
-        text: String,
+    private var footerHint: String {
+        if vm.ttsPlaying {
+            return "Lecture · paragraphe \(vm.ttsCurrentBlock + 1) sur 3"
+        } else {
+            return "Régénérations · \(vm.remainingRegens) / 3 restantes"
+        }
+    }
+
+    private func intentionBlock(text: String, isSupport: Bool) -> some View {
+        synthesisBlock(blockIndex: 0) {
+            Eyebrow("Intention")
+            Text(text)
+                .font(.system(size: 42, weight: .medium, design: .serif))
+                .italic()
+                .tracking(-0.84)
+                .lineSpacing(-2)
+                .foregroundStyle(LumenColor.accent)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    private func focusBlock(text: String) -> some View {
+        synthesisBlock(blockIndex: 1, showBreathDot: vm.ttsPlaying && vm.ttsCurrentBlock == 1) {
+            HStack(spacing: 8) {
+                Eyebrow("Focus")
+                if vm.ttsPlaying && vm.ttsCurrentBlock == 1 {
+                    Circle()
+                        .fill(LumenColor.accent)
+                        .frame(width: 5, height: 5)
+                }
+            }
+            Text(text)
+                .font(.system(size: 19, design: .serif))
+                .tracking(-0.095)
+                .lineSpacing(2)
+                .foregroundStyle(LumenColor.textPrimary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    private func reminderBlock(text: String, isSupport: Bool) -> some View {
+        synthesisBlock(blockIndex: 2) {
+            Eyebrow("Rappel")
+            Text(text)
+                .font(.system(size: 17, design: .serif))
+                .italic()
+                .lineSpacing(2)
+                .foregroundStyle(LumenColor.textPrimary.opacity(0.85))
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    @ViewBuilder
+    private func synthesisBlock<Content: View>(
         blockIndex: Int,
-        isSupportTemplate: Bool
+        showBreathDot: Bool = false,
+        @ViewBuilder content: () -> Content
     ) -> some View {
         let isActive = !vm.ttsPlaying || vm.ttsCurrentBlock == blockIndex
-        return VStack(alignment: .leading, spacing: LumenSpacing.s) {
-            Eyebrow(eyebrow)
-            Text(text)
-                .font(.system(
-                    size: isSupportTemplate ? 20 : 18,
-                    weight: isSupportTemplate ? .semibold : .regular,
-                    design: .serif
-                ))
-                .foregroundStyle(LumenColor.textPrimary)
-                .lineSpacing(LumenFont.title2.lineSpacing)
+        VStack(alignment: .leading, spacing: 8) {
+            content()
         }
         .opacity(isActive ? 1.0 : 0.32)
         .animation(.easeInOut(duration: 0.6), value: vm.ttsCurrentBlock)
+        .animation(.easeInOut(duration: 0.6), value: vm.ttsPlaying)
     }
 
     // MARK: - Queued
@@ -153,6 +197,33 @@ struct SynthesisView: View {
                 .foregroundStyle(LumenColor.textSecondary)
                 .multilineTextAlignment(.center)
             Spacer(minLength: 40)
+            PrimaryCTA("Continuer vers le dashboard") {
+                onComplete()
+            }
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    // MARK: - Missing API key
+
+    private var missingKeyView: some View {
+        VStack(spacing: LumenSpacing.m) {
+            Spacer(minLength: 80)
+            Text("Clés API manquantes")
+                .font(.system(size: 22, weight: .regular, design: .serif))
+                .foregroundStyle(LumenColor.textPrimary)
+                .multilineTextAlignment(.center)
+            Text("Renseigne les clés OpenAI / Anthropic dans les Réglages pour activer la synthèse.")
+                .lumenFont(.footnote)
+                .foregroundStyle(LumenColor.textSecondary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, LumenSpacing.l)
+            SecondaryCTA("Ouvrir les Réglages") {
+                if let url = URL(string: UIApplication.openSettingsURLString) {
+                    UIApplication.shared.open(url)
+                }
+            }
+            Spacer(minLength: 24)
             PrimaryCTA("Continuer vers le dashboard") {
                 onComplete()
             }
