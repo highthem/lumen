@@ -20,12 +20,10 @@ struct Q2PriorityView: View {
         VStack(alignment: .leading, spacing: LumenSpacing.l) {
             ProgressDots4(current: 1)
 
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: LumenSpacing.s) {
                 Eyebrow("02 / 04 · Priorité")
                 Text("Sur quoi tu veux\nposer l'attention ?")
-                    .font(.system(size: 30, weight: .medium, design: .serif))
-                    .tracking(-0.45)
-                    .lineSpacing(-2)
+                    .lumenFont(.title1)
                     .foregroundStyle(LumenColor.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -36,14 +34,15 @@ struct Q2PriorityView: View {
                 selected: Binding(
                     get: { vm.priorityCategory },
                     set: { vm.priorityCategory = $0 }
-                )
+                ),
+                cardHeight: LumenSize.cardPriority
             ) { item, selected in
                 priorityCard(category: item, selected: selected)
             }
             .frame(maxWidth: .infinity)
             .padding(.top, LumenSpacing.s)
 
-            Spacer(minLength: 8)
+            Spacer(minLength: LumenSpacing.s)
 
             FooterRow(
                 backTitle: "Retour",
@@ -54,7 +53,7 @@ struct Q2PriorityView: View {
             )
         }
         .padding(.horizontal, LumenSpacing.l)
-        .padding(.top, 28)
+        .padding(.top, LumenSpacing.xl0)
         .padding(.bottom, LumenSpacing.l)
         .onAppear {
             // Sync `current` to the persisted selection if the user navigates back.
@@ -69,39 +68,54 @@ struct Q2PriorityView: View {
         Button {
             vm.priorityCategory = (vm.priorityCategory == category) ? nil : category
         } label: {
-            VStack(alignment: .leading, spacing: 16) {
-                PriorityIcon(category: category, size: 26)
-                    .foregroundStyle(LumenColor.accent)
+            VStack(alignment: .leading, spacing: 0) {
+                // ─ Top: rounded-square icon chip
+                ZStack {
+                    RoundedRectangle(cornerRadius: LumenRadius.m, style: .continuous)
+                        .fill(LumenColor.accent.opacity(LumenOpacity.surfaceFill))
+                    PriorityIcon(category: category, size: LumenSize.iconLg)
+                        .foregroundStyle(LumenColor.accent)
+                }
+                .frame(width: LumenSize.halfMod, height: LumenSize.halfMod)
 
-                Text("\(category.displayName).")
-                    .font(.system(size: 26, weight: .medium, design: .serif))
-                    .tracking(-0.39)
-                    .foregroundStyle(LumenColor.textPrimary)
+                Spacer(minLength: 0)
 
-                Text(Self.prompts[category] ?? "")
-                    .font(.system(size: 14))
-                    .foregroundStyle(LumenColor.textSecondary)
-                    .fixedSize(horizontal: false, vertical: true)
+                // ─ Middle: name + prompt
+                VStack(alignment: .leading, spacing: LumenSpacing.sm2) {
+                    Text("\(category.displayName).")
+                        .lumenFont(.synthesisHero)
+                        .italic()
+                        .foregroundStyle(selected ? LumenColor.accent : LumenColor.textPrimary)
+                        .fixedSize(horizontal: false, vertical: true)
 
-                Spacer()
+                    Text(Self.prompts[category] ?? "")
+                        .lumenFont(.bodySerifSm)
+                        .italic()
+                        .foregroundStyle(LumenColor.textPrimary.opacity(LumenOpacity.p78))
+                        .fixedSize(horizontal: false, vertical: true)
+                }
 
+                Spacer(minLength: 0)
+
+                // ─ Bottom: tap state
                 Text(selected ? "● Choisi" : "Tap pour choisir")
-                    .font(.system(size: 12, weight: .medium))
-                    .tracking(0.96)
+                    .lumenFont(.caption)
                     .textCase(.uppercase)
                     .foregroundStyle(selected ? LumenColor.accent : LumenColor.textTertiary)
+                    .opacity(selected ? 1.0 : LumenOpacity.muted)
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(24)
-            .frame(height: 280)
+            .frame(maxWidth: .infinity, alignment: .topLeading)
+            .padding(.horizontal, LumenSpacing.lp)
+            .padding(.vertical, LumenSpacing.l2)
+            .frame(height: LumenSize.cardPriority, alignment: .topLeading)
             .background(
-                RoundedRectangle(cornerRadius: 22, style: .continuous)
+                RoundedRectangle(cornerRadius: LumenRadius.l, style: .continuous)
                     .fill(LumenColor.bgSecondary)
                     .overlay(
-                        RoundedRectangle(cornerRadius: 22, style: .continuous)
-                            .stroke(selected ? LumenColor.accent : LumenColor.divider, lineWidth: selected ? 1.5 : 1)
+                        RoundedRectangle(cornerRadius: LumenRadius.l, style: .continuous)
+                            .stroke(selected ? LumenColor.accent : Color.clear, lineWidth: LumenSize.strokeMd)
                     )
-                    .shadow(color: .black.opacity(0.10), radius: 12, x: 0, y: 6)
+                    .lumenShadow(.elevated)
             )
         }
         .buttonStyle(.plain)

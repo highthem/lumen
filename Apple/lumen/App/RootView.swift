@@ -62,7 +62,7 @@ struct RootView: View {
     private var rootBody: some View {
         if !splashFinished {
             SplashView(onComplete: {
-                withAnimation(.easeOut(duration: 0.20)) {
+                withAnimation(LumenAnimation.quick) {
                     splashFinished = true
                 }
             })

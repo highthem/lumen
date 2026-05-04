@@ -1,0 +1,7 @@
+appId: com.highthem.lumen
+---
+- tapOn: "Commencer"
+- tapOn: "Suivant"
+- tapOn: "Continuer"
+- runFlow: ./dismiss-system-permission.yaml
+- tapOn: "Programmer"

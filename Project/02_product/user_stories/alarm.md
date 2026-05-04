@@ -9,7 +9,9 @@ En tant qu'utilisateur, je veux être réveillé de manière fiable et douce pou
 **Afin de** déclencher mon rituel matinal
 
 **Critères d'acceptation :**
-- L'utilisateur choisit une heure (HH:mm), une récurrence (none / weekdays / custom days), un son (liste de 3 sons doux embarqués).
+- L'utilisateur choisit une heure (HH:mm), une récurrence (none / weekdays / custom days), un son (liste de **5 sons doux embarqués** : `aube` / `bois` / `marée` / `cloche` / `souffle`, voir `Design/sound-kit/01_brief.md`).
+- Default son : `aube` (cohérent avec l'app icon et l'identité visuelle).
+- Preview du son au tap dans le picker (joue 5 s puis stop).
 - L'alarme est persistée localement via SwiftData.
 - Une notification UN est programmée via UNUserNotificationCenter.
 - Permission notifications demandée à la première création avec message explicite.

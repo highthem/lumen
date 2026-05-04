@@ -1,0 +1,9 @@
+appId: com.highthem.lumen
+flows:
+  - flows/smoke/*.yaml
+  - flows/regression/*.yaml
+  - flows/edge-cases/*.yaml
+testOutputDir: ../../build/maestro-results
+executionOrder:
+  continueOnFailure: true
+

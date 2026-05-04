@@ -1,0 +1,111 @@
+# SwiftLint configuration for the Lumen project.
+#
+# Custom rules below ban hardcoded design values (colors, spacing, fonts,
+# radii, opacities, animations, sleep durations) outside `Shared/DesignSystem/`.
+# This is the build-time guard that keeps the design system the single source
+# of truth: any new layout or color literal sneaking into a Feature view will
+# fail the lint phase.
+#
+# To bypass an individual line (rarely needed — better to add a token), use:
+#   // swiftlint:disable:next no_padding_literal
+#   .padding(13) // <-- specific reason
+
+included:
+  - Apple/lumen
+
+excluded:
+  - Apple/lumen/Shared/DesignSystem
+  - Apple/lumenTests
+  - Apple/lumenUITests
+  - Apple/lumen/Resources
+
+disabled_rules:
+  - trailing_whitespace
+  - line_length
+  - identifier_name
+  - type_name
+  - file_length
+  - type_body_length
+  - function_body_length
+  - cyclomatic_complexity
+  # The rules below enforce general Swift style. They are intentionally
+  # disabled because this lint config is targeted at the design-system
+  # contract; broader style nags are out of scope for this CI guard and
+  # can be re-enabled in a follow-up if the team wants them enforced.
+  - multiple_closures_with_trailing_closure
+  - trailing_comma
+  - colon
+  - comma
+  - function_parameter_count
+  - unneeded_synthesized_initializer
+  - for_where
+  - force_try
+  - large_tuple
+  - opening_brace
+
+custom_rules:
+  no_padding_literal:
+    name: "Padding literal"
+    regex: '\.padding\(\s*(\.\w+\s*,\s*)?\d+(\.\d+)?\s*\)'
+    message: "Use LumenSpacing.* instead of a literal in .padding()."
+    severity: error
+
+  no_frame_literal:
+    name: "Frame literal"
+    regex: '\.frame\([^)]*\b(width|height|minWidth|minHeight|maxWidth|maxHeight)\s*:\s*\d+(\.\d+)?'
+    message: "Use LumenSize.* / LumenSpacing.* instead of a literal in .frame()."
+    severity: error
+
+  no_corner_radius_literal:
+    name: "Corner radius literal"
+    regex: '\.cornerRadius\(\s*\d+(\.\d+)?\s*\)|cornerRadius\s*:\s*\d+(\.\d+)?'
+    message: "Use LumenRadius.* instead of a literal."
+    severity: error
+
+  no_system_font_size:
+    name: "System font size"
+    regex: '\.system\(\s*size\s*:'
+    message: "Use .lumenFont(LumenFont.*) or LumenIconFont.* instead of .font(.system(size:))."
+    severity: error
+
+  no_color_rgb_literal:
+    name: "RGB color literal"
+    regex: 'Color\(\s*red\s*:|Color\(hex\s*:'
+    message: "Define color in LumenColors.xcassets and expose via LumenColor."
+    severity: error
+
+  no_hex_constant:
+    name: "Hex / 255 constant"
+    regex: '0x[0-9A-Fa-f]{2,6}\s*/\s*255'
+    message: "Define color in LumenColors.xcassets and expose via LumenColor."
+    severity: error
+
+  no_opacity_literal:
+    name: "Opacity literal"
+    regex: '\.opacity\(\s*0\.\d+\s*\)'
+    message: "Use LumenOpacity.* instead of a numeric opacity."
+    severity: warning
+
+  no_raw_animation:
+    name: "Raw animation"
+    regex: '\.(easeInOut|easeIn|easeOut|linear|spring)\(\s*(response|duration)\s*:'
+    message: "Use LumenAnimation.* instead of a raw curve."
+    severity: warning
+
+  no_raw_sleep:
+    name: "Raw sleep"
+    regex: 'Task\.sleep\(\s*nanoseconds\s*:\s*\d|Task\.sleep\(\s*for\s*:\s*\.milliseconds\(\s*\d|Task\.sleep\(\s*for\s*:\s*\.seconds\(\s*\d'
+    message: "Use LumenDelay.* instead of a literal sleep duration."
+    severity: warning
+
+  no_line_spacing_literal:
+    name: "Line spacing literal"
+    regex: '\.lineSpacing\(\s*\d+(\.\d+)?\s*\)'
+    message: "Use LumenLineSpacing.* (or rely on .lumenFont) instead of a literal lineSpacing."
+    severity: warning
+
+  no_tracking_literal:
+    name: "Tracking literal"
+    regex: '\.tracking\(\s*-?\d+(\.\d+)?\s*\)|\.tracking\(\s*-?\d+(\.\d+)?\s*\*'
+    message: "Tracking is a typography concern — use .lumenFont(LumenFont.*) which applies tracking from the token."
+    severity: warning

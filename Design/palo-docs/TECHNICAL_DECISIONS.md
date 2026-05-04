@@ -11,6 +11,7 @@ Architecture Decision Records (ADRs) — every non-trivial technical choice in L
 | [ADR-005](#adr-005--ethical-monitoring) | Ethical monitoring | Accepted |
 | [ADR-006](#adr-006--cicd-via-xcode-cloud-with-dual-xcode-version-strategy) | CI/CD via Xcode Cloud, dual Xcode version | Accepted |
 | [ADR-007](#adr-007--voice-integration-input--output) | Voice integration (input + output, on-device) | Accepted |
+| [ADR-008](#adr-008--ui-testing-with-maestro--xcuitest-minimal) | UI testing with Maestro + XCUITest minimal | Accepted |
 
 ---
 
@@ -190,3 +191,46 @@ Settings → "Export my logs" generates a JSON file via `ShareSheet`. Settings �
 5. **Brief constraints respected**: zero third-party libs, native Apple frameworks, iOS 17+.
 
 **Permissions added to Info.plist:** `NSMicrophoneUsageDescription`, `NSSpeechRecognitionUsageDescription`. AudioSession coordination handled by `AudioSessionManager` to avoid conflict with the alarm sound (ADR-001).
+
+---
+
+## ADR-008 — UI testing with Maestro + XCUITest minimal
+
+**Context.** The brief asks for Domain unit tests ≥ 60 % (XCTest) and "1-2 XCUITest for critical paths (optional V1)". To raise the bar without falling into XCUITest brittleness, **Maestro** is adopted as the modern declarative UI testing standard for mobile in 2026.
+
+**Decision.** Three-layer testing strategy:
+
+| Layer | Tool | Coverage |
+|---|---|---|
+| Domain logic (use cases, services, rate limiter, AI waterfall) | **XCTest** | ≥ 60 % (brief constraint) |
+| UI flows (rituel, navigation, settings, typing fallback) | **Maestro** | 15-20 YAML flows over time, V1 starts with 5 smoke |
+| Hardware-dependent (background alarm, real mic, AVAudioSession real-device) | **XCUITest** | 2-3 tests max, requires real device |
+
+**Why Maestro over XCUITest only.**
+1. **Readability**: a 20-line YAML flow vs ~150 lines Swift XCUITest for the same test.
+2. **Maintainability**: UI changes require only YAML tweaks, not whole Swift refactors.
+3. **Cross-platform**: ready for V2 Android with the same flows.
+4. **Zero-wait**: Maestro auto-handles animations and network delays.
+5. **Studio visual debugger**: faster authoring.
+
+**Why complement with XCUITest.**
+- iOS Maestro is simulators-only. Background alarm reliability requires a real device (UNUserNotificationCenter). Real-mic recognition and AVAudioSession ducking only behave realistically on physical hardware.
+
+**V1 PALO scope:**
+- 5 smoke flows Maestro (`app-launch`, `onboarding-complete`, `create-alarm`, `ritual-happy-path`, `settings-export-json`)
+- 3 XCUITest hardware-dependent (background alarm, mic permission, audio session conflict)
+- Local CLI run, CI integration (Xcode Cloud post-script) deferred to V1.1
+- Total V1 effort: ~2 days
+
+**V1.1 scope:**
+- 10 regression flows (snooze, voice fallback, TTS, queued, rate limit, BYO key, …)
+- 5 edge-case flows (permissions refused, reduce motion, app background, BYO invalid)
+- CI integration on Xcode Cloud or GitHub Actions
+- Total V1.1 effort: +3 days
+
+**Scenarios source of truth**: `Project/04_tech/testing/maestro-scenarios.md`. Implementation: `Apple/.maestro/flows/`.
+
+**Permissions / setup notes:**
+- Java 17+ required for Maestro CLI (`brew tap mobile-dev-inc/tap && brew install mobile-dev-inc/tap/maestro`)
+- Debug-only deep links exposed (`lumen://ritual/start`, `lumen://alarm/test-ringing`, etc.) gated by `#if DEBUG`
+- iOS simulator state manipulation via `xcrun simctl` for airplane mode and reduce-motion testing

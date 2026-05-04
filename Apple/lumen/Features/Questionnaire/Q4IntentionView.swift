@@ -18,17 +18,15 @@ struct Q4IntentionView: View {
         VStack(alignment: .leading, spacing: LumenSpacing.l) {
             ProgressDots4(current: 3)
 
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: LumenSpacing.s) {
                 Eyebrow("04 / 04 · Intention")
                 Text("Ton intention\nen un mot.")
-                    .font(.system(size: 30, weight: .medium, design: .serif))
-                    .tracking(-0.45)
-                    .lineSpacing(-2)
+                    .lumenFont(.title1)
                     .foregroundStyle(LumenColor.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
             }
 
-            VStack(spacing: 36) {
+            VStack(spacing: LumenSpacing.xl2) {
                 Spacer(minLength: 0)
                 revealArea
                 if state != .editing {
@@ -39,7 +37,7 @@ struct Q4IntentionView: View {
             .frame(maxWidth: .infinity)
 
             ghostActionsRow
-                .frame(maxWidth: .infinity, minHeight: 32)
+                .frame(maxWidth: .infinity, minHeight: LumenSize.blockMin)
 
             FooterRow(
                 backTitle: "Retour",
@@ -50,7 +48,7 @@ struct Q4IntentionView: View {
             )
         }
         .padding(.horizontal, LumenSpacing.l)
-        .padding(.top, 28)
+        .padding(.top, LumenSpacing.xl0)
         .padding(.bottom, LumenSpacing.l)
     }
 
@@ -65,19 +63,18 @@ struct Q4IntentionView: View {
             case .listening:
                 LiveTranscript(
                     text: vm.intentionWord,
-                    font: .system(size: 64, weight: .medium, design: .serif),
+                    font: .questionnaireHero,
                     color: LumenColor.accent,
                     isItalic: true,
-                    charDelay: .milliseconds(120)
+                    charDelay: LumenDelay.pulse
                 )
                 .lineLimit(1)
                 .minimumScaleFactor(0.4)
 
             case .transcribed:
                 Text(vm.intentionWord)
-                    .font(.system(size: 64, weight: .medium, design: .serif))
+                    .lumenFont(.heroDisplay)
                     .italic()
-                    .tracking(-1.28)
                     .foregroundStyle(LumenColor.accent)
                     .lineLimit(1)
                     .minimumScaleFactor(0.4)
@@ -86,12 +83,12 @@ struct Q4IntentionView: View {
                 editingPanel
             }
         }
-        .frame(minHeight: 130)
+        .frame(minHeight: LumenSize.blockReveal)
     }
 
     @ViewBuilder
     private var micArea: some View {
-        VStack(spacing: 14) {
+        VStack(spacing: LumenSpacing.sm3) {
             MicCTA(
                 isListening: state == .listening,
                 onPressDown: { vm.startDictation(for: .intention) },
@@ -100,16 +97,16 @@ struct Q4IntentionView: View {
 
             switch state {
             case .default:
-                VStack(spacing: 4) {
+                VStack(spacing: LumenSpacing.xs) {
                     Text("Tap pour parler")
-                        .font(.system(size: 15, weight: .medium))
-                        .tracking(-0.075)
-                        .foregroundStyle(LumenColor.textPrimary.opacity(0.75))
+                        .lumenFont(.callout)
+                        .fontWeight(.medium)
+                        .foregroundStyle(LumenColor.textPrimary.opacity(LumenOpacity.waveform))
                     Button {
                         vm.intentionEditingByKeyboard = true
                     } label: {
                         Text("ou écrire au clavier")
-                            .font(.system(size: 13, design: .serif))
+                            .lumenFont(.footnoteSerif)
                             .italic()
                             .foregroundStyle(LumenColor.textSecondary)
                     }
@@ -117,13 +114,14 @@ struct Q4IntentionView: View {
                 }
 
             case .listening:
-                HStack(spacing: 8) {
+                HStack(spacing: LumenSpacing.s) {
                     Circle()
                         .fill(LumenColor.accent)
-                        .frame(width: 7, height: 7)
+                        .frame(width: LumenSize.dotLg, height: LumenSize.dotLg)
                     Text("on écoute")
-                        .font(.system(size: 13, weight: .medium))
-                        .foregroundStyle(LumenColor.accent.opacity(0.85))
+                        .lumenFont(.footnote)
+                        .fontWeight(.medium)
+                        .foregroundStyle(LumenColor.accent.opacity(LumenOpacity.pressed))
                 }
 
             default:
@@ -134,7 +132,7 @@ struct Q4IntentionView: View {
 
     @ViewBuilder
     private var ghostActionsRow: some View {
-        HStack(spacing: 24) {
+        HStack(spacing: LumenSpacing.l) {
             switch state {
             case .default:
                 // The keyboard fallback lives below the mic now; this row stays empty.
@@ -146,7 +144,7 @@ struct Q4IntentionView: View {
                     Task { await vm.stopDictation(for: .intention) }
                 } label: {
                     Text("Annuler")
-                        .font(.system(size: 13))
+                        .lumenFont(.footnote)
                         .foregroundStyle(LumenColor.textSecondary)
                 }
                 .buttonStyle(.plain)
@@ -158,18 +156,18 @@ struct Q4IntentionView: View {
                     vm.resetIntention()
                 } label: {
                     Text("↺ Recommencer")
-                        .font(.system(size: 13))
+                        .lumenFont(.footnote)
                         .foregroundStyle(LumenColor.textSecondary)
                 }
                 .buttonStyle(.plain)
                 Button {
                     vm.intentionEditingByKeyboard = true
                 } label: {
-                    HStack(spacing: 6) {
+                    HStack(spacing: LumenSpacing.xs2) {
                         Image(systemName: "keyboard")
-                            .font(.system(size: 13))
+                            .font(LumenIconFont.md)
                         Text("Modifier")
-                            .font(.system(size: 13))
+                            .lumenFont(.footnote)
                     }
                     .foregroundStyle(LumenColor.textSecondary)
                 }
@@ -182,7 +180,7 @@ struct Q4IntentionView: View {
                     vm.intentionEditingByKeyboard = false
                 } label: {
                     Text("← Tu peux aussi reparler")
-                        .font(.system(size: 13, design: .serif))
+                        .lumenFont(.footnoteSerif)
                         .italic()
                         .foregroundStyle(LumenColor.textSecondary)
                 }
@@ -196,11 +194,9 @@ struct Q4IntentionView: View {
         SerifUnderlineField(
             text: $vm.intentionWord,
             placeholder: "présence",
-            fontSize: 64,
-            tracking: -1.12,
-            lineSpacing: 0,
+            font: .questionnaireHero,
             color: LumenColor.accent,
-            maxWidth: 280
+            maxWidth: LumenSize.cardForm
         )
     }
 }

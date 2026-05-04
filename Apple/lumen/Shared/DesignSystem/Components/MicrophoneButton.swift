@@ -15,7 +15,11 @@ struct MicrophoneButton: View {
     @State private var arcTrim: Double = 0
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
-    private let buttonSize: CGFloat = 96
+    private let buttonSize: CGFloat = LumenSize.mic
+
+    private static let arcTrimTarget: Double = 0.85
+    private static let breathTargetScale: CGFloat = 1.03
+    private static let arcInset: CGFloat = 8
 
     var body: some View {
         Button(action: action) {
@@ -47,52 +51,49 @@ struct MicrophoneButton: View {
 
     private var idleBackground: some View {
         Circle()
-            .strokeBorder(LumenColor.accent.opacity(0.45), lineWidth: 1)
+            .strokeBorder(LumenColor.accent.opacity(LumenOpacity.muted), lineWidth: LumenSize.hairline)
     }
 
     private var listeningBackground: some View {
         Circle()
             .fill(
                 RadialGradient(
-                    colors: [LumenColor.accent.opacity(0.55), .clear],
+                    colors: [LumenColor.accent.opacity(LumenOpacity.ring), .clear],
                     center: .center,
                     startRadius: 0,
                     endRadius: buttonSize / 2
                 )
             )
-            .scaleEffect(breathing ? 1.03 : 1.0)
-            .animation(
-                reduceMotion ? nil : .easeInOut(duration: 4).repeatForever(autoreverses: true),
-                value: breathing
-            )
+            .scaleEffect(breathing ? Self.breathTargetScale : 1.0)
+            .animation(reduceMotion ? nil : LumenAnimation.breath, value: breathing)
     }
 
     private var transcribedBackground: some View {
         Circle()
-            .strokeBorder(LumenColor.accent.opacity(0.2), lineWidth: 1)
+            .strokeBorder(LumenColor.accent.opacity(LumenOpacity.subtle), lineWidth: LumenSize.hairline)
     }
 
     // MARK: - Glyphs
 
     private var openingGlyph: some View {
         Text("\u{201C}")
-            .font(.system(size: 46, weight: .regular, design: .serif))
+            .font(LumenIconFont.serifXl)
             .italic()
             .foregroundStyle(LumenColor.accent)
     }
 
     private var listeningArc: some View {
         Circle()
-            .trim(from: 0, to: reduceMotion ? 0.85 : arcTrim)
-            .stroke(LumenColor.accent.opacity(0.8), style: StrokeStyle(lineWidth: 2, lineCap: .round))
+            .trim(from: 0, to: reduceMotion ? Self.arcTrimTarget : arcTrim)
+            .stroke(LumenColor.accent.opacity(LumenOpacity.arc), style: StrokeStyle(lineWidth: LumenSize.strokeLg, lineCap: .round))
             .rotationEffect(.degrees(reduceMotion ? 0 : arcRotation))
-            .frame(width: buttonSize - 8, height: buttonSize - 8)
+            .frame(width: buttonSize - Self.arcInset, height: buttonSize - Self.arcInset)
     }
 
     private var transcribedGlyph: some View {
         Text("·")
-            .font(.system(size: 32, weight: .regular, design: .serif))
-            .foregroundStyle(LumenColor.accent.opacity(0.5))
+            .font(LumenIconFont.serifLg)
+            .foregroundStyle(LumenColor.accent.opacity(LumenOpacity.dim))
     }
 
     // MARK: - Animation control
@@ -102,11 +103,11 @@ struct MicrophoneButton: View {
         switch newState {
         case .listening:
             breathing = true
-            withAnimation(.linear(duration: 4).repeatForever(autoreverses: false)) {
+            withAnimation(LumenAnimation.arcRotate) {
                 arcRotation = 360
             }
-            withAnimation(.easeInOut(duration: 2).repeatForever(autoreverses: true)) {
-                arcTrim = 0.85
+            withAnimation(LumenAnimation.alarmPulse) {
+                arcTrim = Self.arcTrimTarget
             }
         case .idle, .transcribed:
             breathing = false

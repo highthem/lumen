@@ -9,8 +9,7 @@ struct Eyebrow: View {
 
     var body: some View {
         Text(text.uppercased())
-            .font(.system(size: 11, weight: .regular))
-            .tracking(11 * 0.22)
+            .lumenFont(.caption)
             .foregroundStyle(LumenColor.textTertiary)
     }
 }

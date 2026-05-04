@@ -1,0 +1,25 @@
+appId: com.highthem.lumen
+tags: [edge, lifecycle]
+---
+- launchApp:
+    clearState: false
+- openLink: "lumen://ritual/q2"
+
+- tapOn: "Énergie"
+
+# Background l'app
+- pressKey: Home
+
+- waitForAnimationToEnd:
+    timeout: 2000
+
+# Reopen
+- launchApp:
+    clearState: false
+
+# Should resume on Q2 (or offer reprise)
+- extendedWaitUntil:
+    visible: "Reprendre ton rituel"
+    timeout: 3000
+- tapOn: "Reprendre"
+- assertVisible: "Qu'est-ce qui compte"

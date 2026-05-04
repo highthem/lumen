@@ -2,10 +2,10 @@ import SwiftUI
 
 struct LiveTranscript: View {
     let text: String
-    let font: Font
+    let font: LumenFont
     let color: Color
     var isItalic: Bool = false
-    var charDelay: Duration = .milliseconds(80)
+    var charDelay: Duration = LumenDelay.charSlow
 
     @State private var visibleCount: Int = 0
     @State private var revealTask: Task<Void, Never>?
@@ -13,7 +13,7 @@ struct LiveTranscript: View {
 
     var body: some View {
         Text(String(text.prefix(visibleCount)))
-            .font(font)
+            .lumenFont(font)
             .italic(isItalic)
             .foregroundStyle(color)
             .onChange(of: text) { _, newText in

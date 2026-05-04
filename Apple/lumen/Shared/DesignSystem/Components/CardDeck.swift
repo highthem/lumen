@@ -1,22 +1,32 @@
 import SwiftUI
 import UIKit
 
+/// Component-internal stack geometry for CardDeck. Pulled out of the generic
+/// type because Swift forbids static stored properties on generic structs.
+private enum CardDeckLayout {
+    static let stackOffsetX: CGFloat = 14
+    static let stackOffsetsY: [CGFloat] = [0, -14, -26, -38]
+    static let stackScales: [CGFloat] = [1.0, 0.94, 0.88, 0.84]
+    static let dragFadeDistance: Double = 800
+    static let dragFadeMax: Double = 0.15
+}
+
 /// Swipeable card deck for Q2 Priority (V8 — Direction A).
 /// 6 cards stacked, top one crisp, swipe horizontal to navigate, tap to select.
 struct CardDeck<Item: Hashable, Card: View>: View {
     let items: [Item]
     @Binding var current: Int
     @Binding var selected: Item?
-    var cardHeight: CGFloat = 280
+    var cardHeight: CGFloat = LumenSize.cardForm
     @ViewBuilder var card: (Item, Bool) -> Card
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var dragOffset: CGFloat = 0
-    private let swipeThreshold: CGFloat = 60
+    private let swipeThreshold: CGFloat = LumenSpacing.xxl2
 
     var body: some View {
-        VStack(spacing: 16) {
-            HStack(alignment: .center, spacing: 12) {
+        VStack(spacing: LumenSpacing.m) {
+            HStack(alignment: .center, spacing: LumenSpacing.sm2) {
                 navButton(systemName: "chevron.left", enabled: current > 0) {
                     advance(by: -1)
                 }
@@ -36,9 +46,9 @@ struct CardDeck<Item: Hashable, Card: View>: View {
                     }
                 }
                 .frame(maxWidth: .infinity)
-                .frame(height: cardHeight + 50)
+                .frame(height: cardHeight + LumenSpacing.xl2, alignment: .bottom)
                 .gesture(
-                    DragGesture(minimumDistance: 8)
+                    DragGesture(minimumDistance: LumenSpacing.s)
                         .onChanged { value in
                             // Only allow drag on the top card, in directions where
                             // there's actually a neighbour to swipe to.
@@ -57,7 +67,7 @@ struct CardDeck<Item: Hashable, Card: View>: View {
                             } else if dx >= swipeThreshold {
                                 advance(by: -1)
                             }
-                            withAnimation(reduceMotion ? nil : .easeOut(duration: 0.28)) {
+                            withAnimation(reduceMotion ? nil : LumenAnimation.standard) {
                                 dragOffset = 0
                             }
                         }
@@ -68,19 +78,19 @@ struct CardDeck<Item: Hashable, Card: View>: View {
                 }
             }
 
-            HStack(spacing: 8) {
-                HStack(spacing: 5) {
+            HStack(spacing: LumenSpacing.s) {
+                HStack(spacing: LumenSize.dotSm) {
                     ForEach(0..<items.count, id: \.self) { i in
                         Circle()
-                            .fill(i == current ? LumenColor.accent : LumenColor.textPrimary.opacity(0.20))
-                            .frame(width: i == current ? 6 : 5, height: i == current ? 6 : 5)
+                            .fill(i == current ? LumenColor.accent : LumenColor.textPrimary.opacity(LumenOpacity.subtle))
+                            .frame(width: i == current ? LumenSize.dotMd : LumenSize.dotSm,
+                                   height: i == current ? LumenSize.dotMd : LumenSize.dotSm)
                     }
                 }
                 Text("\(current + 1) / \(items.count)")
-                    .font(.system(size: 11, weight: .regular))
-                    .tracking(1.4)
+                    .lumenFont(.caption)
                     .foregroundStyle(LumenColor.textTertiary)
-                    .padding(.leading, 6)
+                    .padding(.leading, LumenSpacing.xs2)
             }
         }
     }
@@ -90,8 +100,8 @@ struct CardDeck<Item: Hashable, Card: View>: View {
     private func advance(by step: Int) {
         let next = max(0, min(items.count - 1, current + step))
         guard next != current else { return }
-        UIImpactFeedbackGenerator(style: .soft).impactOccurred()
-        withAnimation(reduceMotion ? nil : .easeOut(duration: 0.32)) {
+        // No haptic — spec forbids haptic inside questionnaire (pollutes calm).
+        withAnimation(reduceMotion ? nil : LumenAnimation.standard) {
             current = next
         }
     }
@@ -100,9 +110,9 @@ struct CardDeck<Item: Hashable, Card: View>: View {
     private func navButton(systemName: String, enabled: Bool, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Image(systemName: systemName)
-                .font(.system(size: 16, weight: .semibold))
-                .foregroundStyle(LumenColor.textSecondary.opacity(enabled ? 0.85 : 0.30))
-                .frame(width: 36, height: 36)
+                .font(LumenIconFont.xlSemibold)
+                .foregroundStyle(LumenColor.textSecondary.opacity(enabled ? LumenOpacity.pressed : LumenOpacity.disabled))
+                .frame(width: LumenSize.iconBtn, height: LumenSize.iconBtn)
                 .contentShape(Rectangle())
         }
         .disabled(!enabled)
@@ -115,35 +125,28 @@ struct CardDeck<Item: Hashable, Card: View>: View {
     private func offsetX(pos: Int) -> CGFloat {
         if pos == 0 { return dragOffset }
         // Stack peeks slightly to the right for "next" cards.
-        return CGFloat(pos) * 14
+        return CGFloat(pos) * CardDeckLayout.stackOffsetX
     }
 
     private func offsetY(pos: Int) -> CGFloat {
-        switch abs(pos) {
-        case 0: 0
-        case 1: 18
-        case 2: 34
-        default: 50
-        }
+        // Rear cards peek UPWARD behind the front card.
+        let idx = min(abs(pos), CardDeckLayout.stackOffsetsY.count - 1)
+        return CardDeckLayout.stackOffsetsY[idx]
     }
 
     private func scale(pos: Int) -> CGFloat {
-        switch abs(pos) {
-        case 0: 1.0
-        case 1: 0.96
-        case 2: 0.92
-        default: 0.88
-        }
+        let idx = min(abs(pos), CardDeckLayout.stackScales.count - 1)
+        return CardDeckLayout.stackScales[idx]
     }
 
     private func opacity(pos: Int) -> Double {
         if pos == 0 {
             // Fade slightly when dragging hard
-            return 1.0 - min(0.15, abs(Double(dragOffset)) / 800)
+            return 1.0 - min(CardDeckLayout.dragFadeMax, abs(Double(dragOffset)) / CardDeckLayout.dragFadeDistance)
         }
         switch abs(pos) {
-        case 1: return 0.55
-        case 2: return 0.25
+        case 1: return LumenOpacity.p60 // 0.62 → snap to 0.60
+        case 2: return LumenOpacity.p32
         default: return 0
         }
     }

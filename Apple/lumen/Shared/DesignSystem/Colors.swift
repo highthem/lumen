@@ -17,4 +17,10 @@ enum LumenColor {
     static let error = Color("errorColor", bundle: .main)
 
     static let divider = Color("divider", bundle: .main)
+
+    enum Splash {
+        static let earth = Color("splashEarth", bundle: .main)
+        static let dawnTop = Color("splashDawnTop", bundle: .main)
+        static let dawnBottom = Color("splashDawnBottom", bundle: .main)
+    }
 }

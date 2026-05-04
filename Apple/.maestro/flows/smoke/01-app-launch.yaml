@@ -1,0 +1,12 @@
+appId: com.highthem.lumen
+name: App Launch
+tags: 
+  - smoke 
+  - launch
+---
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible: "Quelques minutes à toi."
+    timeout: 3000
+- assertVisible: "Commencer"

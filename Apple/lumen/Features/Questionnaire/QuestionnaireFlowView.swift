@@ -20,7 +20,7 @@ struct QuestionnaireFlowView: View {
                         )
                 )
                 .animation(
-                    reduceMotion ? nil : .easeInOut(duration: 0.35),
+                    reduceMotion ? nil : LumenAnimation.questionnaireTransition,
                     value: vm.step
                 )
         }

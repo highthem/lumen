@@ -9,7 +9,7 @@ struct OnboardingPermissionsView: View {
                 Button(action: { vm.goBack() }) {
                     Image(systemName: "chevron.left")
                         .foregroundStyle(LumenColor.textPrimary)
-                        .font(.system(size: 17, weight: .medium))
+                        .font(LumenIconFont.xxl)
                 }
                 Spacer()
                 ProgressDots4(current: 2)
@@ -20,15 +20,14 @@ struct OnboardingPermissionsView: View {
             Spacer().frame(height: LumenSpacing.xl)
 
             Text("03 / 04")
-                .font(.system(size: 11, weight: .regular))
-                .tracking(11 * 0.22)
+                .lumenFont(.caption)
                 .textCase(.uppercase)
                 .foregroundStyle(LumenColor.textSecondary)
 
             Spacer().frame(height: LumenSpacing.m)
 
             Text("On a besoin de deux choses.")
-                .font(.system(size: 30, weight: .semibold, design: .serif))
+                .lumenFont(.title1)
                 .foregroundStyle(LumenColor.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
 
@@ -58,7 +57,7 @@ struct OnboardingPermissionsView: View {
             Spacer().frame(height: LumenSpacing.l)
 
             Text("On ne t'envoie rien d'autre. Promis.")
-                .font(.system(size: 15, weight: .regular, design: .serif))
+                .lumenFont(.calloutSerif)
                 .italic()
                 .foregroundStyle(LumenColor.textSecondary)
                 .frame(maxWidth: .infinity, alignment: .center)
@@ -85,22 +84,22 @@ struct OnboardingPermissionsView: View {
     }
 
     private func permissionCard(icon: String, title: String, subtitle: String, chip: () -> AnyView) -> some View {
-        HStack(spacing: 16) {
+        HStack(spacing: LumenSpacing.m) {
             RoundedRectangle(cornerRadius: LumenRadius.s, style: .continuous)
                 .fill(LumenColor.bgTertiary)
-                .frame(width: 40, height: 40)
+                .frame(width: LumenSize.iconXl, height: LumenSize.iconXl)
                 .overlay {
                     Image(systemName: icon)
                         .foregroundStyle(LumenColor.textPrimary)
-                        .font(.system(size: 18))
+                        .font(LumenIconFont.xxxl)
                 }
 
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: LumenSpacing.xxs) {
                 Text(title)
-                    .font(.system(size: 14, weight: .medium))
+                    .lumenFont(.chipLabel)
                     .foregroundStyle(LumenColor.textPrimary)
                 Text(subtitle)
-                    .font(.system(size: 12, weight: .regular))
+                    .lumenFont(.footnote)
                     .foregroundStyle(LumenColor.textSecondary)
             }
 
@@ -108,14 +107,15 @@ struct OnboardingPermissionsView: View {
 
             chip()
         }
-        .padding(18)
+        .padding(LumenSpacing.l)
         .background(LumenColor.bgSecondary)
         .clipShape(RoundedRectangle(cornerRadius: LumenRadius.l, style: .continuous))
     }
 
     private func chipLabel(_ label: String, isSelected: Bool) -> some View {
         Text(label)
-            .font(.system(size: 12, weight: .medium))
+            .lumenFont(.footnote)
+            .fontWeight(.medium)
             .foregroundStyle(isSelected ? LumenColor.bgPrimary : LumenColor.accent)
             .padding(.horizontal, LumenSpacing.m)
             .padding(.vertical, LumenSpacing.xs)

@@ -1,0 +1,22 @@
+appId: com.highthem.lumen
+tags: [regression, voice, fallback]
+env:
+  RITUAL_DEEPLINK: "lumen://ritual/q3"
+---
+- launchApp:
+    clearState: false
+
+- openLink: ${RITUAL_DEEPLINK}
+
+# Q3 voice par défaut → tap "Écrire au clavier"
+- assertVisible: "Une gratitude"
+- assertVisible:
+    id: "mic-button"
+- tapOn: "Écrire au clavier"
+- assertVisible:
+    id: "gratitude-textarea"
+
+# Verify retour à la voix
+- tapOn: "Tu peux aussi reparler"
+- assertVisible:
+    id: "mic-button"

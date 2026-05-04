@@ -56,7 +56,22 @@ En tant qu'utilisateur, je veux un court moment de pause avant la réflexion pou
 - Skip loggé (pour monitoring comportemental, pas pour culpabiliser).
 - Si skip > 3 fois consécutives, proposer de réduire la durée par défaut (nudge UX, pas une alerte).
 
+## US-T6 — Audio ambient pendant le timer (NOUVEAU)
+**En tant qu'** utilisateur en moment de présence
+**Je veux** un son d'ambiance discret qui soutient ma respiration
+**Afin de** ne pas être seul·e dans le silence si je préfère un soutien sonore
+
+**Critères d'acceptation :**
+- 3 ambiances disponibles : `breath-aube` (default, 4 s breath cycle synchronisé avec le cercle visuel), `breath-bois` (field recording forêt), `breath-silence` (quasi-silence avec marqueurs début/fin)
+- Choix dans Settings → Rituel → "Ambiance du timer"
+- Toggle "Activer l'ambiance" — par défaut OFF (silence) pour ne pas surprendre l'utilisateur au 1er lancement
+- Quand l'utilisateur active : preview de 5 s avant validation
+- Audio joue à -20 LUFS (background), respecte `AVAudioSession .ambient` (cohabitation avec autres apps audio)
+- Reduce Motion ne désactive PAS l'audio (le son ne crée pas de mouvement visuel)
+- Skip du timer = stop immédiat de l'audio
+- Voir `Design/sound-kit/01_brief.md` pour les spec audio détaillées
+
 ## Out of scope V1
-- Son / musique pendant le timer
-- Guidance respiratoire (inspire/expire)
+- Guidance respiratoire vocale (inspire/expire dictée)
 - Timer variable selon l'heure du réveil
+- Sons custom uploadés par l'utilisateur (V1.1 si demandé)

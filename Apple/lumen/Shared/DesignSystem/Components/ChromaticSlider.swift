@@ -44,7 +44,7 @@ struct ChromaticSlider<Overlay: View>: View {
                         level = clamped
                         if clamped != lastHapticLevel {
                             lastHapticLevel = clamped
-                            UIImpactFeedbackGenerator(style: .soft).impactOccurred()
+                            LumenHaptic.moodSelect()
                         }
                         onLevelChanged?(clamped)
                     }

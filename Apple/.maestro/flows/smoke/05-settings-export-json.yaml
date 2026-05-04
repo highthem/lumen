@@ -1,0 +1,26 @@
+appId: com.highthem.lumen
+name: Settings Export JSON
+tags: 
+  - smoke 
+  - settings
+  - ethics
+---
+- launchApp:
+    clearState: false
+
+- tapOn:
+    id: "settings-button"
+
+# Scroll to ethical monitoring section
+- scrollUntilVisible:
+    element: "Exporter mes données"
+
+- tapOn: "Exporter mes données"
+
+# ShareSheet expected
+- extendedWaitUntil:
+    visible: "Lumen-ethical-export"
+    timeout: 5000
+
+# Dismiss share sheet
+- tapOn: "Cancel"

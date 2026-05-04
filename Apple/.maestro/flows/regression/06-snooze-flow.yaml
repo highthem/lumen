@@ -1,0 +1,17 @@
+appId: com.highthem.lumen
+tags: [regression, alarm]
+env:
+  ALARM_DEEPLINK: "lumen://alarm/test-ringing"
+---
+- launchApp:
+    clearState: false
+
+# Trigger alarm ringing UI via deep link
+- openLink: ${ALARM_DEEPLINK}
+
+- assertVisible: "07:00"
+- tapOn: "Snooze 5 min"
+
+# After snooze, expect normal app (alarm rescheduled)
+- assertVisible: "Aujourd'hui"
+- assertNotVisible: "07:00"

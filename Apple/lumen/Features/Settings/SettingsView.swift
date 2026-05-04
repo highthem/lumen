@@ -32,8 +32,10 @@ struct SettingsView: View {
                 if keyStore.hasKey {
                     ToolbarItem(placement: .topBarTrailing) {
                         Text("● Clé personnelle")
-                            .font(.system(size: 12, weight: .medium))
+                            .lumenFont(.footnote)
+                            .fontWeight(.medium)
                             .foregroundStyle(LumenColor.accent)
+                            .padding(.horizontal, LumenSpacing.s)
                     }
                 }
             }
@@ -102,7 +104,7 @@ struct SettingsView: View {
             )
 
             Text("L'audio reste sur ton téléphone. Aucun envoi à Apple ou ailleurs.")
-                .font(.system(size: 13, weight: .regular))
+                .lumenFont(.footnote)
                 .italic()
                 .foregroundStyle(LumenColor.textTertiary)
 
@@ -141,7 +143,7 @@ struct SettingsView: View {
             Text(keyStore.hasKey
                  ? "Lumen AI utilise ta clé personnelle. Aucune réponse n'est stockée sur nos serveurs."
                  : "Lumen AI s'appuie sur OpenAI et Anthropic. Aucune réponse n'est stockée sur nos serveurs.")
-                .font(.system(size: 13, design: .serif))
+                .lumenFont(.footnoteSerif)
                 .italic()
                 .foregroundStyle(LumenColor.textTertiary)
                 .fixedSize(horizontal: false, vertical: true)
@@ -153,7 +155,8 @@ struct SettingsView: View {
             Text(keyStore.hasKey
                  ? "Illimité · clé personnelle active."
                  : "3 synthèses par jour · 3 questions « Ask Lumen ».")
-                .font(.system(size: 14))
+                .lumenFont(.chipLabel)
+                .fontWeight(.regular)
                 .foregroundStyle(LumenColor.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -165,12 +168,13 @@ struct SettingsView: View {
                 SettingsAdvancedView(vm: makeAdvancedVM())
             } label: {
                 HStack {
-                    VStack(alignment: .leading, spacing: 2) {
+                    VStack(alignment: .leading, spacing: LumenSpacing.xxs) {
                         Text("Mode avancé")
-                            .font(.system(size: 16, weight: .medium))
+                            .lumenFont(.body)
+                            .fontWeight(.medium)
                             .foregroundStyle(LumenColor.textPrimary)
                         Text(advancedSubLabel)
-                            .font(.system(size: 12))
+                            .lumenFont(.footnote)
                             .foregroundStyle(LumenColor.textSecondary)
                     }
                     Spacer()

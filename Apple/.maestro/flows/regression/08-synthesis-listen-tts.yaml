@@ -1,0 +1,23 @@
+appId: com.highthem.lumen
+tags: [regression, tts, voice]
+env:
+  SYNTHESIS_DEEPLINK: "lumen://ritual/synthesis-mock"
+---
+- launchApp:
+    clearState: false
+
+- openLink: ${SYNTHESIS_DEEPLINK}
+
+# Synthesis ready, tap Listen
+- assertVisible: "Ton matin"
+- tapOn: "Écouter"
+
+# Reading focus active : paragraphe 1 visible, autres dimmed
+- assertVisible:
+    id: "synthesis-block-0"
+- assertVisible:
+    id: "synthesis-progress-bar"
+
+# Pause
+- tapOn: "Pause"
+- assertVisible: "Écouter"   # button revient à idle

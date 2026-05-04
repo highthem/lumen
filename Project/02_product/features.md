@@ -8,6 +8,8 @@ Référence : brief PALO + user stories.
 |----|---------|----------|--------------|------------|
 | F1 | Alarme avec Snooze / Silence en background | P0 | US-A1 à US-A6 | 3-4 |
 | F2 | Timer de présence 60s configurable + citation | P0 | US-T1 à US-T5 | 1 |
+| F2b | Audio ambient pendant le timer (3 ambiances) | P0 | US-T6 | 0,5 |
+| F1b | 5 sons d'alarme custom (sound kit) | P0 | US-A1 maj | 0,25 (intégration; production sons hors-dev) |
 | F3 | Questionnaire 4 étapes avec persistance | P0 | US-Q1 à US-Q3 | 1 |
 | F4 | Synthèse IA avec waterfall (OpenAI → Anthropic → offline) | P0 | US-AI1 à US-AI2 | 2-3 |
 | F5 | Rate limiting local + monitoring éthique + export JSON | P0 | US-AI3, US-AI5 | 1-2 |
@@ -42,7 +44,9 @@ Référence : brief PALO + user stories.
 | F16 | TECHNICAL_DECISIONS.md (≥ 5 ADR) | P0 | 1 |
 | F17 | ETHICAL_MONITORING.md | P0 | 0,5 |
 | F18 | ARTIFACTS.md | P0 | 0,3 |
-| F19 | Tests ≥ 60% couverture Domain | P0 | 2 |
+| F19 | Tests Domain ≥ 60% (XCTest) | P0 | 2 |
+| F19b | UI tests Maestro (5 smoke + setup, ADR-008) | P0 | 1.25 |
+| F19c | XCUITest hardware-dependent (alarme background, micro, audio session) | P0 | 0.75 |
 | F20 | Démo Loom 5 min | P0 | 0,5 |
 | F21 | Export JSON monitoring éthique | P0 | inclus F5 |
 | F22 | Présentation 10-15 slides | P0 | 1 |

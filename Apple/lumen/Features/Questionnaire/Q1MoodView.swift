@@ -14,6 +14,8 @@ struct Q1MoodView: View {
         "plein, ouvert"
     ]
 
+    private static let activeDotScale: CGFloat = 1.8
+
     @State private var hasInteracted: Bool = false
 
     var body: some View {
@@ -46,116 +48,111 @@ struct Q1MoodView: View {
     private func content(ink: Color) -> some View {
         ZStack {
             // Top — progress + eyebrow (matches `.q1-topbar`)
-            VStack(alignment: .leading, spacing: 16) {
+            VStack(alignment: .leading, spacing: LumenSpacing.m) {
                 ProgressDots4(current: 0)
                     .tint(ink)
                 Eyebrow("01 / 04 · Ressenti")
-                    .foregroundStyle(ink.opacity(0.75))
+                    .foregroundStyle(ink.opacity(LumenOpacity.waveform))
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-            .padding(.horizontal, 24)
-            .padding(.top, 14)
+            .padding(.horizontal, LumenSpacing.l)
+            .padding(.top, LumenSpacing.sm3)
 
             // Centre — kinetic word
-            VStack(spacing: 18) {
+            VStack(spacing: LumenSpacing.ml) {
                 Text("Aujourd'hui je me sens")
-                    .font(.system(size: 11))
-                    .tracking(2.4)
+                    .lumenFont(.caption)
                     .textCase(.uppercase)
-                    .foregroundStyle(ink.opacity(0.55))
+                    .foregroundStyle(ink.opacity(LumenOpacity.ring))
 
                 Text(Self.tags[vm.moodLevel])
-                    .font(.system(size: 64, weight: .medium, design: .serif))
+                    .lumenFont(.heroDisplay)
                     .italic()
-                    .tracking(-1.6)
                     .foregroundStyle(ink)
                     .multilineTextAlignment(.center)
                     .id(vm.moodLevel)
                     .transition(.asymmetric(
-                        insertion: .opacity.combined(with: .offset(y: 6)),
+                        insertion: .opacity.combined(with: .offset(y: LumenSpacing.xs2)),
                         removal: .opacity
                     ))
-                    .animation(.easeOut(duration: 0.30), value: vm.moodLevel)
+                    .animation(LumenAnimation.standard, value: vm.moodLevel)
 
                 Text(Self.subs[vm.moodLevel])
-                    .font(.system(size: 15, design: .serif))
+                    .lumenFont(.calloutSerif)
                     .italic()
-                    .foregroundStyle(ink.opacity(0.6))
+                    .foregroundStyle(ink.opacity(LumenOpacity.p60))
                     .multilineTextAlignment(.center)
-                    .frame(maxWidth: 280)
+                    .frame(maxWidth: LumenSize.cardForm)
                     .id("sub-\(vm.moodLevel)")
                     .transition(.opacity)
-                    .animation(.easeOut(duration: 0.30), value: vm.moodLevel)
+                    .animation(LumenAnimation.standard, value: vm.moodLevel)
             }
-            .padding(.horizontal, 32)
+            .padding(.horizontal, LumenSpacing.xl)
 
             // Right rail — 5 dots stacked vertically (mirrors `.q1-rail`)
-            VStack(spacing: 36) {
+            VStack(spacing: LumenSpacing.xl2) {
                 ForEach((0..<5).reversed(), id: \.self) { i in
                     Circle()
                         .fill(ink)
                         .opacity(opacityForTick(index: i))
-                        .frame(width: 6, height: 6)
-                        .scaleEffect(i == vm.moodLevel ? 1.8 : 1.0)
-                        .animation(.easeOut(duration: 0.25), value: vm.moodLevel)
+                        .frame(width: LumenSize.dotMd, height: LumenSize.dotMd)
+                        .scaleEffect(i == vm.moodLevel ? Self.activeDotScale : 1.0)
+                        .animation(LumenAnimation.quick, value: vm.moodLevel)
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .trailing)
-            .padding(.trailing, 22)
+            .padding(.trailing, LumenSpacing.ml2)
 
             // Top hint — "↑ rayonnant" (hidden at max level)
             if vm.moodLevel != 4 {
                 hintLabel(text: "rayonnant", chevronUp: true, ink: ink)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-                    .padding(.top, 96)
+                    .padding(.top, LumenSpacing.hero)
             }
 
             // Bottom hint — "↓ enfoui" (hidden at min level)
             if vm.moodLevel != 0 {
                 hintLabel(text: "enfoui", chevronUp: false, ink: ink)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
-                    .padding(.bottom, 96)
+                    .padding(.bottom, LumenSpacing.hero)
             }
 
             // Subtle "Tap pour valider" hint, appears once the user dragged
             if hasInteracted {
                 Text("Tap pour valider")
-                    .font(.system(size: 11))
-                    .tracking(2.0)
+                    .lumenFont(.caption)
                     .textCase(.uppercase)
-                    .foregroundStyle(ink.opacity(0.55))
+                    .foregroundStyle(ink.opacity(LumenOpacity.ring))
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
-                    .padding(.bottom, 36)
+                    .padding(.bottom, LumenSpacing.xl2)
                     .transition(.opacity)
-                    .animation(.easeOut(duration: 0.4), value: hasInteracted)
+                    .animation(LumenAnimation.standard, value: hasInteracted)
             }
         }
     }
 
     private func opacityForTick(index: Int) -> Double {
         if index == vm.moodLevel { return 1.0 }
-        if index < vm.moodLevel { return 0.55 }
-        return 0.28
+        if index < vm.moodLevel { return LumenOpacity.ring }
+        return LumenOpacity.p28
     }
 
     private func hintLabel(text: String, chevronUp: Bool, ink: Color) -> some View {
-        VStack(spacing: 6) {
+        VStack(spacing: LumenSpacing.xs2) {
             if chevronUp {
                 Image(systemName: "chevron.up")
-                    .font(.system(size: 11, weight: .medium))
+                    .font(LumenIconFont.xs)
                 Text(text)
-                    .font(.system(size: 11))
-                    .tracking(2.0)
+                    .lumenFont(.caption)
                     .textCase(.uppercase)
             } else {
                 Text(text)
-                    .font(.system(size: 11))
-                    .tracking(2.0)
+                    .lumenFont(.caption)
                     .textCase(.uppercase)
                 Image(systemName: "chevron.down")
-                    .font(.system(size: 11, weight: .medium))
+                    .font(LumenIconFont.xs)
             }
         }
-        .foregroundStyle(ink.opacity(0.42))
+        .foregroundStyle(ink.opacity(LumenOpacity.p42))
     }
 }

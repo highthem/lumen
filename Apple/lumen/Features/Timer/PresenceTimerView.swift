@@ -11,25 +11,24 @@ struct PresenceTimerView: View {
             VStack(spacing: 0) {
                 Eyebrow("Présence · 60 secondes")
                     .frame(maxWidth: .infinity, alignment: .center)
-                    .padding(.top, 36)
+                    .padding(.top, LumenSpacing.xl)
 
                 Spacer()
 
-                VStack(spacing: 48) {
+                VStack(spacing: LumenSpacing.xxl) {
                     if let quote = vm.quote {
-                        VStack(spacing: 12) {
+                        VStack(spacing: LumenSpacing.sm2) {
                             Text(quote.text)
-                                .font(.system(size: 26, weight: .regular, design: .serif))
-                                .tracking(-0.26)
-                                .lineSpacing(6)
+                                .lumenFont(.title2)
+                                .fontWeight(.regular)
+                                .lineSpacing(LumenLineSpacing.l)
                                 .multilineTextAlignment(.center)
                                 .foregroundStyle(LumenColor.textPrimary)
-                                .frame(maxWidth: 280)
+                                .frame(maxWidth: LumenSize.cardForm)
 
                             if let author = quote.author {
                                 Text("— \(author)")
-                                    .font(.system(size: 12))
-                                    .tracking(2)
+                                    .lumenFont(.caption)
                                     .textCase(.uppercase)
                                     .foregroundStyle(LumenColor.textTertiary)
                             }
@@ -56,7 +55,7 @@ struct PresenceTimerView: View {
         }
         .onChange(of: vm.isComplete) { _, completed in
             if completed {
-                UIImpactFeedbackGenerator(style: .soft).impactOccurred()
+                LumenHaptic.timerEnd()
                 onComplete()
             }
         }

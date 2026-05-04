@@ -78,7 +78,7 @@ final class SynthesisViewModel {
             switch result {
             case .ready(let response):
                 state = .ready(response)
-                UINotificationFeedbackGenerator().notificationOccurred(.success)
+                // Haptic moves to SynthesisView once the 3-block reveal completes.
             case .queued:
                 state = .queued
             }

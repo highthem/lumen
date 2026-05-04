@@ -12,13 +12,19 @@ struct MicCTA: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var pressed = false
     @State private var breathScale: CGFloat = 1.0
-    @State private var ring1Scale: CGFloat = 0.95
-    @State private var ring1Opacity: Double = 0.55
-    @State private var ring2Scale: CGFloat = 0.95
-    @State private var ring2Opacity: Double = 0.55
+    @State private var ring1Scale: CGFloat = MicCTA.ringStartScale
+    @State private var ring1Opacity: Double = LumenOpacity.ring
+    @State private var ring2Scale: CGFloat = MicCTA.ringStartScale
+    @State private var ring2Opacity: Double = LumenOpacity.ring
 
-    private let buttonSize: CGFloat = 120
-    private let breathCycle: TimeInterval = 4.0
+    private static let ringStartScale: CGFloat = 0.95
+    private static let ringEndScale: CGFloat = 1.45
+    private static let breathTargetScale: CGFloat = 1.03
+    private static let glyphSize: CGFloat = 42
+    private static let ringInset: CGFloat = 20
+    private static let outerInset: CGFloat = 40
+    private static let breathCycle: TimeInterval = LumenDuration.breath
+    private let buttonSize: CGFloat = LumenSize.micLg
 
     var body: some View {
         ZStack {
@@ -34,33 +40,30 @@ struct MicCTA: View {
                     Circle().fill(LumenColor.accent)
                 } else {
                     Circle()
-                        .fill(LumenColor.accent.opacity(0.12))
+                        .fill(LumenColor.accent.opacity(LumenOpacity.surfaceFill))
                         .overlay(
-                            Circle().strokeBorder(LumenColor.accent, lineWidth: 1.5)
+                            Circle().strokeBorder(LumenColor.accent, lineWidth: LumenSize.strokeMd)
                         )
                 }
 
-                MicGlyph(size: 42, color: isListening ? LumenColor.bgPrimary : LumenColor.accent)
+                MicGlyph(size: Self.glyphSize, color: isListening ? LumenColor.bgPrimary : LumenColor.accent)
             }
             .frame(width: buttonSize, height: buttonSize)
             .scaleEffect(isListening && !reduceMotion ? breathScale : 1.0)
-            .shadow(
-                color: isListening ? LumenColor.accent.opacity(0.20) : .clear,
-                radius: 30, x: 0, y: 0
-            )
+            .lumenShadow(.accentGlow(active: isListening))
         }
-        .frame(width: buttonSize + 40, height: buttonSize + 40)
+        .frame(width: buttonSize + Self.outerInset, height: buttonSize + Self.outerInset)
         .contentShape(Circle())
         .onChange(of: isListening) { _, listening in
             if listening && !reduceMotion {
-                withAnimation(.easeInOut(duration: breathCycle).repeatForever(autoreverses: true)) {
-                    breathScale = 1.03
+                withAnimation(.easeInOut(duration: Self.breathCycle).repeatForever(autoreverses: true)) {
+                    breathScale = Self.breathTargetScale
                 }
                 animateRings()
             } else {
                 breathScale = 1.0
-                ring1Scale = 0.95; ring1Opacity = 0.55
-                ring2Scale = 0.95; ring2Opacity = 0.55
+                ring1Scale = Self.ringStartScale; ring1Opacity = LumenOpacity.ring
+                ring2Scale = Self.ringStartScale; ring2Opacity = LumenOpacity.ring
             }
         }
         .gesture(
@@ -85,22 +88,22 @@ struct MicCTA: View {
 
     private func ringWave(scale: CGFloat, opacity: Double) -> some View {
         Circle()
-            .strokeBorder(LumenColor.accent, lineWidth: 1.5)
-            .frame(width: buttonSize + 20, height: buttonSize + 20)
+            .strokeBorder(LumenColor.accent, lineWidth: LumenSize.strokeMd)
+            .frame(width: buttonSize + Self.ringInset, height: buttonSize + Self.ringInset)
             .scaleEffect(scale)
             .opacity(opacity)
     }
 
     private func animateRings() {
         // First ring
-        withAnimation(.easeOut(duration: breathCycle).repeatForever(autoreverses: false)) {
-            ring1Scale = 1.45
+        withAnimation(LumenAnimation.ringWave) {
+            ring1Scale = Self.ringEndScale
             ring1Opacity = 0
         }
         // Second ring offset by half a cycle
-        DispatchQueue.main.asyncAfter(deadline: .now() + breathCycle / 2) {
-            withAnimation(.easeOut(duration: breathCycle).repeatForever(autoreverses: false)) {
-                ring2Scale = 1.45
+        DispatchQueue.main.asyncAfter(deadline: .now() + Self.breathCycle / 2) {
+            withAnimation(LumenAnimation.ringWave) {
+                ring2Scale = Self.ringEndScale
                 ring2Opacity = 0
             }
         }

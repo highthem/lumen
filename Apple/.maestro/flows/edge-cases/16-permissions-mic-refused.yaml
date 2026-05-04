@@ -1,0 +1,23 @@
+appId: com.highthem.lumen
+tags: [edge, permissions, voice]
+---
+- launchApp:
+    clearState: true
+- runFlow: ../_shared/quick-onboard.yaml
+
+- openLink: "lumen://ritual/q3"
+
+- tapOn:
+    id: "mic-button"
+
+# System permission alert appears
+- extendedWaitUntil:
+    visible: "would like to access the Microphone"
+    timeout: 3000
+- tapOn: "Don't Allow"
+
+# Lumen falls back to typing without error
+- assertNotVisible:
+    text: "Erreur"
+- assertVisible:
+    id: "gratitude-textarea"

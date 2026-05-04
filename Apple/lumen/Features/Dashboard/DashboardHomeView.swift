@@ -14,11 +14,11 @@ struct DashboardHomeView: View {
             // Subtle top glow (matches `.glow-top` from the design system).
             VStack(spacing: 0) {
                 LinearGradient(
-                    colors: [LumenColor.accent.opacity(0.08), .clear],
+                    colors: [LumenColor.accent.opacity(LumenOpacity.p08), .clear],
                     startPoint: .top,
                     endPoint: .bottom
                 )
-                .frame(height: 280)
+                .frame(height: LumenSize.cardForm)
                 Spacer()
             }
             .ignoresSafeArea()
@@ -31,7 +31,7 @@ struct DashboardHomeView: View {
                     } else if !vm.hasRitualToday {
                         idleHeader
                         idleBanner
-                        cardGrid(snapshot: nil, opacity: 0.55)
+                        cardGrid(snapshot: nil, opacity: LumenOpacity.ring)
                     } else {
                         postHeader
                         if let intention = vm.snapshot?.intention {
@@ -55,21 +55,19 @@ struct DashboardHomeView: View {
     // MARK: - Headers
 
     private var idleHeader: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: LumenSpacing.s) {
             Eyebrow(formattedDate)
             Text("Bonjour.")
-                .font(.system(size: 32, weight: .medium, design: .serif))
-                .tracking(-0.32)
+                .lumenFont(.title1)
                 .foregroundStyle(LumenColor.textPrimary)
         }
     }
 
     private var postHeader: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: LumenSpacing.s) {
             Eyebrow(formattedDate)
             Text("Aujourd'hui.")
-                .font(.system(size: 32, weight: .medium, design: .serif))
-                .tracking(-0.32)
+                .lumenFont(.title1)
                 .foregroundStyle(LumenColor.textPrimary)
         }
     }
@@ -85,18 +83,17 @@ struct DashboardHomeView: View {
 
     private var emptyState: some View {
         VStack(alignment: .leading, spacing: LumenSpacing.m) {
-            Spacer(minLength: 60)
+            Spacer(minLength: LumenSize.blockMd)
 
             Eyebrow("Lumen")
 
             Text("Ton premier matin\nt'attend.")
-                .font(.system(size: 40, weight: .medium, design: .serif))
-                .tracking(-0.6)
+                .lumenFont(.synthesisHero)
                 .foregroundStyle(LumenColor.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
 
             Text("Programme une alarme.\nOn s'occupe du reste.")
-                .font(.system(size: 17))
+                .lumenFont(.body)
                 .foregroundStyle(LumenColor.textSecondary)
                 .padding(.bottom, LumenSpacing.xl)
 
@@ -109,36 +106,36 @@ struct DashboardHomeView: View {
     // MARK: - Idle banner
 
     private var idleBanner: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: LumenSpacing.s) {
             Text("Tu n'as pas encore\nfait ton rituel.")
-                .font(.system(size: 22, weight: .medium, design: .serif))
-                .tracking(-0.11)
-                .lineSpacing(4)
+                .lumenFont(.title2)
+                .fontWeight(.medium)
                 .foregroundStyle(LumenColor.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
 
             Text("5 minutes pour démarrer.")
-                .font(.system(size: 14))
-                .foregroundStyle(LumenColor.textPrimary.opacity(0.7))
+                .lumenFont(.chipLabel)
+                .fontWeight(.regular)
+                .foregroundStyle(LumenColor.textPrimary.opacity(LumenOpacity.p70))
 
             PrimaryCTA("Démarrer") {
                 onStartRitual()
             }
-            .padding(.top, 8)
+            .padding(.top, LumenSpacing.s)
         }
-        .padding(22)
+        .padding(LumenSpacing.l)
         .background(
-            RoundedRectangle(cornerRadius: 24, style: .continuous)
+            RoundedRectangle(cornerRadius: LumenRadius.xl, style: .continuous)
                 .fill(
                     LinearGradient(
-                        colors: [LumenColor.accent.opacity(0.12), LumenColor.accent.opacity(0.04)],
+                        colors: [LumenColor.accent.opacity(LumenOpacity.surfaceFill), LumenColor.accent.opacity(LumenOpacity.p04)],
                         startPoint: .top,
                         endPoint: .bottom
                     )
                 )
                 .overlay(
-                    RoundedRectangle(cornerRadius: 24, style: .continuous)
-                        .stroke(LumenColor.divider, lineWidth: 1)
+                    RoundedRectangle(cornerRadius: LumenRadius.xl, style: .continuous)
+                        .stroke(LumenColor.divider, lineWidth: LumenSize.hairline)
                 )
         )
     }
@@ -146,24 +143,24 @@ struct DashboardHomeView: View {
     // MARK: - Hero Intention card (post-ritual)
 
     private func heroIntentionCard(word: String) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: LumenSpacing.sm2) {
             Eyebrow("Intention")
             Text(word)
-                .font(.system(size: 36, weight: .medium, design: .serif))
+                .lumenFont(.synthesisHero)
                 .italic()
-                .tracking(-0.72)
                 .foregroundStyle(LumenColor.accent)
             if let focus = vm.snapshot?.work ?? vm.snapshot?.relations {
                 Text(focus)
-                    .font(.system(size: 14))
-                    .lineSpacing(4)
-                    .foregroundStyle(LumenColor.textPrimary.opacity(0.8))
+                    .lumenFont(.chipLabel)
+                    .fontWeight(.regular)
+                    .lineSpacing(LumenLineSpacing.m)
+                    .foregroundStyle(LumenColor.textPrimary.opacity(LumenOpacity.arc))
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(24)
+        .padding(LumenSpacing.l)
         .background(
-            RoundedRectangle(cornerRadius: 24, style: .continuous)
+            RoundedRectangle(cornerRadius: LumenRadius.xl, style: .continuous)
                 .fill(LumenColor.bgSecondary)
         )
     }
@@ -171,10 +168,10 @@ struct DashboardHomeView: View {
     // MARK: - Card grid (5-cell with gratitude spanning two columns)
 
     private func cardGrid(snapshot: DashboardSnapshot?, opacity: Double) -> some View {
-        VStack(spacing: 12) {
+        VStack(spacing: LumenSpacing.sm2) {
             LazyVGrid(
-                columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)],
-                spacing: 12
+                columns: [GridItem(.flexible(), spacing: LumenSpacing.sm2), GridItem(.flexible(), spacing: LumenSpacing.sm2)],
+                spacing: LumenSpacing.sm2
             ) {
                 DashboardCard(
                     eyebrow: DashboardCategory.energy.displayName,
@@ -202,17 +199,17 @@ struct DashboardHomeView: View {
             }
 
             // Gratitude — full width, italic serif
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: LumenSpacing.s) {
                 Eyebrow(DashboardCategory.gratitude.displayName)
                 Text(snapshot?.gratitude ?? "—")
-                    .font(.system(size: 22, design: .serif))
+                    .lumenFont(.title2)
+                    .fontWeight(.regular)
                     .italic()
-                    .lineSpacing(2)
                     .foregroundStyle(LumenColor.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(18)
+            .padding(LumenSpacing.l)
             .background(
                 RoundedRectangle(cornerRadius: LumenRadius.l, style: .continuous)
                     .fill(LumenColor.bgSecondary)

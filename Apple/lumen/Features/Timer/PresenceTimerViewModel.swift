@@ -22,7 +22,7 @@ final class PresenceTimerViewModel {
         countdownTask = Task {
             while remaining > 0 {
                 guard !Task.isCancelled else { return }
-                try? await Task.sleep(for: .seconds(1))
+                try? await Task.sleep(for: LumenDelay.oneSecond)
                 if Task.isCancelled { return }
                 remaining = max(0, remaining - 1)
             }

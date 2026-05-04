@@ -6,7 +6,7 @@ struct SettingsAdvancedView: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 22) {
+            VStack(alignment: .leading, spacing: LumenSpacing.l) {
                 header
 
                 providerSection
@@ -22,20 +22,21 @@ struct SettingsAdvancedView: View {
                         Task { await vm.clearKey() }
                     } label: {
                         Text("Supprimer ma clé")
-                            .font(.system(size: 16, weight: .medium))
-                            .frame(maxWidth: .infinity, minHeight: 48)
+                            .lumenFont(.body)
+                            .fontWeight(.medium)
+                            .frame(maxWidth: .infinity, minHeight: LumenSize.fab)
                     }
                     .buttonStyle(.plain)
                     .foregroundStyle(LumenColor.error)
                     .background(
-                        RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .stroke(LumenColor.error.opacity(0.6), lineWidth: 1.5)
+                        RoundedRectangle(cornerRadius: LumenRadius.m, style: .continuous)
+                            .stroke(LumenColor.error.opacity(LumenOpacity.p60), lineWidth: LumenSize.strokeMd)
                     )
-                    .padding(.top, 8)
+                    .padding(.top, LumenSpacing.s)
                 }
             }
             .padding(.horizontal, LumenSpacing.l)
-            .padding(.top, 8)
+            .padding(.top, LumenSpacing.s)
             .padding(.bottom, LumenSpacing.xxl)
         }
         .background(LumenColor.bgPrimary)
@@ -47,27 +48,25 @@ struct SettingsAdvancedView: View {
     // MARK: - Sections
 
     private var header: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: LumenSpacing.sm) {
             Text("Utilise ta propre clé.")
-                .font(.system(size: 28, weight: .medium, design: .serif))
-                .tracking(-0.42)
+                .lumenFont(.title2)
                 .foregroundStyle(LumenColor.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
 
             Text("Lumen consomme ta clé directement, sans passer par nos serveurs. Plus de limite quotidienne — tu paies ton usage à OpenAI ou Anthropic.")
-                .font(.system(size: 15, design: .serif))
+                .lumenFont(.calloutSerif)
                 .italic()
-                .lineSpacing(4)
                 .foregroundStyle(LumenColor.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
         }
-        .padding(.top, 8)
+        .padding(.top, LumenSpacing.s)
     }
 
     private var providerSection: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: LumenSpacing.sm) {
             fieldLabel("Provider")
-            HStack(spacing: 10) {
+            HStack(spacing: LumenSpacing.sm) {
                 ForEach(UserAPIKeyStore.Provider.allCases, id: \.self) { provider in
                     providerChip(provider)
                 }
@@ -80,27 +79,28 @@ struct SettingsAdvancedView: View {
         return Button {
             Task { await vm.selectProvider(provider) }
         } label: {
-            HStack(spacing: 8) {
+            HStack(spacing: LumenSpacing.s) {
                 Circle()
-                    .stroke(LumenColor.accent.opacity(selected ? 0 : 0.5), lineWidth: 1.5)
+                    .stroke(LumenColor.accent.opacity(selected ? 0 : LumenOpacity.dim), lineWidth: LumenSize.strokeMd)
                     .background(
                         Circle()
                             .fill(selected ? LumenColor.accent : .clear)
                     )
-                    .frame(width: 14, height: 14)
+                    .frame(width: LumenSize.iconSm, height: LumenSize.iconSm)
                 Text(provider.displayName)
-                    .font(.system(size: 15, weight: .medium))
+                    .lumenFont(.callout)
+                    .fontWeight(.medium)
             }
             .foregroundStyle(selected ? LumenColor.textPrimary : LumenColor.textSecondary)
-            .padding(.horizontal, 14)
-            .frame(height: 44)
+            .padding(.horizontal, LumenSpacing.sm3)
+            .frame(height: LumenSize.buttonSm)
             .frame(maxWidth: .infinity)
             .background(
-                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                RoundedRectangle(cornerRadius: LumenRadius.m, style: .continuous)
                     .fill(selected ? LumenColor.bgSecondary : Color.clear)
                     .overlay(
-                        RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .stroke(selected ? LumenColor.accent.opacity(0.6) : LumenColor.divider, lineWidth: 1)
+                        RoundedRectangle(cornerRadius: LumenRadius.m, style: .continuous)
+                            .stroke(selected ? LumenColor.accent.opacity(LumenOpacity.p60) : LumenColor.divider, lineWidth: LumenSize.hairline)
                     )
             )
         }
@@ -108,12 +108,12 @@ struct SettingsAdvancedView: View {
     }
 
     private var keyFieldSection: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: LumenSpacing.sm) {
             fieldLabel("Clé API")
 
-            HStack(spacing: 10) {
+            HStack(spacing: LumenSpacing.sm) {
                 Image(systemName: "lock")
-                    .font(.system(size: 13, weight: .medium))
+                    .font(LumenIconFont.mdMedium)
                     .foregroundStyle(LumenColor.textTertiary)
 
                 TextField(
@@ -124,7 +124,7 @@ struct SettingsAdvancedView: View {
                     )
                 )
                 .focused($fieldFocused)
-                .font(.system(size: 14, design: .monospaced))
+                .font(LumenIconFont.monoSm)
                 .foregroundStyle(LumenColor.textPrimary)
                 .autocorrectionDisabled()
                 .textInputAutocapitalization(.never)
@@ -132,14 +132,14 @@ struct SettingsAdvancedView: View {
 
                 trailingActionButton
             }
-            .padding(.horizontal, 14)
-            .frame(height: 48)
+            .padding(.horizontal, LumenSpacing.sm3)
+            .frame(height: LumenSize.fab)
             .background(
-                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                RoundedRectangle(cornerRadius: LumenRadius.m, style: .continuous)
                     .fill(LumenColor.bgSecondary)
                     .overlay(
-                        RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .stroke(borderColor, lineWidth: 1)
+                        RoundedRectangle(cornerRadius: LumenRadius.m, style: .continuous)
+                            .stroke(borderColor, lineWidth: LumenSize.hairline)
                     )
             )
 
@@ -148,7 +148,8 @@ struct SettingsAdvancedView: View {
                     vm.pasteFromClipboard()
                 } label: {
                     Text("Coller depuis le presse-papier")
-                        .font(.system(size: 13, weight: .medium))
+                        .lumenFont(.footnote)
+                        .fontWeight(.medium)
                         .foregroundStyle(LumenColor.accent)
                 }
                 .buttonStyle(.plain)
@@ -163,7 +164,8 @@ struct SettingsAdvancedView: View {
         switch vm.state {
         case .empty:
             Button("Coller") { vm.pasteFromClipboard() }
-                .font(.system(size: 13, weight: .medium))
+                .lumenFont(.footnote)
+                .fontWeight(.medium)
                 .foregroundStyle(LumenColor.accent)
         case .saved:
             Button("Modifier") {
@@ -171,14 +173,16 @@ struct SettingsAdvancedView: View {
                 vm.state = .empty
                 fieldFocused = true
             }
-            .font(.system(size: 13, weight: .medium))
+            .lumenFont(.footnote)
+            .fontWeight(.medium)
             .foregroundStyle(LumenColor.accent)
         case .editing, .invalid, .valid:
             Button("Effacer") {
                 vm.keyDraft = ""
                 vm.state = .empty
             }
-            .font(.system(size: 13, weight: .medium))
+            .lumenFont(.footnote)
+            .fontWeight(.medium)
             .foregroundStyle(LumenColor.textSecondary)
         case .testing:
             ProgressView().tint(LumenColor.accent)
@@ -189,28 +193,28 @@ struct SettingsAdvancedView: View {
     private var statusMessage: some View {
         switch vm.state {
         case .invalid(let message):
-            HStack(spacing: 6) {
+            HStack(spacing: LumenSpacing.xs2) {
                 Image(systemName: "exclamationmark.circle")
-                    .font(.system(size: 12))
+                    .font(LumenIconFont.sm)
                 Text(message)
-                    .font(.system(size: 13))
+                    .lumenFont(.footnote)
                     .fixedSize(horizontal: false, vertical: true)
             }
             .foregroundStyle(LumenColor.error)
         case .valid:
-            HStack(spacing: 6) {
+            HStack(spacing: LumenSpacing.xs2) {
                 Image(systemName: "checkmark")
-                    .font(.system(size: 12, weight: .semibold))
+                    .font(LumenIconFont.smSemibold)
                 Text("Clé acceptée. Enregistre-la pour activer.")
-                    .font(.system(size: 13))
+                    .lumenFont(.footnote)
             }
             .foregroundStyle(LumenColor.success)
         case .saved:
-            HStack(spacing: 6) {
+            HStack(spacing: LumenSpacing.xs2) {
                 Image(systemName: "checkmark")
-                    .font(.system(size: 12, weight: .semibold))
+                    .font(LumenIconFont.smSemibold)
                 Text("Clé valide jusqu'à révocation.")
-                    .font(.system(size: 13))
+                    .lumenFont(.footnote)
             }
             .foregroundStyle(LumenColor.success)
         default:
@@ -223,7 +227,7 @@ struct SettingsAdvancedView: View {
             if case .saved = vm.state {
                 EmptyView()
             } else {
-                HStack(spacing: 10) {
+                HStack(spacing: LumenSpacing.sm) {
                     SecondaryCTA("Tester la clé", isEnabled: vm.canTest) {
                         Task { await vm.testKey() }
                     }
@@ -236,36 +240,35 @@ struct SettingsAdvancedView: View {
     }
 
     private var infoNote: some View {
-        HStack(alignment: .top, spacing: 10) {
+        HStack(alignment: .top, spacing: LumenSpacing.sm) {
             Image(systemName: "lock.shield")
-                .font(.system(size: 14))
-                .foregroundStyle(LumenColor.textSecondary.opacity(0.7))
+                .font(LumenIconFont.lg)
+                .foregroundStyle(LumenColor.textSecondary.opacity(LumenOpacity.p70))
             Text("Ta clé est stockée dans le Trousseau iOS. Aucune copie n'est envoyée hors de ton téléphone.")
-                .font(.system(size: 13, design: .serif))
+                .lumenFont(.footnoteSerif)
                 .italic()
-                .lineSpacing(3)
+                .lineSpacing(LumenLineSpacing.s)
                 .foregroundStyle(LumenColor.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
         }
-        .padding(14)
+        .padding(LumenSpacing.sm3)
         .background(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(LumenColor.accent.opacity(0.06))
+            RoundedRectangle(cornerRadius: LumenRadius.m, style: .continuous)
+                .fill(LumenColor.accent.opacity(LumenOpacity.p06))
         )
     }
 
     private func fieldLabel(_ title: String) -> some View {
         Text(title)
-            .font(.system(size: 11, weight: .regular))
-            .tracking(2.4)
+            .lumenFont(.caption)
             .textCase(.uppercase)
             .foregroundStyle(LumenColor.textTertiary)
     }
 
     private var borderColor: Color {
         switch vm.state {
-        case .invalid: LumenColor.error.opacity(0.6)
-        case .valid, .saved: LumenColor.success.opacity(0.5)
+        case .invalid: LumenColor.error.opacity(LumenOpacity.p60)
+        case .valid, .saved: LumenColor.success.opacity(LumenOpacity.dim)
         default: LumenColor.divider
         }
     }

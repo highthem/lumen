@@ -1,0 +1,4 @@
+appId: com.highthem.lumen
+---
+- pressKey: Back
+- assertVisible: "Aujourd'hui"

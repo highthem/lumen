@@ -1,0 +1,29 @@
+appId: com.highthem.lumen
+tags: [regression, settings, appearance]
+---
+- launchApp:
+    clearState: false
+
+- tapOn:
+    id: "settings-button"
+- tapOn: "Thème"
+
+# Test all 3 modes
+- tapOn: "Sombre"
+- runFlow: ../_shared/back-to-dashboard.yaml
+- takeScreenshot: theme-dark
+- assertVisible:
+    id: "dashboard-screen"
+
+- tapOn:
+    id: "settings-button"
+- tapOn: "Thème"
+- tapOn: "Clair"
+- runFlow: ../_shared/back-to-dashboard.yaml
+- takeScreenshot: theme-light
+
+- tapOn:
+    id: "settings-button"
+- tapOn: "Thème"
+- tapOn: "Système"
+- assertVisible: "Système"

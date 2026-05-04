@@ -1,0 +1,29 @@
+appId: com.highthem.lumen
+tags: [regression, settings, audio]
+---
+- launchApp:
+    clearState: false
+
+- tapOn:
+    id: "settings-button"
+- tapOn: "Son"
+
+# 5 alarmes disponibles
+- assertVisible: "Aube"
+- assertVisible: "Bois"
+- assertVisible: "Marée"
+- assertVisible: "Cloche"
+- assertVisible: "Souffle"
+
+# Preview au tap
+- tapOn: "Bois"
+- extendedWaitUntil:
+    visible:
+      id: "sound-preview-playing"
+    timeout: 2000
+- tapOn: "Bois"   # 2nd tap = stop preview
+
+# Save selection
+- tapOn: "Choisir"
+- assertVisible:
+    text: "Bois"

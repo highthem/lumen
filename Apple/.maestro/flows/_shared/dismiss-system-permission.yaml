@@ -1,0 +1,8 @@
+appId: com.highthem.lumen
+---
+# Tries to allow if dialog appears, otherwise no-op
+- runFlow:
+    when:
+      visible: "Allow"
+    commands:
+      - tapOn: "Allow"

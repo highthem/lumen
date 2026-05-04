@@ -5,13 +5,16 @@ struct Chip: View {
     let isSelected: Bool
     let action: () -> Void
 
+    private static let paddingV: CGFloat = 7
+    private static let paddingH: CGFloat = 14
+
     var body: some View {
         Button(action: action) {
             Text(label)
-                .font(.system(size: 14, weight: .regular))
+                .lumenFont(.chipLabel)
                 .foregroundStyle(isSelected ? LumenColor.bgPrimary : LumenColor.textSecondary)
-                .padding(.vertical, 7)
-                .padding(.horizontal, 14)
+                .padding(.vertical, Self.paddingV)
+                .padding(.horizontal, Self.paddingH)
                 .background(isSelected ? LumenColor.accent : LumenColor.bgTertiary)
                 .clipShape(RoundedRectangle(cornerRadius: LumenRadius.s, style: .continuous))
         }

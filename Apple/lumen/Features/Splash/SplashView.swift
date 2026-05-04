@@ -23,7 +23,7 @@ struct SplashView: View {
     @State private var horizonProgress: CGFloat = 0   // 0 → 1 (width 80pt → full)
     @State private var aubeProgress: CGFloat = 0      // 0 → 1 (height 0 → 30%)
     @State private var charOpacity: [Double] = Array(repeating: 0, count: SplashView.word.count)
-    @State private var charOffset: [CGFloat] = Array(repeating: 4, count: SplashView.word.count)
+    @State private var charOffset: [CGFloat] = Array(repeating: LumenSpacing.xs, count: SplashView.word.count)
     @State private var subtitleOpacity: Double = 0
     @State private var rootOpacity: Double = 1
 
@@ -32,13 +32,13 @@ struct SplashView: View {
             let H = geo.size.height
             let W = geo.size.width
             let horizonY = H * 0.6
-            let initialHorizonW: CGFloat = 80
+            let initialHorizonW: CGFloat = LumenSpacing.xxh
             let fullHorizonW = W
             let horizonWidth = initialHorizonW + (fullHorizonW - initialHorizonW) * horizonProgress
             let aubeHeight = H * 0.30 * aubeProgress
 
             ZStack {
-                Color(red: 0x0F/255, green: 0x0D/255, blue: 0x0B/255)
+                LumenColor.Splash.earth
                     .ignoresSafeArea()
 
                 // Aube — soft warm halo above the horizon, growing upward
@@ -50,19 +50,19 @@ struct SplashView: View {
                 // Horizon line — 1pt accent rule, centered, animates width
                 Rectangle()
                     .fill(LumenColor.accent)
-                    .frame(width: horizonWidth, height: 1)
+                    .frame(width: horizonWidth, height: LumenSize.hairline)
                     .position(x: W / 2, y: horizonY)
 
                 // "Lumen" — italic serif, character-by-character reveal
                 lumenWord
-                    .position(x: W / 2, y: horizonY - 12 - 28)
+                    .position(x: W / 2, y: horizonY - LumenSpacing.sm2 - LumenSpacing.xl0)
 
                 // Subtitle — "Bonjour." italic, fades in below horizon
                 Text(localizedGreeting)
-                    .font(.system(size: 17, weight: .regular, design: .serif))
+                    .lumenFont(.bodySerif)
                     .italic()
                     .foregroundStyle(LumenColor.textPrimary.opacity(subtitleOpacity))
-                    .position(x: W / 2, y: horizonY + 36)
+                    .position(x: W / 2, y: horizonY + LumenSpacing.xl2)
             }
             .opacity(rootOpacity)
         }
@@ -83,9 +83,8 @@ struct SplashView: View {
         HStack(spacing: 0) {
             ForEach(Array(Self.word.enumerated()), id: \.offset) { idx, ch in
                 Text(String(ch))
-                    .font(.system(size: 56, weight: .regular, design: .serif))
+                    .lumenFont(.wordmark)
                     .italic()
-                    .tracking(-0.56)
                     .foregroundStyle(LumenColor.textPrimary)
                     .opacity(charOpacity[idx])
                     .offset(y: charOffset[idx])
@@ -105,75 +104,75 @@ struct SplashView: View {
 
     private func playFull() async {
         // Phase 1 — horizon-extend (0 → 400ms)
-        withAnimation(.timingCurve(0.0, 0.0, 0.2, 1.0, duration: 0.40)) {
+        withAnimation(LumenAnimation.decelerateLong) {
             horizonProgress = 1
         }
 
         // Wait until t = 400ms — sunrise starts
-        try? await Task.sleep(nanoseconds: 400_000_000)
-        withAnimation(.timingCurve(0.4, 0.0, 0.2, 1.0, duration: 0.40)) {
+        try? await Task.sleep(nanoseconds: LumenDelay.settleNs)
+        withAnimation(LumenAnimation.decelerateLong) {
             aubeProgress = 1
         }
 
         // Wait until t = 600ms — lumen-reveal starts (200ms after sunrise)
-        try? await Task.sleep(nanoseconds: 200_000_000)
+        try? await Task.sleep(nanoseconds: LumenDelay.breathNs)
         for idx in 0..<Self.word.count {
-            withAnimation(.linear(duration: 0.18)) {
+            withAnimation(LumenAnimation.quick) {
                 charOpacity[idx] = 1
                 charOffset[idx] = 0
             }
             // Stagger next char by 60ms
             if idx < Self.word.count - 1 {
-                try? await Task.sleep(nanoseconds: 60_000_000)
+                try? await Task.sleep(nanoseconds: LumenDelay.charSlowNs)
             }
         }
 
         // Wait until t = 1100ms — subtitle fades in
         // We've consumed 0 + 400 + 200 + (4 × 60) = 840ms; sleep the remainder to 1100ms.
-        let elapsedAfterChars: UInt64 = 600_000_000 + (4 * 60_000_000)
-        let target: UInt64 = 1_100_000_000
+        let elapsedAfterChars: UInt64 = LumenDelay.sceneNs + (4 * LumenDelay.charSlowNs)
+        let target: UInt64 = LumenDelay.nextSceneNs
         if elapsedAfterChars < target {
             try? await Task.sleep(nanoseconds: target - elapsedAfterChars)
         }
-        withAnimation(.timingCurve(0.0, 0.0, 0.2, 1.0, duration: 0.30)) {
-            subtitleOpacity = 0.6
+        withAnimation(LumenAnimation.decelerate) {
+            subtitleOpacity = LumenOpacity.p60
         }
 
         // Wait until t = 1400ms — exit-fade
-        try? await Task.sleep(nanoseconds: 300_000_000)
-        withAnimation(.timingCurve(0.4, 0.0, 1.0, 1.0, duration: 0.10)) {
+        try? await Task.sleep(nanoseconds: LumenDelay.pauseLongNs)
+        withAnimation(LumenAnimation.instant) {
             rootOpacity = 0
         }
 
         // Wait for exit-fade to finish
-        try? await Task.sleep(nanoseconds: 100_000_000)
+        try? await Task.sleep(nanoseconds: LumenDelay.beatNs)
     }
 
     // MARK: - Reduce-motion fallback (800ms cross-fade)
 
     private func playReduced() async {
         // 0 → 200ms — hold launch frame (only 80pt horizon, nothing else)
-        try? await Task.sleep(nanoseconds: 200_000_000)
+        try? await Task.sleep(nanoseconds: LumenDelay.breathNs)
 
         // 200 → 500ms — cross-fade in everything
-        withAnimation(.easeOut(duration: 0.30)) {
+        withAnimation(LumenAnimation.standard) {
             horizonProgress = 1
             aubeProgress = 1
             for idx in 0..<Self.word.count {
                 charOpacity[idx] = 1
                 charOffset[idx] = 0
             }
-            subtitleOpacity = 0.6
+            subtitleOpacity = LumenOpacity.p60
         }
 
         // 500 → 700ms — hold
-        try? await Task.sleep(nanoseconds: 500_000_000)
+        try? await Task.sleep(nanoseconds: LumenDelay.exhaleNs)
 
         // 700 → 800ms — exit-fade
-        withAnimation(.easeIn(duration: 0.10)) {
+        withAnimation(LumenAnimation.instant) {
             rootOpacity = 0
         }
-        try? await Task.sleep(nanoseconds: 100_000_000)
+        try? await Task.sleep(nanoseconds: LumenDelay.beatNs)
     }
 }
 
@@ -183,10 +182,10 @@ private struct AubeGradient: View {
     var body: some View {
         LinearGradient(
             stops: [
-                Gradient.Stop(color: Color(red: 0xE8/255, green: 0xC3/255, blue: 0x9E/255).opacity(0.55), location: 0.0),
-                Gradient.Stop(color: Color(red: 0xE8/255, green: 0xC3/255, blue: 0x9E/255).opacity(0.32), location: 0.30),
-                Gradient.Stop(color: Color(red: 0xA6/255, green: 0x85/255, blue: 0x66/255).opacity(0.16), location: 0.60),
-                Gradient.Stop(color: Color(red: 0xA6/255, green: 0x85/255, blue: 0x66/255).opacity(0.0),  location: 1.0)
+                Gradient.Stop(color: LumenColor.Splash.dawnTop.opacity(LumenOpacity.ring), location: 0.0),
+                Gradient.Stop(color: LumenColor.Splash.dawnTop.opacity(LumenOpacity.p32), location: 0.30),
+                Gradient.Stop(color: LumenColor.Splash.dawnBottom.opacity(LumenOpacity.p16), location: 0.60),
+                Gradient.Stop(color: LumenColor.Splash.dawnBottom.opacity(0), location: 1.0)
             ],
             startPoint: .bottom,
             endPoint: .top
@@ -199,7 +198,7 @@ private struct AubeGradient: View {
                 ],
                 center: UnitPoint(x: 0.5, y: 1.0),
                 startRadius: 0,
-                endRadius: 320
+                endRadius: LumenSize.splashRadial
             )
         )
     }

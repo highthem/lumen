@@ -8,12 +8,11 @@ struct DashboardCard: View {
 
     var body: some View {
         Button(action: action) {
-            VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .leading, spacing: LumenSpacing.xs2) {
                 Eyebrow(eyebrow)
 
                 Text(value ?? "—")
-                    .font(.system(size: 22, weight: .regular, design: .serif))
-                    .lineSpacing(4)
+                    .lumenFont(.title2)
                     .foregroundStyle(LumenColor.textPrimary)
 
                 if let footnote {
@@ -25,7 +24,7 @@ struct DashboardCard: View {
                 Spacer(minLength: 0)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(18)
+            .padding(LumenSpacing.l)
             .background(LumenColor.bgSecondary)
             .clipShape(RoundedRectangle(cornerRadius: LumenRadius.l, style: .continuous))
         }

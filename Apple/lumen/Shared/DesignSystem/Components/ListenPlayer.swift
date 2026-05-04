@@ -15,6 +15,16 @@ struct ListenPlayer: View {
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
+    private static let progressBarHeight: CGFloat = 2
+    private static let progressBarRadius: CGFloat = 1
+    private static let glyphDiscSize: CGFloat = 36
+    private static let pauseBarWidth: CGFloat = 3
+    private static let pauseBarHeight: CGFloat = 12
+    private static let triangleWidth: CGFloat = 11
+    private static let triangleHeight: CGFloat = 13
+    private static let waveBoxWidth: CGFloat = 24
+    private static let waveBoxHeight: CGFloat = 16
+
     var body: some View {
         Button(action: onTap) {
             ZStack(alignment: .bottomLeading) {
@@ -22,13 +32,13 @@ struct ListenPlayer: View {
                 progressBar
             }
             .frame(maxWidth: .infinity)
-            .frame(height: 56)
+            .frame(height: LumenSize.listenPlayer)
             .background(
-                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                RoundedRectangle(cornerRadius: LumenRadius.m, style: .continuous)
                     .fill(LumenColor.bgSecondary)
                     .overlay(
-                        RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .stroke(LumenColor.accent.opacity(0.35), lineWidth: 1)
+                        RoundedRectangle(cornerRadius: LumenRadius.m, style: .continuous)
+                            .stroke(LumenColor.accent.opacity(LumenOpacity.p35), lineWidth: LumenSize.hairline)
                     )
             )
         }
@@ -42,26 +52,28 @@ struct ListenPlayer: View {
     // MARK: - Content
 
     private var content: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: LumenSpacing.sm2) {
             glyphDisc
 
             Group {
                 if isPlaying, let elapsed = elapsedLabel {
-                    HStack(spacing: 6) {
+                    HStack(spacing: LumenSpacing.xs2) {
                         Text(elapsed)
-                            .font(.system(size: 15, weight: .medium))
+                            .lumenFont(.callout)
+                            .fontWeight(.medium)
                             .foregroundStyle(LumenColor.textPrimary)
                         Text("/ \(durationLabel)")
-                            .font(.system(size: 13))
+                            .lumenFont(.footnote)
                             .foregroundStyle(LumenColor.textTertiary)
                     }
                 } else {
-                    HStack(spacing: 6) {
+                    HStack(spacing: LumenSpacing.xs2) {
                         Text("Écouter ta synthèse")
-                            .font(.system(size: 15, weight: .medium))
+                            .lumenFont(.callout)
+                            .fontWeight(.medium)
                             .foregroundStyle(LumenColor.textPrimary)
                         Text("· \(durationLabel)")
-                            .font(.system(size: 13))
+                            .lumenFont(.footnote)
                             .foregroundStyle(LumenColor.textTertiary)
                     }
                 }
@@ -70,31 +82,31 @@ struct ListenPlayer: View {
 
             if isPlaying {
                 MiniWave()
-                    .frame(width: 24, height: 16)
-                    .foregroundStyle(LumenColor.accent.opacity(0.75))
+                    .frame(width: Self.waveBoxWidth, height: Self.waveBoxHeight)
+                    .foregroundStyle(LumenColor.accent.opacity(LumenOpacity.waveform))
             }
         }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 8)
+        .padding(.horizontal, LumenSpacing.sm)
+        .padding(.vertical, LumenSpacing.s)
     }
 
     private var glyphDisc: some View {
         ZStack {
             Circle()
                 .fill(LumenColor.accent)
-                .frame(width: 36, height: 36)
+                .frame(width: Self.glyphDiscSize, height: Self.glyphDiscSize)
 
             if isPlaying {
-                HStack(spacing: 3) {
-                    Capsule().frame(width: 3, height: 12)
-                    Capsule().frame(width: 3, height: 12)
+                HStack(spacing: LumenSpacing.xs - LumenSpacing.xxs / 2) {
+                    Capsule().frame(width: Self.pauseBarWidth, height: Self.pauseBarHeight)
+                    Capsule().frame(width: Self.pauseBarWidth, height: Self.pauseBarHeight)
                 }
                 .foregroundStyle(LumenColor.bgPrimary)
             } else {
                 // Right-pointing triangle
                 PlayTriangle()
                     .fill(LumenColor.bgPrimary)
-                    .frame(width: 11, height: 13)
+                    .frame(width: Self.triangleWidth, height: Self.triangleHeight)
                     .offset(x: 1)
             }
         }
@@ -110,10 +122,10 @@ struct ListenPlayer: View {
                     .frame(width: geo.size.width * CGFloat(max(0, min(1, progress))))
                 Spacer(minLength: 0)
             }
-            .animation(reduceMotion ? nil : .easeInOut(duration: 0.45), value: progress)
+            .animation(reduceMotion ? nil : LumenAnimation.standard, value: progress)
         }
-        .frame(height: 2)
-        .clipShape(RoundedRectangle(cornerRadius: 1, style: .continuous))
+        .frame(height: Self.progressBarHeight)
+        .clipShape(RoundedRectangle(cornerRadius: Self.progressBarRadius, style: .continuous))
     }
 }
 
@@ -134,27 +146,31 @@ private struct MiniWave: View {
     @State private var phase: Double = 0
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
+    private static let barWidth: CGFloat = 3
+    private static let barSpacing: CGFloat = 3
+    private static let barAmplitude: CGFloat = 4
+    private static let barBaseHeights: [CGFloat] = [10, 14, 8, 12]
+
     var body: some View {
-        HStack(alignment: .center, spacing: 3) {
+        HStack(alignment: .center, spacing: Self.barSpacing) {
             ForEach(0..<4, id: \.self) { i in
                 Capsule()
                     .fill(Color.accentColor)
-                    .frame(width: 3)
+                    .frame(width: Self.barWidth)
                     .frame(height: barHeight(index: i))
             }
         }
         .onAppear {
             guard !reduceMotion else { return }
-            withAnimation(.easeInOut(duration: 0.6).repeatForever(autoreverses: true)) {
+            withAnimation(LumenAnimation.waveform) {
                 phase = 1
             }
         }
     }
 
     private func barHeight(index: Int) -> CGFloat {
-        let base: [CGFloat] = [10, 14, 8, 12]
-        let amplitude: CGFloat = reduceMotion ? 0 : 4
+        let amplitude: CGFloat = reduceMotion ? 0 : Self.barAmplitude
         let offsetByPhase = sin((phase + Double(index) * 0.25) * .pi * 2) * Double(amplitude)
-        return base[index] + CGFloat(offsetByPhase)
+        return Self.barBaseHeights[index] + CGFloat(offsetByPhase)
     }
 }

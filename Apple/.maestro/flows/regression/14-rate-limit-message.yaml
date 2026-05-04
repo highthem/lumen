@@ -1,0 +1,19 @@
+appId: com.highthem.lumen
+tags: [regression, rate-limit]
+env:
+  # State seed: 3 synthèses déjà faites today
+  SEED_RATE_LIMIT_HIT: "true"
+---
+- launchApp:
+    clearState: false
+
+# Trigger ritual
+- openLink: "lumen://ritual/q4-direct"
+- inputText: "patience"
+- hideKeyboard
+- tapOn: "Voir ma synthèse"
+
+# Expected rate limit
+- assertVisible: "Reviens demain"
+- tapOn: "Aller au dashboard"
+- assertVisible: "Aujourd'hui"

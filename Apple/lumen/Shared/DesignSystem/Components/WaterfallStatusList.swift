@@ -42,11 +42,11 @@ struct WaterfallStatusList: View {
 
                     VStack(alignment: .leading, spacing: 2) {
                         Text(step.label)
-                            .font(.system(size: 14, weight: .medium))
+                            .lumenFont(.chipLabel)
                             .foregroundStyle(LumenColor.textPrimary)
                         if let sub = step.sublabel {
                             Text(sub)
-                                .font(.system(size: 12))
+                                .lumenFont(.footnote)
                                 .foregroundStyle(LumenColor.textSecondary)
                         }
                     }
@@ -54,8 +54,7 @@ struct WaterfallStatusList: View {
                     Spacer()
 
                     Text(step.statusLabel.uppercased())
-                        .font(.system(size: 11, weight: .regular))
-                        .tracking(11 * 0.18)
+                        .lumenFont(.caption)
                         .foregroundStyle(statusTextColor(for: step.status))
                 }
                 .frame(height: 40)

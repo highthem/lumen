@@ -1,0 +1,32 @@
+appId: com.highthem.lumen
+name: Onboarding Complete
+tags: 
+  - smoke 
+  - onboarding
+---
+- launchApp:
+    clearState: true
+
+# Welcome
+- assertVisible: "Quelques minutes à toi."
+- tapOn: "Commencer"
+
+# Pitch
+- assertVisible: "Cinq minutes."
+- tapOn: "Suivant"
+
+# Permissions
+- assertVisible: "On a besoin de deux choses."
+- tapOn: "Continuer"
+- runFlow: ../_shared/dismiss-system-permission.yaml
+
+# Première alarme
+- assertVisible: "À quelle heure veux-tu commencer ?"
+- tapOn:
+    id: "alarm-time-picker"
+- tapOn: "Programmer"
+
+# Land on Dashboard
+- assertVisible: "Bonjour"
+- assertVisible:
+    id: "ritual-cta"

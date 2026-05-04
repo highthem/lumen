@@ -61,14 +61,13 @@ struct AlarmListView: View {
     @ViewBuilder
     private func alarmRow(_ alarm: Alarm) -> some View {
         HStack {
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: LumenSpacing.xs) {
                 Text(timeString(from: alarm.time))
-                    .font(.system(size: 32, weight: .medium, design: .serif))
-                    .tracking(-0.32)
+                    .lumenFont(.title1)
+                    .fontWeight(.medium)
                     .foregroundStyle(alarm.isActive ? LumenColor.textPrimary : LumenColor.textTertiary)
                 Text(recurrenceLabel(alarm.recurrence))
-                    .font(.system(size: 12))
-                    .tracking(2)
+                    .lumenFont(.caption)
                     .textCase(.uppercase)
                     .foregroundStyle(LumenColor.textSecondary)
             }
@@ -80,7 +79,7 @@ struct AlarmListView: View {
             .labelsHidden()
             .tint(LumenColor.accent)
         }
-        .padding(.vertical, 8)
+        .padding(.vertical, LumenSpacing.s)
     }
 
     private func timeString(from date: Date) -> String {

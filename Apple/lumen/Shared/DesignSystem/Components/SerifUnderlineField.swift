@@ -13,21 +13,18 @@ struct SerifUnderlineField: View {
     @Binding var text: String
 
     var placeholder: String = ""
-    var fontSize: CGFloat = 22
-    var weight: Font.Weight = .medium
+    var font: LumenFont = .inputSerifLg
     var italic: Bool = true
-    var tracking: CGFloat = -0.33
-    var lineSpacing: CGFloat = 2
     var color: Color = LumenColor.textPrimary
     var underlineColor: Color = LumenColor.accent
-    var maxWidth: CGFloat = 320
+    var maxWidth: CGFloat = LumenSize.cardField
     /// `nil` for single-line, `n` for an upper bound on lines (auto-grows up to it).
     var lineLimit: Int? = nil
 
     @FocusState private var focused: Bool
 
     var body: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: LumenSpacing.s) {
             Group {
                 if let limit = lineLimit {
                     TextField(placeholder, text: $text, axis: .vertical)
@@ -36,9 +33,8 @@ struct SerifUnderlineField: View {
                     TextField(placeholder, text: $text)
                 }
             }
-            .font(font)
-            .tracking(tracking)
-            .lineSpacing(lineSpacing)
+            .lumenFont(font)
+            .italic(italic)
             .multilineTextAlignment(.center)
             .foregroundStyle(color)
             .tint(underlineColor)
@@ -47,14 +43,9 @@ struct SerifUnderlineField: View {
 
             Rectangle()
                 .fill(underlineColor)
-                .frame(height: 1)
+                .frame(height: LumenSize.hairline)
         }
         .frame(maxWidth: maxWidth)
         .onAppear { focused = true }
-    }
-
-    private var font: Font {
-        let base = Font.system(size: fontSize, weight: weight, design: .serif)
-        return italic ? base.italic() : base
     }
 }

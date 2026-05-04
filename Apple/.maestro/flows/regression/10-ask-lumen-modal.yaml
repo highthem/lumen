@@ -1,0 +1,22 @@
+appId: com.highthem.lumen
+tags: [regression, ai, ask-lumen]
+---
+- launchApp:
+    clearState: false
+
+- assertVisible: "Aujourd'hui"
+- tapOn:
+    id: "ask-lumen-fab"
+
+- assertVisible: "Ask Lumen"
+- inputText: "Comment garder l'énergie ?"
+- tapOn:
+    id: "ask-lumen-send"
+
+- extendedWaitUntil:
+    visible:
+      id: "ask-lumen-response"
+    timeout: 8000
+
+- tapOn: "Fermer"
+- assertVisible: "Aujourd'hui"

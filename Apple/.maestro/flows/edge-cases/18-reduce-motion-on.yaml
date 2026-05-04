@@ -1,0 +1,12 @@
+appId: com.highthem.lumen
+tags: [edge, a11y, motion]
+---
+- launchApp:
+    clearState: false
+- openLink: "lumen://ritual/timer"
+
+# Cercle respiration doit être statique
+- assertVisible:
+    id: "presence-circle"
+- assertNotVisible:
+    id: "presence-circle-animated"

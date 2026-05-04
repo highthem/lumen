@@ -1,0 +1,27 @@
+appId: com.highthem.lumen
+tags: [edge, byo, error]
+---
+- launchApp:
+    clearState: false
+
+- tapOn:
+    id: "settings-button"
+- scrollUntilVisible:
+    element: "Mode avancé"
+- tapOn: "Mode avancé"
+
+- tapOn:
+    id: "provider-openai"
+- tapOn:
+    id: "api-key-input"
+- inputText: "definitely-not-a-valid-key"
+- tapOn: "Tester la clé"
+
+# Error state
+- extendedWaitUntil:
+    visible: "Clé invalide"
+    timeout: 8000
+
+# Save button disabled
+- assertVisible:
+    id: "save-button-disabled"

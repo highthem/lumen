@@ -18,15 +18,14 @@ struct Q3GratitudeView: View {
         VStack(alignment: .leading, spacing: LumenSpacing.l) {
             ProgressDots4(current: 2)
 
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: LumenSpacing.s) {
                 Eyebrow("03 / 04 · Gratitude")
                 Text("Une gratitude ?")
-                    .font(.system(size: 30, weight: .medium, design: .serif))
-                    .tracking(-0.45)
+                    .lumenFont(.title1)
                     .foregroundStyle(LumenColor.textPrimary)
             }
 
-            VStack(spacing: 36) {
+            VStack(spacing: LumenSpacing.xl2) {
                 Spacer(minLength: 0)
                 revealArea
                 if state != .editing {
@@ -37,7 +36,7 @@ struct Q3GratitudeView: View {
             .frame(maxWidth: .infinity)
 
             ghostActionsRow
-                .frame(maxWidth: .infinity, minHeight: 32)
+                .frame(maxWidth: .infinity, minHeight: LumenSize.blockMin)
 
             FooterRow(
                 backTitle: "Retour",
@@ -48,7 +47,7 @@ struct Q3GratitudeView: View {
             )
         }
         .padding(.horizontal, LumenSpacing.l)
-        .padding(.top, 28)
+        .padding(.top, LumenSpacing.xl0)
         .padding(.bottom, LumenSpacing.l)
     }
 
@@ -66,35 +65,33 @@ struct Q3GratitudeView: View {
             case .listening:
                 LiveTranscript(
                     text: vm.gratitudeText.isEmpty ? "" : vm.gratitudeText,
-                    font: .system(size: 28, weight: .medium, design: .serif),
+                    font: .questionnaireQM,
                     color: LumenColor.accent,
                     isItalic: false,
-                    charDelay: .milliseconds(38)
+                    charDelay: LumenDelay.charStagger
                 )
                 .multilineTextAlignment(.center)
-                .frame(maxWidth: 320)
+                .frame(maxWidth: LumenSize.cardField)
 
             case .transcribed:
                 Text(vm.gratitudeText)
-                    .font(.system(size: 28, weight: .medium, design: .serif))
-                    .tracking(-0.42)
-                    .lineSpacing(2)
+                    .lumenFont(.questionnaireQM)
                     .foregroundStyle(LumenColor.textPrimary)
                     .multilineTextAlignment(.center)
-                    .frame(maxWidth: 320)
+                    .frame(maxWidth: LumenSize.cardField)
 
             case .editing:
                 editingPanel
             }
         }
-        .frame(minHeight: 130)
+        .frame(minHeight: LumenSize.blockReveal)
     }
 
     // MARK: - Mic area
 
     @ViewBuilder
     private var micArea: some View {
-        VStack(spacing: 14) {
+        VStack(spacing: LumenSpacing.sm3) {
             MicCTA(
                 isListening: state == .listening,
                 onPressDown: { vm.startDictation(for: .gratitude) },
@@ -103,16 +100,16 @@ struct Q3GratitudeView: View {
 
             switch state {
             case .default:
-                VStack(spacing: 4) {
+                VStack(spacing: LumenSpacing.xs) {
                     Text("Tap pour parler")
-                        .font(.system(size: 15, weight: .medium))
-                        .tracking(-0.075)
-                        .foregroundStyle(LumenColor.textPrimary.opacity(0.75))
+                        .lumenFont(.callout)
+                        .fontWeight(.medium)
+                        .foregroundStyle(LumenColor.textPrimary.opacity(LumenOpacity.waveform))
                     Button {
                         vm.editingByKeyboard = true
                     } label: {
                         Text("ou écrire au clavier")
-                            .font(.system(size: 13, design: .serif))
+                            .lumenFont(.footnoteSerif)
                             .italic()
                             .foregroundStyle(LumenColor.textSecondary)
                     }
@@ -120,13 +117,14 @@ struct Q3GratitudeView: View {
                 }
 
             case .listening:
-                HStack(spacing: 8) {
+                HStack(spacing: LumenSpacing.s) {
                     Circle()
                         .fill(LumenColor.accent)
-                        .frame(width: 7, height: 7)
+                        .frame(width: LumenSize.dotLg, height: LumenSize.dotLg)
                     Text("on écoute")
-                        .font(.system(size: 13, weight: .medium))
-                        .foregroundStyle(LumenColor.accent.opacity(0.85))
+                        .lumenFont(.footnote)
+                        .fontWeight(.medium)
+                        .foregroundStyle(LumenColor.accent.opacity(LumenOpacity.pressed))
                 }
 
             default:
@@ -139,7 +137,7 @@ struct Q3GratitudeView: View {
 
     @ViewBuilder
     private var ghostActionsRow: some View {
-        HStack(spacing: 24) {
+        HStack(spacing: LumenSpacing.l) {
             switch state {
             case .default:
                 // The keyboard fallback lives below the mic now; this row stays empty.
@@ -151,7 +149,7 @@ struct Q3GratitudeView: View {
                     Task { await vm.stopDictation(for: .gratitude) }
                 } label: {
                     Text("Annuler")
-                        .font(.system(size: 13))
+                        .lumenFont(.footnote)
                         .foregroundStyle(LumenColor.textSecondary)
                 }
                 .buttonStyle(.plain)
@@ -163,18 +161,18 @@ struct Q3GratitudeView: View {
                     vm.resetGratitude()
                 } label: {
                     Text("↺ Recommencer")
-                        .font(.system(size: 13))
+                        .lumenFont(.footnote)
                         .foregroundStyle(LumenColor.textSecondary)
                 }
                 .buttonStyle(.plain)
                 Button {
                     vm.editingByKeyboard = true
                 } label: {
-                    HStack(spacing: 6) {
+                    HStack(spacing: LumenSpacing.xs2) {
                         Image(systemName: "keyboard")
-                            .font(.system(size: 13))
+                            .font(LumenIconFont.md)
                         Text("Modifier")
-                            .font(.system(size: 13))
+                            .lumenFont(.footnote)
                     }
                     .foregroundStyle(LumenColor.textSecondary)
                 }
@@ -187,7 +185,7 @@ struct Q3GratitudeView: View {
                     vm.editingByKeyboard = false
                 } label: {
                     Text("← Tu peux aussi reparler")
-                        .font(.system(size: 13, design: .serif))
+                        .lumenFont(.footnoteSerif)
                         .italic()
                         .foregroundStyle(LumenColor.textSecondary)
                 }
@@ -203,9 +201,7 @@ struct Q3GratitudeView: View {
         SerifUnderlineField(
             text: $vm.gratitudeText,
             placeholder: "Le silence avant que les enfants se lèvent.",
-            fontSize: 22,
-            tracking: -0.33,
-            lineSpacing: 2,
+            font: .inputSerifLg,
             lineLimit: 4
         )
     }

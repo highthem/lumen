@@ -5,6 +5,9 @@ struct SynthesisView: View {
     @State var vm: SynthesisViewModel
     let onComplete: () -> Void
 
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var revealedBlocks: Int = 0
+
     var body: some View {
         ZStack {
             LumenColor.bgPrimary.ignoresSafeArea()
@@ -43,7 +46,7 @@ struct SynthesisView: View {
 
     private var loadingView: some View {
         VStack(spacing: LumenSpacing.m) {
-            Spacer(minLength: 120)
+            Spacer(minLength: LumenSpacing.heroLg)
             ProgressView()
                 .tint(LumenColor.accent)
             Text("Ton matin se prépare…")
@@ -59,7 +62,7 @@ struct SynthesisView: View {
         VStack(alignment: .leading, spacing: LumenSpacing.l) {
             // Top header: "Ton matin" eyebrow + on-device badge when relevant.
             // The listen control moves to a full-width premium player below.
-            VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .leading, spacing: LumenSpacing.xs2) {
                 HStack(alignment: .center) {
                     Eyebrow("Ton matin")
                     Spacer()
@@ -68,8 +71,7 @@ struct SynthesisView: View {
                     }
                 }
                 Text(headerDateLabel)
-                    .font(.system(size: 30, weight: .medium, design: .serif))
-                    .tracking(-0.30)
+                    .lumenFont(.title1)
                     .foregroundStyle(LumenColor.textPrimary)
             }
 
@@ -83,8 +85,11 @@ struct SynthesisView: View {
 
                 reminderBlock(text: response.reminder, isSupport: response.provider == .supportTemplate)
             }
+            .task(id: response.id) {
+                await runRevealSequence()
+            }
 
-            Spacer(minLength: 16)
+            Spacer(minLength: LumenSpacing.m)
 
             // Premium full-width listen player (V8 signature)
             ListenPlayer(
@@ -98,7 +103,7 @@ struct SynthesisView: View {
             // Footer actions
             VStack(alignment: .leading, spacing: LumenSpacing.m) {
                 if !vm.ttsPlaying {
-                    HStack(spacing: 12) {
+                    HStack(spacing: LumenSpacing.sm2) {
                         SecondaryCTA(
                             "Régénérer",
                             isEnabled: vm.remainingRegens > 0
@@ -111,7 +116,7 @@ struct SynthesisView: View {
                     }
 
                     Text("Régénérations · \(vm.remainingRegens) / 3 restantes")
-                        .font(.system(size: 12))
+                        .lumenFont(.footnote)
                         .foregroundStyle(LumenColor.textTertiary)
                         .frame(maxWidth: .infinity, alignment: .center)
                 } else {
@@ -141,10 +146,8 @@ struct SynthesisView: View {
         synthesisBlock(blockIndex: 0) {
             Eyebrow("Intention")
             Text(text)
-                .font(.system(size: 42, weight: .medium, design: .serif))
+                .lumenFont(.synthesisHero)
                 .italic()
-                .tracking(-0.84)
-                .lineSpacing(-2)
                 .foregroundStyle(LumenColor.accent)
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -152,18 +155,16 @@ struct SynthesisView: View {
 
     private func focusBlock(text: String) -> some View {
         synthesisBlock(blockIndex: 1, showBreathDot: vm.ttsPlaying && vm.ttsCurrentBlock == 1) {
-            HStack(spacing: 8) {
+            HStack(spacing: LumenSpacing.s) {
                 Eyebrow("Focus")
                 if vm.ttsPlaying && vm.ttsCurrentBlock == 1 {
                     Circle()
                         .fill(LumenColor.accent)
-                        .frame(width: 5, height: 5)
+                        .frame(width: LumenSize.dotSm, height: LumenSize.dotSm)
                 }
             }
             Text(text)
-                .font(.system(size: 19, design: .serif))
-                .tracking(-0.095)
-                .lineSpacing(2)
+                .lumenFont(.bodySerifLg)
                 .foregroundStyle(LumenColor.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -173,10 +174,10 @@ struct SynthesisView: View {
         synthesisBlock(blockIndex: 2) {
             Eyebrow("Rappel")
             Text(text)
-                .font(.system(size: 17, design: .serif))
+                .lumenFont(.bodySerif)
                 .italic()
-                .lineSpacing(2)
-                .foregroundStyle(LumenColor.textPrimary.opacity(0.85))
+                .lineSpacing(LumenLineSpacing.xs)
+                .foregroundStyle(LumenColor.textPrimary.opacity(LumenOpacity.pressed))
                 .fixedSize(horizontal: false, vertical: true)
         }
     }
@@ -188,29 +189,51 @@ struct SynthesisView: View {
         @ViewBuilder content: () -> Content
     ) -> some View {
         let isActive = !vm.ttsPlaying || vm.ttsCurrentBlock == blockIndex
-        VStack(alignment: .leading, spacing: 8) {
+        let isRevealed = revealedBlocks > blockIndex
+        VStack(alignment: .leading, spacing: LumenSpacing.s) {
             content()
         }
-        .opacity(isActive ? 1.0 : 0.32)
-        .animation(.easeInOut(duration: 0.6), value: vm.ttsCurrentBlock)
-        .animation(.easeInOut(duration: 0.6), value: vm.ttsPlaying)
+        .opacity(isRevealed ? (isActive ? 1.0 : LumenOpacity.p32) : 0)
+        .offset(y: isRevealed ? 0 : LumenSpacing.sm2)
+        .animation(reduceMotion ? LumenAnimation.standard : LumenAnimation.decelerateLong, value: revealedBlocks)
+        .animation(LumenAnimation.standard, value: vm.ttsCurrentBlock)
+        .animation(LumenAnimation.standard, value: vm.ttsPlaying)
+    }
+
+    /// Spec reveal: 3 blocks fade-in + slide-up 12pt, 250ms cumulative delay,
+    /// 400ms per block (decelerate). Reduce motion → single 300ms fade.
+    /// Fires `LumenHaptic.synthesisReady()` once the last block lands.
+    private func runRevealSequence() async {
+        revealedBlocks = 0
+        if reduceMotion {
+            withAnimation(LumenAnimation.standard) { revealedBlocks = 3 }
+            try? await Task.sleep(for: LumenDelay.pauseLong)
+        } else {
+            for index in 1...3 {
+                try? await Task.sleep(for: LumenDelay.pause)
+                withAnimation(LumenAnimation.decelerateLong) { revealedBlocks = index }
+            }
+            try? await Task.sleep(for: LumenDelay.settle)
+        }
+        LumenHaptic.synthesisReady()
     }
 
     // MARK: - Queued
 
     private var queuedView: some View {
         VStack(spacing: LumenSpacing.m) {
-            Spacer(minLength: 80)
+            Spacer(minLength: LumenSpacing.xxh)
             SlowPulse()
             Text("Ta synthèse arrive")
-                .font(.system(size: 24, weight: .regular, design: .serif))
+                .lumenFont(.title2)
+                .fontWeight(.regular)
                 .foregroundStyle(LumenColor.textPrimary)
                 .multilineTextAlignment(.center)
             Text("On te notifie dès que ton réseau revient.")
                 .lumenFont(.footnote)
                 .foregroundStyle(LumenColor.textSecondary)
                 .multilineTextAlignment(.center)
-            Spacer(minLength: 40)
+            Spacer(minLength: LumenSize.blockSm)
             PrimaryCTA("Continuer vers le dashboard") {
                 onComplete()
             }
@@ -222,12 +245,13 @@ struct SynthesisView: View {
 
     private var rateLimitedView: some View {
         VStack(spacing: LumenSpacing.m) {
-            Spacer(minLength: 80)
+            Spacer(minLength: LumenSpacing.xxh)
             Text("Limite atteinte pour aujourd'hui — reviens demain.")
-                .font(.system(size: 20, weight: .regular, design: .serif))
+                .lumenFont(.title3)
+                .fontWeight(.regular)
                 .foregroundStyle(LumenColor.textSecondary)
                 .multilineTextAlignment(.center)
-            Spacer(minLength: 40)
+            Spacer(minLength: LumenSize.blockSm)
             PrimaryCTA("Continuer vers le dashboard") {
                 onComplete()
             }
@@ -239,9 +263,10 @@ struct SynthesisView: View {
 
     private var missingKeyView: some View {
         VStack(spacing: LumenSpacing.m) {
-            Spacer(minLength: 80)
+            Spacer(minLength: LumenSpacing.xxh)
             Text("Clés API manquantes")
-                .font(.system(size: 22, weight: .regular, design: .serif))
+                .lumenFont(.title2)
+                .fontWeight(.regular)
                 .foregroundStyle(LumenColor.textPrimary)
                 .multilineTextAlignment(.center)
             Text("Renseigne les clés OpenAI / Anthropic dans les Réglages pour activer la synthèse.")
@@ -254,7 +279,7 @@ struct SynthesisView: View {
                     UIApplication.shared.open(url)
                 }
             }
-            Spacer(minLength: 24)
+            Spacer(minLength: LumenSpacing.l)
             PrimaryCTA("Continuer vers le dashboard") {
                 onComplete()
             }
@@ -266,7 +291,7 @@ struct SynthesisView: View {
 
     private func errorView(msg: String) -> some View {
         VStack(spacing: LumenSpacing.m) {
-            Spacer(minLength: 80)
+            Spacer(minLength: LumenSpacing.xxh)
             Text(msg)
                 .lumenFont(.body)
                 .foregroundStyle(LumenColor.textSecondary)
@@ -274,7 +299,7 @@ struct SynthesisView: View {
             SecondaryCTA("Réessayer") {
                 Task { await vm.load() }
             }
-            Spacer(minLength: 40)
+            Spacer(minLength: LumenSize.blockSm)
         }
         .frame(maxWidth: .infinity)
     }

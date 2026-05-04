@@ -10,7 +10,7 @@ struct OnboardingPitchView: View {
                 Button(action: { vm.goBack() }) {
                     Image(systemName: "chevron.left")
                         .foregroundStyle(LumenColor.textPrimary)
-                        .font(.system(size: 17, weight: .medium))
+                        .font(LumenIconFont.xxl)
                 }
                 Spacer()
                 ProgressDots4(current: 1)
@@ -21,24 +21,24 @@ struct OnboardingPitchView: View {
             Spacer().frame(height: LumenSpacing.huge)
 
             KineticText(["Cinq", "minutes."])
-                .font(.system(size: 48, weight: .medium, design: .serif))
+                .lumenFont(.displayBold)
                 .foregroundStyle(LumenColor.textPrimary)
 
             Spacer().frame(height: LumenSpacing.s)
 
             if showSecondLine {
                 KineticText(["Pas", "plus."])
-                    .font(.system(size: 48, weight: .regular, design: .serif))
+                    .lumenFont(.display)
                     .italic()
-                    .foregroundStyle(LumenColor.textPrimary.opacity(0.55))
+                    .foregroundStyle(LumenColor.textPrimary.opacity(LumenOpacity.ring))
             } else {
-                Color.clear.frame(height: 58)
+                Color.clear.frame(height: LumenSpacing.huge - LumenSpacing.xs2)
             }
 
             Spacer().frame(height: LumenSpacing.xl)
 
             Text("Pour cadrer ta journée avant qu'elle ne te cadre.")
-                .font(.system(size: 17, weight: .regular))
+                .lumenFont(.body)
                 .foregroundStyle(LumenColor.textSecondary)
 
             Spacer()
@@ -48,7 +48,7 @@ struct OnboardingPitchView: View {
         .padding(.horizontal, LumenSpacing.l)
         .padding(.bottom, LumenSpacing.xl)
         .task {
-            try? await Task.sleep(for: .milliseconds(600))
+            try? await Task.sleep(for: LumenDelay.scene)
             showSecondLine = true
         }
     }

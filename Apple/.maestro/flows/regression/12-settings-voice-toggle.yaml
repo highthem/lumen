@@ -1,0 +1,20 @@
+appId: com.highthem.lumen
+tags: [regression, settings, voice]
+---
+- launchApp:
+    clearState: false
+
+- tapOn:
+    id: "settings-button"
+- scrollUntilVisible:
+    element: "Mode vocal par défaut"
+- tapOn:
+    id: "voice-default-toggle"
+
+# Verify Q3 default = typing (after toggle off)
+- runFlow: ../_shared/back-to-dashboard.yaml
+- openLink: "lumen://ritual/q3"
+- assertVisible:
+    id: "gratitude-textarea"   # typing par défaut maintenant
+- assertNotVisible:
+    id: "mic-button"   # micro masqué

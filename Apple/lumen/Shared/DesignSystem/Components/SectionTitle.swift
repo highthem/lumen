@@ -9,8 +9,7 @@ struct SectionTitle: View {
 
     var body: some View {
         Text(text)
-            .font(.system(size: 30, weight: .medium, design: .serif))
-            .lineSpacing(LumenFont.title1.lineSpacing)
+            .lumenFont(.title1)
             .foregroundStyle(LumenColor.textPrimary)
     }
 }

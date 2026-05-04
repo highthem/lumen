@@ -1,0 +1,17 @@
+appId: com.highthem.lumen
+tags: [regression, offline, queue]
+---
+- launchApp:
+    clearState: true
+
+# Quick onboarding + ritual via deep links
+- runFlow: ../_shared/quick-onboard.yaml
+- openLink: "lumen://ritual/q4-direct"
+- inputText: "présence"
+- hideKeyboard
+- tapOn: "Voir ma synthèse"
+
+# Expect Queued state (no Apple Intelligence on simulator)
+- assertVisible: "Ta synthèse arrive."
+- assertVisible: "On te notifie au retour réseau"
+- tapOn: "Aller au dashboard"

@@ -10,7 +10,7 @@ struct OnboardingFirstAlarmView: View {
                 Button(action: { vm.goBack() }) {
                     Image(systemName: "chevron.left")
                         .foregroundStyle(LumenColor.textPrimary)
-                        .font(.system(size: 17, weight: .medium))
+                        .font(LumenIconFont.xxl)
                 }
                 Spacer()
                 ProgressDots4(current: 3)
@@ -21,15 +21,14 @@ struct OnboardingFirstAlarmView: View {
             Spacer().frame(height: LumenSpacing.xl)
 
             Text("04 / 04")
-                .font(.system(size: 11, weight: .regular))
-                .tracking(11 * 0.22)
+                .lumenFont(.caption)
                 .textCase(.uppercase)
                 .foregroundStyle(LumenColor.textSecondary)
 
             Spacer().frame(height: LumenSpacing.m)
 
             Text("À quelle heure veux-tu commencer ?")
-                .font(.system(size: 30, weight: .semibold, design: .serif))
+                .lumenFont(.title1)
                 .foregroundStyle(LumenColor.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
 

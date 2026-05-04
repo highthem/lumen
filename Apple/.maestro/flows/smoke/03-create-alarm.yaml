@@ -1,0 +1,25 @@
+appId: com.highthem.lumen
+name: Create Alarm
+tags: 
+  - smoke 
+  - alarm
+---
+- launchApp:
+    clearState: false   # garde l'onboarding fait
+
+# Depuis dashboard, ouvre alarmes
+- tapOn:
+    id: "settings-button"
+- tapOn: "Heure d'alarme"
+
+# Form
+- tapOn:
+    id: "alarm-time-picker"
+- inputText: "0700"
+- tapOn: "Tous les jours de semaine"
+- tapOn: "Aube"   # son
+- tapOn: "Enregistrer"
+
+# Verify
+- assertVisible: "07:00"
+- assertVisible: "Lun-Ven"

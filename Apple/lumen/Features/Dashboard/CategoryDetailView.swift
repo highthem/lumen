@@ -23,14 +23,14 @@ struct CategoryDetailView: View {
                                 Text("Ajoute une note…")
                                     .lumenFont(.body)
                                     .foregroundStyle(LumenColor.textTertiary)
-                                    .padding(.top, 8)
-                                    .padding(.leading, 4)
+                                    .padding(.top, LumenSpacing.s)
+                                    .padding(.leading, LumenSpacing.xs)
                                     .allowsHitTesting(false)
                             }
                             TextEditor(text: $todayContent)
                                 .lumenFont(.body)
                                 .foregroundStyle(LumenColor.textPrimary)
-                                .frame(minHeight: 100)
+                                .frame(minHeight: LumenSize.editorMin)
                                 .scrollContentBackground(.hidden)
                         }
                         .padding(LumenSpacing.m)

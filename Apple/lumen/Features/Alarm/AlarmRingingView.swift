@@ -40,13 +40,13 @@ struct AlarmRingingView: View {
             // typography readable through the rising sunrise gradient.
             RadialGradient(
                 colors: [
-                    LumenColor.bgPrimary.opacity(0.55),
-                    LumenColor.bgPrimary.opacity(0.25),
+                    LumenColor.bgPrimary.opacity(LumenOpacity.ring),
+                    LumenColor.bgPrimary.opacity(LumenOpacity.p25),
                     .clear
                 ],
                 center: UnitPoint(x: 0.5, y: 0.38),
-                startRadius: 40,
-                endRadius: 280
+                startRadius: LumenSize.iconXl,
+                endRadius: LumenSize.cardForm
             )
             .allowsHitTesting(false)
             .ignoresSafeArea()
@@ -72,56 +72,54 @@ struct AlarmRingingView: View {
 
     private func content(now: Date) -> some View {
         VStack(spacing: 0) {
-            VStack(spacing: 14) {
+            VStack(spacing: LumenSpacing.sm3) {
                 Text(Self.frenchDate(now: now))
                     .lumenFont(.caption)
                     .foregroundStyle(LumenColor.textTertiary)
                     .textCase(.uppercase)
 
                 Text(Self.timeString(now: now))
-                    .font(.system(size: 96, weight: .regular, design: .serif))
-                    .tracking(-2.88)
+                    .lumenFont(.alarmHero)
                     .foregroundStyle(LumenColor.textPrimary)
 
                 Rectangle()
-                    .fill(LumenColor.textPrimary.opacity(0.65))
-                    .frame(width: 60, height: 1)
-                    .padding(.top, 4)
+                    .fill(LumenColor.textPrimary.opacity(LumenOpacity.p65))
+                    .frame(width: LumenSize.ruleSm, height: LumenSize.hairline)
+                    .padding(.top, LumenSpacing.xs)
 
                 Text(Self.copyVariants[copyVariant])
-                    .font(.system(size: 30, weight: .medium, design: .serif))
+                    .lumenFont(.title1)
                     .italic()
-                    .tracking(-0.45)
                     .foregroundStyle(LumenColor.textPrimary)
                     .multilineTextAlignment(.center)
-                    .frame(maxWidth: 320)
-                    .shadow(color: LumenColor.bgPrimary.opacity(0.45), radius: 18, x: 0, y: 0)
-                    .padding(.top, 12)
+                    .frame(maxWidth: LumenSize.cardField)
+                    .lumenShadow(.alarmTextHalo)
+                    .padding(.top, LumenSpacing.sm2)
             }
-            .padding(.top, 36)
+            .padding(.top, LumenSpacing.xl2)
             .frame(maxWidth: .infinity)
 
             Spacer()
 
-            VStack(spacing: 12) {
+            VStack(spacing: LumenSpacing.sm2) {
                 Button {
                     onSnooze()
                 } label: {
                     Text("Snooze 5 min")
-                        .font(.system(size: 17, weight: .medium))
-                        .tracking(-0.085)
+                        .lumenFont(.body)
+                        .fontWeight(.medium)
                         .foregroundStyle(LumenColor.accent)
-                        .frame(maxWidth: .infinity, minHeight: 52)
+                        .frame(maxWidth: .infinity, minHeight: LumenSize.cta)
                 }
                 .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: LumenRadius.m, style: .continuous))
                 .overlay(
                     RoundedRectangle(cornerRadius: LumenRadius.m, style: .continuous)
-                        .stroke(LumenColor.accent, lineWidth: 1.5)
+                        .stroke(LumenColor.accent, lineWidth: LumenSize.strokeMd)
                 )
                 .buttonStyle(.plain)
 
                 PrimaryCTA("Silence") {
-                    UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                    LumenHaptic.alarmSilence()
                     onSilence()
                 }
             }

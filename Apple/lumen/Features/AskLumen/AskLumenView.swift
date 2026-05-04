@@ -13,48 +13,49 @@ struct AskLumenView: View {
                     // Drag indicator
                     Capsule()
                         .fill(LumenColor.bgTertiary)
-                        .frame(width: 36, height: 5)
+                        .frame(width: LumenSize.handleWidth, height: LumenSize.handleHeight)
                         .frame(maxWidth: .infinity)
-                        .padding(.top, 8)
+                        .padding(.top, LumenSpacing.s)
 
                     Eyebrow("Ask Lumen")
 
                     if let category = vm.category {
                         HStack(spacing: 0) {
                             Text("Catégorie · \(category.displayName)")
-                                .font(.system(size: 12, weight: .medium))
+                                .lumenFont(.footnote)
+                                .fontWeight(.medium)
                                 .foregroundStyle(LumenColor.textSecondary)
-                                .padding(.horizontal, 12)
-                                .padding(.vertical, 6)
+                                .padding(.horizontal, LumenSpacing.sm2)
+                                .padding(.vertical, LumenSpacing.xs2)
                                 .background(LumenColor.bgTertiary)
                                 .clipShape(Capsule())
                         }
                     }
 
                     // Question input — text field + mic affordance
-                    HStack(alignment: .top, spacing: 10) {
+                    HStack(alignment: .top, spacing: LumenSpacing.sm) {
                         ZStack(alignment: .topLeading) {
                             if vm.question.isEmpty {
                                 Text("Pose ta question…")
-                                    .font(.system(size: 19, design: .serif))
+                                    .lumenFont(.bodySerifLg)
                                     .foregroundStyle(LumenColor.textTertiary)
-                                    .padding(.top, 14)
-                                    .padding(.leading, 18)
+                                    .padding(.top, LumenSpacing.sm3)
+                                    .padding(.leading, LumenSpacing.ml)
                                     .allowsHitTesting(false)
                             }
                             TextField("", text: $vm.question, axis: .vertical)
                                 .lineLimit(2...5)
-                                .font(.system(size: 19, design: .serif))
+                                .lumenFont(.bodySerifLg)
                                 .foregroundStyle(LumenColor.textPrimary)
-                                .padding(.horizontal, 14)
-                                .padding(.vertical, 12)
-                                .frame(minHeight: 84, alignment: .topLeading)
+                                .padding(.horizontal, LumenSpacing.sm3)
+                                .padding(.vertical, LumenSpacing.sm2)
+                                .frame(minHeight: LumenSize.formInput, alignment: .topLeading)
                                 .background(LumenColor.bgSecondary)
                                 .overlay(
-                                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                        .stroke(LumenColor.divider, lineWidth: 1)
+                                    RoundedRectangle(cornerRadius: LumenRadius.m, style: .continuous)
+                                        .stroke(LumenColor.divider, lineWidth: LumenSize.hairline)
                                 )
-                                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                                .clipShape(RoundedRectangle(cornerRadius: LumenRadius.m, style: .continuous))
                         }
 
                         AskMicButton(state: vm.micState,
@@ -63,13 +64,14 @@ struct AskLumenView: View {
                     }
 
                     if vm.micState == .listening {
-                        HStack(spacing: 8) {
+                        HStack(spacing: LumenSpacing.s) {
                             Circle()
                                 .fill(LumenColor.accent)
-                                .frame(width: 7, height: 7)
+                                .frame(width: LumenSize.dotLg, height: LumenSize.dotLg)
                             Text("on écoute")
-                                .font(.system(size: 13, weight: .medium))
-                                .foregroundStyle(LumenColor.accent.opacity(0.85))
+                                .lumenFont(.footnote)
+                                .fontWeight(.medium)
+                                .foregroundStyle(LumenColor.accent.opacity(LumenOpacity.pressed))
                             Spacer()
                         }
                     }
@@ -80,12 +82,12 @@ struct AskLumenView: View {
                         case .idle:
                             EmptyView()
                         case .loading:
-                            HStack(spacing: 6) {
+                            HStack(spacing: LumenSpacing.xs2) {
                                 Circle()
                                     .fill(LumenColor.accent)
-                                    .frame(width: 5, height: 5)
+                                    .frame(width: LumenSize.dotSm, height: LumenSize.dotSm)
                                 Text("Lumen écrit…")
-                                    .font(.system(size: 13, design: .serif))
+                                    .lumenFont(.footnoteSerif)
                                     .italic()
                                     .foregroundStyle(LumenColor.textSecondary)
                             }
@@ -93,7 +95,7 @@ struct AskLumenView: View {
                             responseView(response: aiResponse)
                         case .rateLimited:
                             Text("Limite atteinte pour aujourd'hui — reviens demain.")
-                                .font(.system(size: 16, design: .serif))
+                                .lumenFont(.bodySerifSm)
                                 .italic()
                                 .foregroundStyle(LumenColor.textSecondary)
                                 .multilineTextAlignment(.leading)
@@ -104,15 +106,15 @@ struct AskLumenView: View {
                         }
                     }
 
-                    Spacer(minLength: 16)
+                    Spacer(minLength: LumenSpacing.m)
 
                     HStack {
                         Text("\(vm.remainingAsks) / 3 questions restantes")
-                            .font(.system(size: 12))
+                            .lumenFont(.footnote)
                             .foregroundStyle(LumenColor.textTertiary)
                         Spacer()
                         Button("Fermer") { isPresented = false }
-                            .font(.system(size: 12))
+                            .lumenFont(.footnote)
                             .foregroundStyle(LumenColor.textSecondary)
                     }
 
@@ -131,21 +133,20 @@ struct AskLumenView: View {
     }
 
     private func responseView(response: AIResponse) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: LumenSpacing.sm2) {
             // Question echo
             Text(vm.question)
-                .font(.system(size: 22, weight: .medium, design: .serif))
-                .tracking(-0.11)
-                .lineSpacing(2)
+                .lumenFont(.title2)
+                .fontWeight(.medium)
                 .foregroundStyle(LumenColor.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
 
             // Answer
             Text(response.intention)
-                .font(.system(size: 17, design: .serif))
+                .lumenFont(.bodySerif)
                 .italic()
-                .lineSpacing(3)
-                .foregroundStyle(LumenColor.textPrimary.opacity(0.85))
+                .lineSpacing(LumenLineSpacing.s)
+                .foregroundStyle(LumenColor.textPrimary.opacity(LumenOpacity.pressed))
                 .fixedSize(horizontal: false, vertical: true)
 
             if response.provider == .apple {
@@ -153,7 +154,7 @@ struct AskLumenView: View {
                     AppleIntelligenceBadge()
                     Spacer()
                 }
-                .padding(.top, 4)
+                .padding(.top, LumenSpacing.xs)
             }
         }
     }
@@ -170,7 +171,8 @@ private struct AskMicButton: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var breath: CGFloat = 1.0
 
-    private let size: CGFloat = 44
+    private static let breathScale: CGFloat = 1.06
+    private let size: CGFloat = LumenSize.buttonSm
 
     var body: some View {
         ZStack {
@@ -179,23 +181,23 @@ private struct AskMicButton: View {
                     Circle().fill(LumenColor.accent)
                 } else {
                     Circle()
-                        .fill(LumenColor.accent.opacity(0.12))
-                        .overlay(Circle().strokeBorder(LumenColor.accent, lineWidth: 1.2))
+                        .fill(LumenColor.accent.opacity(LumenOpacity.surfaceFill))
+                        .overlay(Circle().strokeBorder(LumenColor.accent, lineWidth: LumenSize.hairline))
                 }
             }
             .frame(width: size, height: size)
             .scaleEffect(state == .listening && !reduceMotion ? breath : 1.0)
 
             Image(systemName: "mic.fill")
-                .font(.system(size: 16, weight: .medium))
+                .font(LumenIconFont.xl)
                 .foregroundStyle(state == .listening ? LumenColor.bgPrimary : LumenColor.accent)
         }
-        .frame(width: size + 12, height: size + 12)
+        .frame(width: size + LumenSpacing.sm2, height: size + LumenSpacing.sm2)
         .contentShape(Circle())
         .onChange(of: state) { _, newState in
             if newState == .listening && !reduceMotion {
-                withAnimation(.easeInOut(duration: 4).repeatForever(autoreverses: true)) {
-                    breath = 1.06
+                withAnimation(LumenAnimation.breath) {
+                    breath = Self.breathScale
                 }
             } else {
                 breath = 1.0
