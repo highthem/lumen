@@ -4,23 +4,29 @@ import SwiftData
 
 // MARK: - Inline mocks
 
-final class MockAIProviderClient: AIProviderClient, @unchecked Sendable {
+actor MockAIProviderClient: AIProviderClient {
     let name: String
     var shouldSucceed: Bool
-    var capturedPrompts: [(system: String, user: String)] = []
-    private let lock = NSLock()
+    private(set) var capturedPrompts: [SimplePrompt] = []
+
+    struct SimplePrompt: Sendable {
+        let system: String
+        let user: String
+    }
 
     init(name: String, shouldSucceed: Bool = true) {
         self.name = name
         self.shouldSucceed = shouldSucceed
     }
 
+    func setShouldSucceed(_ value: Bool) { shouldSucceed = value }
+
     func synthesize(
         prompt: (system: String, user: String),
         ritualId: UUID,
         mode: AIResponseMode
     ) async throws -> SynthesisAttempt {
-        lock.withLock { capturedPrompts.append(prompt) }
+        capturedPrompts.append(SimplePrompt(system: prompt.system, user: prompt.user))
         guard shouldSucceed else {
             throw AIError.providerFailed(name)
         }
@@ -40,21 +46,22 @@ final class MockAIProviderClient: AIProviderClient, @unchecked Sendable {
     }
 }
 
-final class MockRateLimiter: RateLimiting, @unchecked Sendable {
+actor MockRateLimiter: RateLimiting {
     var canProceedResult = true
-    var consumeCallCount = 0
-    var resetCallCount = 0
+    private(set) var consumeCallCount = 0
+    private(set) var resetCallCount = 0
     var remainingSlotsResult = 3
-    private let lock = NSLock()
+
+    func setCanProceedResult(_ value: Bool) { canProceedResult = value }
 
     func canProceed(action: AIAction) async -> Bool { canProceedResult }
 
     func consume(action: AIAction) async {
-        lock.withLock { consumeCallCount += 1 }
+        consumeCallCount += 1
     }
 
     func reset() async {
-        lock.withLock { resetCallCount += 1 }
+        resetCallCount += 1
     }
 
     func remainingSlots(action: AIAction) async -> Int {
@@ -62,32 +69,29 @@ final class MockRateLimiter: RateLimiting, @unchecked Sendable {
     }
 }
 
-final class MockNetworkReachability: NetworkReachability, @unchecked Sendable {
-    var isReachable: Bool
-    init(isReachable: Bool) { self.isReachable = isReachable }
-    func updates() -> AsyncStream<Bool> {
-        AsyncStream { continuation in
-            continuation.yield(isReachable)
-        }
-    }
+final class MockNetworkReachability: NetworkReachability {
+    let isReachableValue: Bool
+    init(isReachable: Bool) { self.isReachableValue = isReachable }
+    var isReachable: Bool { get async { isReachableValue } }
 }
 
-final class MockEthicalLogRepository: EthicalLogRepository, @unchecked Sendable {
-    var savedLogs: [EthicalLog] = []
-    private let lock = NSLock()
+actor MockEthicalLogRepository: EthicalLogRepository {
+    private(set) var savedLogs: [EthicalLog] = []
 
     func save(_ log: EthicalLog) async throws {
-        lock.withLock { savedLogs.append(log) }
+        savedLogs.append(log)
     }
     func fetchAll() async throws -> [EthicalLog] { savedLogs }
-    func deleteAll() async throws { lock.withLock { savedLogs = [] } }
+    func fetchAll(limit: Int, offset: Int) async throws -> [EthicalLog] {
+        Array(savedLogs.dropFirst(offset).prefix(limit))
+    }
+    func deleteAll() async throws { savedLogs = [] }
     func exportJSON() async throws -> Data { Data() }
 }
 
-final class MockRitualRepository: RitualRepository, @unchecked Sendable {
+actor MockRitualRepository: RitualRepository {
     var ritual: Ritual
-    var attachedSyntheses: [AIResponse] = []
-    private let lock = NSLock()
+    private(set) var attachedSyntheses: [AIResponse] = []
 
     init(ritual: Ritual) { self.ritual = ritual }
 
@@ -96,7 +100,7 @@ final class MockRitualRepository: RitualRepository, @unchecked Sendable {
     func fetchByDate(_ date: Date) async throws -> Ritual? { nil }
     func appendAnswer(_ answer: QuestionnaireAnswer, ritualId: UUID) async throws {}
     func attachSynthesis(_ response: AIResponse, ritualId: UUID) async throws {
-        lock.withLock { attachedSyntheses.append(response) }
+        attachedSyntheses.append(response)
     }
     func update(_ ritual: Ritual) async throws {}
 }
@@ -126,11 +130,9 @@ final class WaterfallAISynthesisServiceTests: XCTestCase {
         let openai = MockAIProviderClient(name: "openai")
         let stub = AppleIntelligenceProviderStub()
 
-        let schema = Schema([PendingSynthesisEntity.self])
+        let schema = Schema([RitualEntity.self, PendingSynthesisEntity.self])
         let container = try ModelContainer(for: schema, configurations: [ModelConfiguration(isStoredInMemoryOnly: true)])
-        let mockRitual = Ritual(date: Date())
-        let ritualRepo = MockRitualRepository(ritual: mockRitual)
-        let queue = SynthesisQueue(modelContainer: container, ritualRepository: ritualRepo)
+        let queue = SynthesisQueue(modelContainer: container)
 
         let sut = WaterfallAISynthesisService(
             cloudClients: [openai],
@@ -151,9 +153,8 @@ final class WaterfallAISynthesisServiceTests: XCTestCase {
             return XCTFail("Expected .ready with support template")
         }
         XCTAssertEqual(response.provider, .supportTemplate)
-        XCTAssertFalse(openai.capturedPrompts.isEmpty == false || openai.capturedPrompts.count > 0,
-                       "OpenAI should NOT have been called")
-        XCTAssertTrue(openai.capturedPrompts.isEmpty, "Cloud provider must not be called for selfHarmCue")
+        let prompts = await openai.capturedPrompts
+        XCTAssertTrue(prompts.isEmpty, "Cloud provider must not be called for selfHarmCue")
     }
 
     // MARK: - Case 2: rate limit throws
@@ -163,13 +164,11 @@ final class WaterfallAISynthesisServiceTests: XCTestCase {
         let logRepo = MockEthicalLogRepository()
         let ethicalLogger = EthicalLogger(repository: logRepo)
         let rateLimiter = MockRateLimiter()
-        rateLimiter.canProceedResult = false
+        await rateLimiter.setCanProceedResult(false)
 
-        let schema = Schema([PendingSynthesisEntity.self])
+        let schema = Schema([RitualEntity.self, PendingSynthesisEntity.self])
         let container = try! ModelContainer(for: schema, configurations: [ModelConfiguration(isStoredInMemoryOnly: true)])
-        let mockRitual = Ritual(date: Date())
-        let ritualRepo = MockRitualRepository(ritual: mockRitual)
-        let queue = SynthesisQueue(modelContainer: container, ritualRepository: ritualRepo)
+        let queue = SynthesisQueue(modelContainer: container)
 
         let sut = WaterfallAISynthesisService(
             cloudClients: [],
@@ -203,11 +202,9 @@ final class WaterfallAISynthesisServiceTests: XCTestCase {
         let openai = MockAIProviderClient(name: "openai", shouldSucceed: true)
         let anthropic = MockAIProviderClient(name: "anthropic", shouldSucceed: true)
 
-        let schema = Schema([PendingSynthesisEntity.self])
+        let schema = Schema([RitualEntity.self, PendingSynthesisEntity.self])
         let container = try ModelContainer(for: schema, configurations: [ModelConfiguration(isStoredInMemoryOnly: true)])
-        let mockRitual = Ritual(date: Date())
-        let ritualRepo = MockRitualRepository(ritual: mockRitual)
-        let queue = SynthesisQueue(modelContainer: container, ritualRepository: ritualRepo)
+        let queue = SynthesisQueue(modelContainer: container)
 
         let sut = WaterfallAISynthesisService(
             cloudClients: [openai, anthropic],
@@ -227,7 +224,8 @@ final class WaterfallAISynthesisServiceTests: XCTestCase {
             return XCTFail("Expected .ready")
         }
         XCTAssertEqual(response.provider, .openai)
-        XCTAssertTrue(anthropic.capturedPrompts.isEmpty, "Anthropic should not be called if OpenAI succeeds")
+        let anthropicPrompts = await anthropic.capturedPrompts
+        XCTAssertTrue(anthropicPrompts.isEmpty, "Anthropic should not be called if OpenAI succeeds")
     }
 
     // MARK: - Case 4: first cloud fails, fallback to second
@@ -240,11 +238,9 @@ final class WaterfallAISynthesisServiceTests: XCTestCase {
         let openai = MockAIProviderClient(name: "openai", shouldSucceed: false)
         let anthropic = MockAIProviderClient(name: "anthropic", shouldSucceed: true)
 
-        let schema = Schema([PendingSynthesisEntity.self])
+        let schema = Schema([RitualEntity.self, PendingSynthesisEntity.self])
         let container = try ModelContainer(for: schema, configurations: [ModelConfiguration(isStoredInMemoryOnly: true)])
-        let mockRitual = Ritual(date: Date())
-        let ritualRepo = MockRitualRepository(ritual: mockRitual)
-        let queue = SynthesisQueue(modelContainer: container, ritualRepository: ritualRepo)
+        let queue = SynthesisQueue(modelContainer: container)
 
         let sut = WaterfallAISynthesisService(
             cloudClients: [openai, anthropic],
@@ -274,11 +270,9 @@ final class WaterfallAISynthesisServiceTests: XCTestCase {
         let ethicalLogger = EthicalLogger(repository: logRepo)
         let rateLimiter = MockRateLimiter()
 
-        let schema = Schema([PendingSynthesisEntity.self])
+        let schema = Schema([RitualEntity.self, PendingSynthesisEntity.self])
         let container = try ModelContainer(for: schema, configurations: [ModelConfiguration(isStoredInMemoryOnly: true)])
-        let mockRitual = Ritual(date: Date())
-        let ritualRepo = MockRitualRepository(ritual: mockRitual)
-        let queue = SynthesisQueue(modelContainer: container, ritualRepository: ritualRepo)
+        let queue = SynthesisQueue(modelContainer: container)
 
         let sut = WaterfallAISynthesisService(
             cloudClients: [],

@@ -5,24 +5,33 @@ import SwiftData
 final class RitualEntity {
     @Attribute(.unique) var id: UUID
     var date: Date
-    var stateRaw: String
+    var state: RitualState
+    /// JSON-encoded `[QuestionnaireAnswer]`. SwiftData on iOS 17 cannot
+    /// introspect Codable structs containing enum-with-associated-values
+    /// (`AnswerPayload`), so we serialize manually.
     var answersData: Data
     var synthesisId: UUID?
     var completedAt: Date?
 
+    @Relationship(deleteRule: .cascade, inverse: \PendingSynthesisEntity.ritual)
+    var pendingSynthesis: PendingSynthesisEntity?
+
     init(from ritual: Ritual) {
         self.id = ritual.id
         self.date = ritual.date
-        self.stateRaw = ritual.state.rawValue
+        self.state = ritual.state
         self.answersData = (try? JSONEncoder().encode(ritual.answers)) ?? Data()
         self.synthesisId = ritual.synthesisId
         self.completedAt = ritual.completedAt
     }
 
+    var answers: [QuestionnaireAnswer] {
+        get { (try? JSONDecoder().decode([QuestionnaireAnswer].self, from: answersData)) ?? [] }
+        set { answersData = (try? JSONEncoder().encode(newValue)) ?? Data() }
+    }
+
     func toDomain() -> Ritual {
-        let state = RitualState(rawValue: stateRaw) ?? .notStarted
-        let answers = (try? JSONDecoder().decode([QuestionnaireAnswer].self, from: answersData)) ?? []
-        return Ritual(
+        Ritual(
             id: id,
             date: date,
             state: state,
@@ -30,12 +39,5 @@ final class RitualEntity {
             synthesisId: synthesisId,
             completedAt: completedAt
         )
-    }
-
-    func update(from ritual: Ritual) {
-        stateRaw = ritual.state.rawValue
-        answersData = (try? JSONEncoder().encode(ritual.answers)) ?? Data()
-        synthesisId = ritual.synthesisId
-        completedAt = ritual.completedAt
     }
 }

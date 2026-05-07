@@ -103,7 +103,8 @@ struct MicCTA: View {
             ring1Opacity = 0
         }
         // Second ring offset by half a cycle
-        DispatchQueue.main.asyncAfter(deadline: .now() + Self.breathCycle / 2) {
+        Task { @MainActor in
+            try? await Task.sleep(for: .seconds(Self.breathCycle / 2))
             withAnimation(LumenAnimation.ringWave) {
                 ring2Scale = Self.ringEndScale
                 ring2Opacity = 0

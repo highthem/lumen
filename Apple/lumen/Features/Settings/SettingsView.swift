@@ -40,9 +40,9 @@ struct SettingsView: View {
                     }
                 }
             }
-            .onAppear {
-                vm.load()
-                Task { await keyStore.load() }
+            .task {
+                await vm.load()
+                await keyStore.load()
             }
             .accessibilityIdentifier("settings-screen")
             .onDisappear {

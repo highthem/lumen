@@ -74,7 +74,7 @@ struct AlarmEditView: View {
                     Button("Enregistrer") {
                         Task {
                             vm.stopPreview()
-                            try? await vm.save()
+                            _ = try? await vm.save()
                             dismiss()
                         }
                     }

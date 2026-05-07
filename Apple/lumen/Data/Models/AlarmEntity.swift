@@ -5,6 +5,9 @@ import SwiftData
 final class AlarmEntity {
     @Attribute(.unique) var id: UUID
     var time: Date
+    /// JSON-encoded `AlarmRecurrence`. SwiftData on iOS 17 cannot introspect
+    /// Codable enums with associated values (`.custom(Set<Weekday>)`), so we
+    /// serialize manually and decode at the domain boundary.
     var recurrenceData: Data
     var soundId: String
     var isActive: Bool
@@ -23,9 +26,13 @@ final class AlarmEntity {
         self.updatedAt = alarm.updatedAt
     }
 
+    var recurrence: AlarmRecurrence {
+        get { (try? JSONDecoder().decode(AlarmRecurrence.self, from: recurrenceData)) ?? .none }
+        set { recurrenceData = (try? JSONEncoder().encode(newValue)) ?? Data() }
+    }
+
     func toDomain() -> Alarm {
-        let recurrence = (try? JSONDecoder().decode(AlarmRecurrence.self, from: recurrenceData)) ?? .none
-        return Alarm(
+        Alarm(
             id: id,
             time: time,
             recurrence: recurrence,
@@ -35,14 +42,5 @@ final class AlarmEntity {
             createdAt: createdAt,
             updatedAt: updatedAt
         )
-    }
-
-    func update(from alarm: Alarm) {
-        time = alarm.time
-        recurrenceData = (try? JSONEncoder().encode(alarm.recurrence)) ?? Data()
-        soundId = alarm.soundId
-        isActive = alarm.isActive
-        snoozeCount = alarm.snoozeCount
-        updatedAt = alarm.updatedAt
     }
 }

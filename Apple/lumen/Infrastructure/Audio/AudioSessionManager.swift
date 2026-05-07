@@ -1,7 +1,7 @@
 import Foundation
 import AVFoundation
 
-final class AudioSessionManager: @unchecked Sendable {
+struct AudioSessionManager: Sendable {
 
     func configureSession() async throws {
         try AVAudioSession.sharedInstance().setCategory(.playback, options: [.duckOthers])

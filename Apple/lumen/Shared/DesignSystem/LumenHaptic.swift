@@ -3,6 +3,7 @@ import UIKit
 /// Haptic policy per design system spec (`02-design-system.html` §03 Motion / Haptics).
 /// Allowed: alarm silence (`.medium`), timer end + mood select (`.soft`), synthesis ready (`.success`).
 /// Forbidden everywhere else — transitions, scroll, hover, mid-questionnaire — to keep the calm.
+@MainActor
 enum LumenHaptic {
     /// One strong tap per day — only for the "Silence" alarm action.
     static func alarmSilence() {

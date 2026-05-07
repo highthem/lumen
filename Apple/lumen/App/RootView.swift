@@ -97,7 +97,7 @@ struct RootView: View {
                             onSnooze: {
                                 Task {
                                     await composition.audioPlayer.stop()
-                                    try? await composition.snoozeAlarm.execute(alarmId: alarmId)
+                                    _ = try? await composition.snoozeAlarm.execute(alarmId: alarmId)
                                     await composition.appStateMachine.send(.alarmSilenced)
                                 }
                             },

@@ -5,15 +5,23 @@ import SwiftData
 actor SwiftDataEthicalLogRepository: EthicalLogRepository {
 
     func save(_ log: EthicalLog) async throws {
-        let entity = EthicalLogEntity(from: log)
-        modelContext.insert(entity)
+        modelContext.insert(EthicalLogEntity(from: log))
         try modelContext.save()
     }
 
     func fetchAll() async throws -> [EthicalLog] {
         let descriptor = FetchDescriptor<EthicalLogEntity>(
-            sortBy: [SortDescriptor(\.timestamp)]
+            sortBy: [SortDescriptor(\.timestamp, order: .reverse)]
         )
+        return try modelContext.fetch(descriptor).map { $0.toDomain() }
+    }
+
+    func fetchAll(limit: Int, offset: Int) async throws -> [EthicalLog] {
+        var descriptor = FetchDescriptor<EthicalLogEntity>(
+            sortBy: [SortDescriptor(\.timestamp, order: .reverse)]
+        )
+        descriptor.fetchLimit = limit
+        descriptor.fetchOffset = offset
         return try modelContext.fetch(descriptor).map { $0.toDomain() }
     }
 

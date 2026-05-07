@@ -5,20 +5,22 @@ import Foundation
 @Suite("FallbackTextToSpeech")
 struct FallbackTextToSpeechTests {
 
-    final class StubTTS: TextToSpeeching, @unchecked Sendable {
+    actor StubTTS: TextToSpeeching {
         var shouldThrow: Error?
-        var speakInvocations = 0
-        var lastText: String?
-        var isSpeaking = false
+        private(set) var speakInvocations = 0
+        private(set) var lastText: String?
+        private(set) var isSpeaking = false
+
+        func setShouldThrow(_ error: Error?) { shouldThrow = error }
 
         func speak(_ text: String, voiceId: String?, rate: Double) async throws {
             speakInvocations += 1
             lastText = text
             if let e = shouldThrow { throw e }
         }
-        func pause() {}
+        func pause()  {}
         func resume() {}
-        func stop() {}
+        func stop()   {}
         func availableVoices() -> [TTSVoice] { [] }
     }
 
@@ -30,31 +32,36 @@ struct FallbackTextToSpeechTests {
 
         try await sut.speak("hello", voiceId: nil, rate: 1.0)
 
-        #expect(primary.speakInvocations == 1)
-        #expect(fallback.speakInvocations == 0)
+        let primaryCount = await primary.speakInvocations
+        let fallbackCount = await fallback.speakInvocations
+        #expect(primaryCount == 1)
+        #expect(fallbackCount == 0)
     }
 
     @Test("Primary throws — fallback takes over and succeeds")
     func primaryThrows() async throws {
         let primary = StubTTS()
-        primary.shouldThrow = ElevenLabsError.timeout
+        await primary.setShouldThrow(ElevenLabsError.timeout)
         let fallback = StubTTS()
         let sut = FallbackTextToSpeech(primary: primary, fallback: fallback)
 
         try await sut.speak("hello", voiceId: nil, rate: 1.0)
 
-        #expect(primary.speakInvocations == 1)
-        #expect(fallback.speakInvocations == 1)
-        #expect(fallback.lastText == "hello")
+        let primaryCount = await primary.speakInvocations
+        let fallbackCount = await fallback.speakInvocations
+        let fallbackText = await fallback.lastText
+        #expect(primaryCount == 1)
+        #expect(fallbackCount == 1)
+        #expect(fallbackText == "hello")
     }
 
     @Test("Primary and fallback both throw — error propagates")
     func bothThrow() async throws {
         struct AVErr: Error {}
         let primary = StubTTS()
-        primary.shouldThrow = ElevenLabsError.invalidKey
+        await primary.setShouldThrow(ElevenLabsError.invalidKey)
         let fallback = StubTTS()
-        fallback.shouldThrow = AVErr()
+        await fallback.setShouldThrow(AVErr())
         let sut = FallbackTextToSpeech(primary: primary, fallback: fallback)
 
         await #expect(throws: AVErr.self) {
@@ -68,17 +75,20 @@ struct FallbackTextToSpeechTests {
         let fallback = StubTTS()
         let sut = FallbackTextToSpeech(primary: primary, fallback: fallback)
 
-        // Call 1 : primary OK
+        // Call 1: primary OK
         try await sut.speak("first", voiceId: nil, rate: 1.0)
-        // Call 2 : primary throws
-        primary.shouldThrow = ElevenLabsError.quotaExceeded
+        // Call 2: primary throws
+        await primary.setShouldThrow(ElevenLabsError.quotaExceeded)
         try await sut.speak("second", voiceId: nil, rate: 1.0)
-        // Call 3 : primary back online
-        primary.shouldThrow = nil
+        // Call 3: primary back online
+        await primary.setShouldThrow(nil)
         try await sut.speak("third", voiceId: nil, rate: 1.0)
 
-        #expect(primary.speakInvocations == 3)
-        #expect(fallback.speakInvocations == 1)
-        #expect(fallback.lastText == "second")
+        let primaryCount = await primary.speakInvocations
+        let fallbackCount = await fallback.speakInvocations
+        let fallbackText = await fallback.lastText
+        #expect(primaryCount == 3)
+        #expect(fallbackCount == 1)
+        #expect(fallbackText == "second")
     }
 }

@@ -1,41 +1,28 @@
 import XCTest
 @testable import lumen
 
-final class MockClock: LumenClock, @unchecked Sendable {
-    private let lock = NSLock()
-    private var _current: Date
-
-    init(date: Date = Date()) {
-        self._current = date
-    }
-
-    func now() -> Date {
-        lock.withLock { _current }
-    }
-
-    func advance(by interval: TimeInterval) {
-        lock.withLock { _current = _current.addingTimeInterval(interval) }
-    }
-
-    func set(date: Date) {
-        lock.withLock { _current = date }
-    }
+/// Immutable Sendable clock — for tests that need to "advance time", create
+/// a new `MockClock` and a new `RateLimiter` over the same UserDefaults suite.
+/// (Persisted counters survive across instances; the clock is the only thing
+/// that changes.)
+struct MockClock: LumenClock {
+    let date: Date
+    init(_ date: Date = Date()) { self.date = date }
+    func now() -> Date { date }
 }
 
 @MainActor
 final class RateLimiterTests: XCTestCase {
 
-    private func makeSut(clock: MockClock) -> RateLimiter {
-        let suiteName = "lumen.tests.rate.\(UUID().uuidString)"
-        let ud = UserDefaults(suiteName: suiteName)!
-        return RateLimiter(clock: clock, userDefaults: ud)
+    private func makeSuiteName() -> String {
+        "lumen.tests.rate.\(UUID().uuidString)"
     }
 
     // MARK: - Test 1: auto synthesis cap is 1 per day
 
     func testAutoSynthesisCappedAt1() async {
-        let clock = MockClock()
-        let sut = makeSut(clock: clock)
+        let suite = makeSuiteName()
+        let sut = RateLimiter(clock: MockClock(), suiteName: suite)
 
         let first = await sut.canProceed(action: .autoSynthesis)
         XCTAssertTrue(first, "First auto synthesis should be allowed")
@@ -49,10 +36,8 @@ final class RateLimiterTests: XCTestCase {
     // MARK: - Test 2: manual regen and askLumen each have their own cap of 3
 
     func testManualAndAskLumenAreSeparateBuckets() async {
-        let clock = MockClock()
-        let sut = makeSut(clock: clock)
+        let sut = RateLimiter(clock: MockClock(), suiteName: makeSuiteName())
 
-        // Burn the manual regen bucket
         for _ in 0..<3 { await sut.consume(action: .manualRegeneration) }
 
         let manualBlocked = await sut.canProceed(action: .manualRegeneration)
@@ -65,8 +50,7 @@ final class RateLimiterTests: XCTestCase {
     // MARK: - Test 5: remainingSlots reflects consumed count
 
     func testRemainingSlotsDecrements() async {
-        let clock = MockClock()
-        let sut = makeSut(clock: clock)
+        let sut = RateLimiter(clock: MockClock(), suiteName: makeSuiteName())
 
         let r0 = await sut.remainingSlots(action: .manualRegeneration)
         XCTAssertEqual(r0, 3, "fresh bucket should have 3 slots")
@@ -80,7 +64,6 @@ final class RateLimiterTests: XCTestCase {
         let r3 = await sut.remainingSlots(action: .manualRegeneration)
         XCTAssertEqual(r3, 0, "exhausted bucket should report 0")
 
-        // askLumen unaffected
         let rAsk = await sut.remainingSlots(action: .askLumenDashboard)
         XCTAssertEqual(rAsk, 3)
     }
@@ -88,25 +71,27 @@ final class RateLimiterTests: XCTestCase {
     // MARK: - Test 3: counters reset on new day
 
     func testResetsOnNewDay() async {
-        let clock = MockClock()
-        let sut = makeSut(clock: clock)
+        let suite = makeSuiteName()
+        let today = Date()
+        let tomorrow = today.addingTimeInterval(25 * 3600)
 
-        await sut.consume(action: .autoSynthesis)
-        let blockedToday = await sut.canProceed(action: .autoSynthesis)
+        let sutToday = RateLimiter(clock: MockClock(today), suiteName: suite)
+        await sutToday.consume(action: .autoSynthesis)
+        let blockedToday = await sutToday.canProceed(action: .autoSynthesis)
         XCTAssertFalse(blockedToday)
 
-        // Advance to tomorrow
-        clock.advance(by: 25 * 3600)
-
-        let allowedTomorrow = await sut.canProceed(action: .autoSynthesis)
+        // New clock = tomorrow; same suite so the persisted state survives.
+        // The first `canProceed` triggers `resetIfNeeded()`, which compares the
+        // last-reset timestamp to the new clock and clears yesterday's counters.
+        let sutTomorrow = RateLimiter(clock: MockClock(tomorrow), suiteName: suite)
+        let allowedTomorrow = await sutTomorrow.canProceed(action: .autoSynthesis)
         XCTAssertTrue(allowedTomorrow, "Should reset on a new calendar day")
     }
 
     // MARK: - Test 4: explicit reset() clears counters
 
     func testExplicitReset() async {
-        let clock = MockClock()
-        let sut = makeSut(clock: clock)
+        let sut = RateLimiter(clock: MockClock(), suiteName: makeSuiteName())
 
         await sut.consume(action: .autoSynthesis)
         await sut.consume(action: .manualRegeneration)

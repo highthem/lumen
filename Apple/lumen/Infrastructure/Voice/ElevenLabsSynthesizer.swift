@@ -10,16 +10,14 @@ enum ElevenLabsError: Error {
     case timeout
 }
 
-final class ElevenLabsSynthesizer: TextToSpeeching, @unchecked Sendable {
+actor ElevenLabsSynthesizer: TextToSpeeching {
     private let apiKey: String
     private let session: URLSession
-    private let lock = NSLock()
-    nonisolated(unsafe) private var _isSpeaking = false
-    nonisolated(unsafe) private var player: AVAudioPlayer?
+    private var _isSpeaking = false
+    private var player: AVAudioPlayer?
+    private var currentPlayerDelegate: PlayerDelegate?
 
-    var isSpeaking: Bool {
-        lock.withLock { _isSpeaking }
-    }
+    var isSpeaking: Bool { _isSpeaking }
 
     init(apiKey: String, session: URLSession? = nil) {
         self.apiKey = apiKey
@@ -35,55 +33,23 @@ final class ElevenLabsSynthesizer: TextToSpeeching, @unchecked Sendable {
 
     func availableVoices() -> [TTSVoice] {
         [
-            TTSVoice(
-                id: "XB0fDUnXU5powFXDhCwa",
-                name: "Charlotte",
-                lang: "en",
-                quality: .premium
-            ),
-            TTSVoice(
-                id: "EXAVITQu4vr4xnSDxMaL",
-                name: "Rachel",
-                lang: "en",
-                quality: .premium
-            ),
-            TTSVoice(
-                id: "pNInz6obpgDQGcFmaJgB",
-                name: "Adam",
-                lang: "en",
-                quality: .premium
-            ),
+            TTSVoice(id: "XB0fDUnXU5powFXDhCwa", name: "Charlotte", lang: "en", quality: .premium),
+            TTSVoice(id: "EXAVITQu4vr4xnSDxMaL", name: "Rachel", lang: "en", quality: .premium),
+            TTSVoice(id: "pNInz6obpgDQGcFmaJgB", name: "Adam", lang: "en", quality: .premium),
         ]
     }
 
     func speak(_ text: String, voiceId: String?, rate: Double) async throws {
         let voice = voiceId ?? "XB0fDUnXU5powFXDhCwa"
-
-        lock.withLock { _isSpeaking = true }
-        defer { lock.withLock { _isSpeaking = false } }
-
+        _isSpeaking = true
+        defer { _isSpeaking = false }
         let audioData = try await fetchAudio(text: text, voiceId: voice, speed: rate)
         try await playAudio(audioData)
     }
 
-    func pause() {
-        lock.withLock {
-            player?.pause()
-        }
-    }
-
-    func resume() {
-        lock.withLock {
-            player?.play()
-        }
-    }
-
-    func stop() {
-        lock.withLock {
-            player?.stop()
-            _isSpeaking = false
-        }
-    }
+    func pause()  { player?.pause() }
+    func resume() { player?.play() }
+    func stop()   { player?.stop(); _isSpeaking = false; currentPlayerDelegate = nil }
 
     // MARK: - Private
 
@@ -151,23 +117,18 @@ final class ElevenLabsSynthesizer: TextToSpeeching, @unchecked Sendable {
         } catch {
             throw ElevenLabsError.decodeFailed
         }
+        self.player = newPlayer
 
-        return try await withCheckedThrowingContinuation { continuation in
-            let delegate = PlayerDelegate(onFinish: { [weak self] in
-                self?.lock.withLock {
-                    self?._isSpeaking = false
-                }
-                continuation.resume()
-            })
-
-            newPlayer.delegate = delegate
-            lock.withLock { self.player = newPlayer }
+        try await withCheckedThrowingContinuation { (cont: CheckedContinuation<Void, Error>) in
+            let d = PlayerDelegate(onFinish: { cont.resume() })
+            self.currentPlayerDelegate = d
+            newPlayer.delegate = d
             newPlayer.play()
         }
     }
 }
 
-private final class PlayerDelegate: NSObject, AVAudioPlayerDelegate, @unchecked Sendable {
+private final class PlayerDelegate: NSObject, AVAudioPlayerDelegate, Sendable {
     private let onFinish: @Sendable () -> Void
 
     init(onFinish: @escaping @Sendable () -> Void) {
@@ -183,4 +144,4 @@ private final class PlayerDelegate: NSObject, AVAudioPlayerDelegate, @unchecked 
     }
 }
 
-private let logger = os.Logger(subsystem: "lumen.voice", category: "ElevenLabs")
+private let elevenLabsLogger = Logger(subsystem: "lumen.voice", category: "ElevenLabs")

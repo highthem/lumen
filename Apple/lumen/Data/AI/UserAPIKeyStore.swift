@@ -69,7 +69,7 @@ final class UserAPIKeyStore {
         // pick up the user key on the very first synthesis call.
         for provider in Provider.allCases {
             let value = (try? await keychain.read(account: provider.keychainAccount)) ?? nil
-            APIKeyResolver.setUserKey(value, for: provider.resolverProvider)
+            await APIKeyResolver.setUserKey(value, for: provider.resolverProvider)
         }
         let key = await readCurrentKey()
         hasKey = (key != nil)
@@ -88,14 +88,14 @@ final class UserAPIKeyStore {
             throw UserAPIKeyError.invalidFormat
         }
         try await keychain.save(account: provider.keychainAccount, value: trimmed)
-        APIKeyResolver.setUserKey(trimmed, for: provider.resolverProvider)
+        await APIKeyResolver.setUserKey(trimmed, for: provider.resolverProvider)
         hasKey = true
         maskedKey = Self.mask(trimmed)
     }
 
     func clear() async throws {
         try await keychain.delete(account: provider.keychainAccount)
-        APIKeyResolver.setUserKey(nil, for: provider.resolverProvider)
+        await APIKeyResolver.setUserKey(nil, for: provider.resolverProvider)
         hasKey = false
         maskedKey = nil
     }

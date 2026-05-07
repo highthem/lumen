@@ -1,6 +1,6 @@
 import Foundation
 
-final class WaterfallAISynthesisService: AISynthesisService, @unchecked Sendable {
+nonisolated final class WaterfallAISynthesisService: AISynthesisService {
 
     private let cloudClients: [any AIProviderClient]
     private let onDevice: any AIProviderClient
@@ -63,7 +63,7 @@ final class WaterfallAISynthesisService: AISynthesisService, @unchecked Sendable
         }
 
         // Online path
-        if reachability.isReachable {
+        if await reachability.isReachable {
             var sawMissingKey = false
             for client in cloudClients {
                 do {

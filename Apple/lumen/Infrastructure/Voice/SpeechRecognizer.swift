@@ -3,18 +3,19 @@ import Speech
 import AVFoundation
 import OSLog
 
-nonisolated(unsafe) private let log = Logger(subsystem: "com.highthem.lumen", category: "SpeechRecognizer")
+private let log = Logger(subsystem: "com.highthem.lumen", category: "SpeechRecognizer")
 
-final class SpeechRecognizer: VoiceTranscribing, @unchecked Sendable {
+@MainActor
+final class SpeechRecognizer: VoiceTranscribing {
 
     private let permissions = VoicePermissions()
 
-    @MainActor private let audioEngine = AVAudioEngine()
-    @MainActor private var recognizer: SFSpeechRecognizer?
-    @MainActor private var cachedLocale: Locale?
-    @MainActor private var recognitionRequest: SFSpeechAudioBufferRecognitionRequest?
-    @MainActor private var recognitionTask: SFSpeechRecognitionTask?
-    @MainActor private var sessionConfigured = false
+    private let audioEngine = AVAudioEngine()
+    private var recognizer: SFSpeechRecognizer?
+    private var cachedLocale: Locale?
+    private var recognitionRequest: SFSpeechAudioBufferRecognitionRequest?
+    private var recognitionTask: SFSpeechRecognitionTask?
+    private var sessionConfigured = false
 
     nonisolated func isOnDeviceSupported(locale: Locale) -> Bool {
         SFSpeechRecognizer(locale: locale)?.supportsOnDeviceRecognition ?? false
@@ -192,7 +193,6 @@ final class SpeechRecognizer: VoiceTranscribing, @unchecked Sendable {
         }
     }
 
-    @MainActor
     private func resolveRecognizer(locale: Locale) -> SFSpeechRecognizer? {
         if let recognizer, cachedLocale == locale {
             return recognizer
@@ -203,7 +203,6 @@ final class SpeechRecognizer: VoiceTranscribing, @unchecked Sendable {
         return fresh
     }
 
-    @MainActor
     private func teardownActiveSessionPreservingEngine() {
         recognitionTask?.cancel()
         recognitionTask = nil
@@ -216,5 +215,4 @@ final class SpeechRecognizer: VoiceTranscribing, @unchecked Sendable {
         }
         audioEngine.inputNode.removeTap(onBus: 0)
     }
-
 }

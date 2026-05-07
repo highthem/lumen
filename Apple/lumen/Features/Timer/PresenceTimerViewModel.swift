@@ -20,7 +20,7 @@ final class PresenceTimerViewModel {
     }
 
     func start() async {
-        quote = quoteProvider.random(lang: "fr")
+        quote = await quoteProvider.random(lang: "fr")
 
         let soundId = UserDefaults.standard.string(forKey: "lumen.settings.breathingSoundId")
             ?? soundProvider.defaultSound(for: .breathing)?.id

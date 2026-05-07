@@ -1,6 +1,6 @@
 import Foundation
 
-final class AnthropicClient: AIProviderClient, @unchecked Sendable {
+final class AnthropicClient: AIProviderClient {
 
     let name = "anthropic"
     private let httpClient: any HTTPClient
@@ -14,7 +14,7 @@ final class AnthropicClient: AIProviderClient, @unchecked Sendable {
         ritualId: UUID,
         mode: AIResponseMode
     ) async throws -> SynthesisAttempt {
-        let apiKey = try resolvedAPIKey()
+        let apiKey = try await resolvedAPIKey()
 
         let body: [String: Any] = [
             "model": "claude-haiku-4-5-20251001",
@@ -87,8 +87,8 @@ final class AnthropicClient: AIProviderClient, @unchecked Sendable {
 
     // MARK: - Helpers
 
-    private func resolvedAPIKey() throws -> String {
-        try APIKeyResolver.resolve(infoKey: "ANTHROPIC_API_KEY")
+    private func resolvedAPIKey() async throws -> String {
+        try await APIKeyResolver.resolve(infoKey: "ANTHROPIC_API_KEY")
     }
 
     private struct GenerationOutput: Decodable {

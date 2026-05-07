@@ -26,10 +26,10 @@ enum TTSVoiceQuality: String, Sendable, Comparable, Hashable {
 }
 
 protocol TextToSpeeching: Sendable {
-    func availableVoices() -> [TTSVoice]
+    func availableVoices() async -> [TTSVoice]
     func speak(_ text: String, voiceId: String?, rate: Double) async throws
-    func pause()
-    func resume()
-    func stop()
-    var isSpeaking: Bool { get }
+    func pause() async
+    func resume() async
+    func stop() async
+    var isSpeaking: Bool { get async }
 }

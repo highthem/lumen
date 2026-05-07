@@ -1,53 +1,30 @@
 import Foundation
 import Network
 
-final class NetworkMonitor: NetworkReachability, @unchecked Sendable {
+actor NetworkMonitor: NetworkReachability {
 
     private let monitor = NWPathMonitor()
-    private let queue = DispatchQueue(label: "com.lumen.networkmonitor")
-    private let lock = NSLock()
-    nonisolated(unsafe) private var _isReachable: Bool = false
-    nonisolated(unsafe) private var continuations: [UUID: AsyncStream<Bool>.Continuation] = [:]
+    // NWPathMonitor.start(queue:) requires a DispatchQueue — Apple-API
+    // parameter, not used as our own synchronization primitive.
+    private let nwQueue = DispatchQueue(label: "com.lumen.networkmonitor")
 
-    var isReachable: Bool {
-        lock.withLock { _isReachable }
-    }
+    private var _isReachable = false
+
+    var isReachable: Bool { _isReachable }
 
     init() {
         monitor.pathUpdateHandler = { [weak self] path in
-            guard let self else { return }
             let reachable = path.status == .satisfied
-            self.lock.withLock { self._isReachable = reachable }
-            self.lock.withLock {
-                for continuation in self.continuations.values {
-                    continuation.yield(reachable)
-                }
-            }
+            Task { [weak self] in await self?.didUpdate(reachable: reachable) }
         }
-        monitor.start(queue: queue)
+        monitor.start(queue: nwQueue)
     }
 
     deinit {
         monitor.cancel()
     }
 
-    func updates() -> AsyncStream<Bool> {
-        let id = UUID()
-        return AsyncStream { [weak self] continuation in
-            guard let self else {
-                continuation.finish()
-                return
-            }
-            self.lock.withLock {
-                self.continuations[id] = continuation
-            }
-            continuation.onTermination = { [weak self] _ in
-                self?.lock.withLock {
-                    self?.continuations.removeValue(forKey: id)
-                }
-            }
-            // Emit current state immediately
-            continuation.yield(self.isReachable)
-        }
+    private func didUpdate(reachable: Bool) {
+        _isReachable = reachable
     }
 }

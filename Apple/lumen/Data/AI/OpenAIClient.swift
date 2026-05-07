@@ -1,6 +1,6 @@
 import Foundation
 
-final class OpenAIClient: AIProviderClient, @unchecked Sendable {
+final class OpenAIClient: AIProviderClient {
 
     let name = "openai"
     private let httpClient: any HTTPClient
@@ -14,7 +14,7 @@ final class OpenAIClient: AIProviderClient, @unchecked Sendable {
         ritualId: UUID,
         mode: AIResponseMode
     ) async throws -> SynthesisAttempt {
-        let apiKey = try resolvedAPIKey()
+        let apiKey = try await resolvedAPIKey()
 
         let body: [String: Any] = [
             "model": "gpt-4o-mini",
@@ -76,8 +76,8 @@ final class OpenAIClient: AIProviderClient, @unchecked Sendable {
 
     // MARK: - Helpers
 
-    private func resolvedAPIKey() throws -> String {
-        try APIKeyResolver.resolve(infoKey: "OPENAI_API_KEY")
+    private func resolvedAPIKey() async throws -> String {
+        try await APIKeyResolver.resolve(infoKey: "OPENAI_API_KEY")
     }
 
     private struct GenerationOutput: Decodable {

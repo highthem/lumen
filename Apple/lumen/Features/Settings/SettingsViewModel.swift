@@ -100,7 +100,7 @@ final class SettingsViewModel {
         // M1: default ON when key has never been set
         self.voiceModeEnabled = Self.isVoiceModeEnabled
 
-        self.elevenLabsKeyAvailable = APIKeyResolver.isPresent(infoKey: "ELEVENLABS_API_KEY")
+        self.elevenLabsKeyAvailable = APIKeyResolver.isPresentInBundle(infoKey: "ELEVENLABS_API_KEY")
         self.elevenLabsEnabled = (UserDefaults.standard.object(forKey: Self.elevenLabsEnabledKey) as? Bool) ?? true
 
         let storedAppearance = UserDefaults.standard.string(forKey: AppAppearance.storageKey)
@@ -125,8 +125,8 @@ final class SettingsViewModel {
         Task { await audioPlayer.stop() }
     }
 
-    func load() {
-        availableVoices = tts.availableVoices()
+    func load() async {
+        availableVoices = await tts.availableVoices()
         let persisted = UserDefaults.standard.string(forKey: voiceIdKey)
         if let persisted, availableVoices.contains(where: { $0.id == persisted }) {
             selectedVoiceId = persisted

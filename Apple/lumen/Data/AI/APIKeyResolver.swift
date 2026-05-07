@@ -7,9 +7,10 @@ import Foundation
 ///    when its provider matches the requested provider.
 /// 2. Build-time key from `Secrets.xcconfig` via `Bundle.main.object(forInfoDictionaryKey:)`.
 ///
-/// All entry points are `nonisolated` so the AI clients (which run on
-/// background tasks) can resolve keys without main-actor hops.
-nonisolated enum APIKeyResolver {
+/// User-key access goes through a private actor singleton so we never need
+/// a lock. Bundle-only paths are sync — the bundle plist is read-only and
+/// thread-safe — so MainActor `init` callsites can resolve them without `await`.
+enum APIKeyResolver {
     /// Provider identifiers used to scope the user key lookup.
     enum Provider: String, Sendable {
         case openai
@@ -17,27 +18,55 @@ nonisolated enum APIKeyResolver {
         case elevenlabs
     }
 
-    // Lock-protected snapshot accessed from any thread.
-    private static let lock = NSLock()
-    nonisolated(unsafe) private static var userKeys: [Provider: String] = [:]
+    private actor Storage {
+        var userKeys: [Provider: String] = [:]
 
-    /// Mirror the Keychain value for `provider`. Pass nil to clear.
-    static func setUserKey(_ key: String?, for provider: Provider) {
-        lock.lock()
-        defer { lock.unlock() }
-        if let key {
-            userKeys[provider] = key
-        } else {
-            userKeys.removeValue(forKey: provider)
+        func set(_ key: String?, for provider: Provider) {
+            if let key {
+                userKeys[provider] = key
+            } else {
+                userKeys.removeValue(forKey: provider)
+            }
         }
+
+        func userKey(for provider: Provider) -> String? {
+            userKeys[provider]?.trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+
+        func reset() { userKeys.removeAll() }
     }
 
-    static func resolve(infoKey: String) throws -> String {
+    private static let storage = Storage()
+
+    /// Mirror the Keychain value for `provider`. Pass nil to clear.
+    static func setUserKey(_ key: String?, for provider: Provider) async {
+        await storage.set(key, for: provider)
+    }
+
+    /// User-key-aware lookup. Falls back to bundle plist.
+    static func resolve(infoKey: String) async throws -> String {
         if let provider = providerFor(infoKey: infoKey),
-           let userKey = userKey(for: provider),
+           let userKey = await storage.userKey(for: provider),
            isValid(userKey) {
             return userKey
         }
+        return try resolveBundleOnly(infoKey: infoKey)
+    }
+
+    /// User-key-aware presence check. Falls back to bundle plist.
+    static func isPresent(infoKey: String) async -> Bool {
+        if let provider = providerFor(infoKey: infoKey),
+           let userKey = await storage.userKey(for: provider),
+           isValid(userKey) {
+            return true
+        }
+        return isPresentInBundle(infoKey: infoKey)
+    }
+
+    /// Sync, bundle-only lookup. For sync init paths that cannot await
+    /// (e.g. CompositionRoot.init building TTS at app launch).
+    /// Cannot see user-overridden keys.
+    static func resolveBundleOnly(infoKey: String) throws -> String {
         guard let raw = Bundle.main.object(forInfoDictionaryKey: infoKey) as? String else {
             throw AIError.missingAPIKey
         }
@@ -48,12 +77,7 @@ nonisolated enum APIKeyResolver {
         return key
     }
 
-    static func isPresent(infoKey: String) -> Bool {
-        if let provider = providerFor(infoKey: infoKey),
-           let userKey = userKey(for: provider),
-           isValid(userKey) {
-            return true
-        }
+    static func isPresentInBundle(infoKey: String) -> Bool {
         guard let raw = Bundle.main.object(forInfoDictionaryKey: infoKey) as? String else {
             return false
         }
@@ -61,10 +85,8 @@ nonisolated enum APIKeyResolver {
     }
 
     // Test seam — clear the in-process user key snapshot.
-    static func _resetUserKeysForTesting() {
-        lock.lock()
-        defer { lock.unlock() }
-        userKeys.removeAll()
+    static func _resetUserKeysForTesting() async {
+        await storage.reset()
     }
 
     // MARK: - Helpers
@@ -76,12 +98,6 @@ nonisolated enum APIKeyResolver {
         case "ELEVENLABS_API_KEY": .elevenlabs
         default: nil
         }
-    }
-
-    private static func userKey(for provider: Provider) -> String? {
-        lock.lock()
-        defer { lock.unlock() }
-        return userKeys[provider]?.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
     private static func isValid(_ key: String) -> Bool {

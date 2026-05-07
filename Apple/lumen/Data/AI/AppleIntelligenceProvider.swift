@@ -4,7 +4,7 @@ import Foundation
 import FoundationModels
 
 @available(iOS 26.0, *)
-final class AppleIntelligenceProvider: AIProviderClient, @unchecked Sendable {
+final class AppleIntelligenceProvider: AIProviderClient {
     let name = "apple"
 
     nonisolated static var isAvailable: Bool {
@@ -45,7 +45,7 @@ final class AppleIntelligenceProvider: AIProviderClient, @unchecked Sendable {
 }
 #endif
 
-final class AppleIntelligenceProviderStub: AIProviderClient, @unchecked Sendable {
+final class AppleIntelligenceProviderStub: AIProviderClient {
     let name = "apple"
 
     nonisolated static var isAvailable: Bool { false }

@@ -89,7 +89,7 @@ struct PriorityIcon: View {
                 ctx.fill(star, with: stroke)
 
             case .work:
-                var briefcase = Path(roundedRect: CGRect(x: 3 * s, y: 6 * s, width: 18 * s, height: 13 * s), cornerRadius: 2 * s)
+                let briefcase = Path(roundedRect: CGRect(x: 3 * s, y: 6 * s, width: 18 * s, height: 13 * s), cornerRadius: 2 * s)
                 ctx.stroke(briefcase, with: stroke, lineWidth: strokeWidth)
                 var handle = Path()
                 handle.move(to: CGPoint(x: 9 * s, y: 6 * s))

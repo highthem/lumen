@@ -30,7 +30,7 @@ protocol HTTPClient: Sendable {
     func send(_ request: HTTPRequest) async throws -> HTTPResponse
 }
 
-final class URLSessionHTTPClient: HTTPClient, @unchecked Sendable {
+final class URLSessionHTTPClient: HTTPClient {
 
     func send(_ request: HTTPRequest) async throws -> HTTPResponse {
         var urlRequest = URLRequest(url: request.url)

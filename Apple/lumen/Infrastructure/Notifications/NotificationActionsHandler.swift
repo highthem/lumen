@@ -49,7 +49,7 @@ final class NotificationActionsHandler: NSObject, UNUserNotificationCenterDelega
     private func handle(actionId: String, alarmId: UUID) async {
         switch actionId {
         case LumenNotificationAction.snooze.rawValue:
-            try? await snooze.execute(alarmId: alarmId)
+            _ = try? await snooze.execute(alarmId: alarmId)
 
         case LumenNotificationAction.silence.rawValue:
             try? await cancel.execute(alarmId: alarmId)

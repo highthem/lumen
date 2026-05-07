@@ -1,7 +1,7 @@
 import Foundation
 import AVFoundation
 
-final class AudioPlayer: AudioPlaying, @unchecked Sendable {
+actor AudioPlayer: AudioPlaying {
     private var player: AVAudioPlayer?
     private let session: AudioSessionManager
     private let soundProvider: any SoundProviding

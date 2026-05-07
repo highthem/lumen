@@ -1,7 +1,7 @@
 import Foundation
 import UserNotifications
 
-final class NotificationScheduler: AlarmScheduling, @unchecked Sendable {
+final class NotificationScheduler: AlarmScheduling {
     private let soundProvider: any SoundProviding
 
     init(soundProvider: any SoundProviding) {
@@ -39,7 +39,7 @@ final class NotificationScheduler: AlarmScheduling, @unchecked Sendable {
             : .default
 
         let calendar = Calendar.current
-        var dateComponents = calendar.dateComponents([.hour, .minute], from: alarm.time)
+        let dateComponents = calendar.dateComponents([.hour, .minute], from: alarm.time)
 
         switch alarm.recurrence {
         case .none:

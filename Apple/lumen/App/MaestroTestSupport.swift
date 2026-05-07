@@ -57,7 +57,7 @@ enum MaestroTestSupport {
             OnboardingFlag.markCompleted()
             UserDefaults.standard.set(routeState == .ritual, forKey: "lumen.hasAnyRitual")
             if routeState != .empty {
-                try? await seedAlarm(composition: composition)
+                _ = try? await seedAlarm(composition: composition)
             }
             if routeState == .ritual {
                 _ = try? await seedRitual(upTo: .intention, composition: composition)
@@ -66,7 +66,7 @@ enum MaestroTestSupport {
 
         case ("ritual", "/start"), ("ritual", "/timer"):
             OnboardingFlag.markCompleted()
-            try? await seedAlarm(composition: composition)
+            _ = try? await seedAlarm(composition: composition)
             return .timer
 
         case ("ritual", "/q2"):
@@ -200,8 +200,8 @@ struct MaestroAudioPlayer: AudioPlaying {
     func setVolume(_ volume: Float, fadeDuration: TimeInterval) async {}
 }
 
-final class MaestroTextToSpeech: TextToSpeeching, @unchecked Sendable {
-    var isSpeaking: Bool = false
+actor MaestroTextToSpeech: TextToSpeeching {
+    private(set) var isSpeaking: Bool = false
     func availableVoices() -> [TTSVoice] {
         [TTSVoice(id: "maestro-fr", name: "Maestro FR", lang: "fr-FR", quality: .default)]
     }
@@ -212,12 +212,10 @@ final class MaestroTextToSpeech: TextToSpeeching, @unchecked Sendable {
     }
     func pause() { isSpeaking = false }
     func resume() { isSpeaking = true }
-    func stop() { isSpeaking = false }
+    func stop()   { isSpeaking = false }
 }
 
-final class MaestroVoiceTranscriber: VoiceTranscribing, @unchecked Sendable {
-    nonisolated(unsafe) var permissionDenied = false
-
+final class MaestroVoiceTranscriber: VoiceTranscribing {
     func startTranscription(locale: Locale) -> AsyncStream<VoiceTranscribingState> {
         AsyncStream { continuation in
             continuation.yield(.error(.permissionDenied))
@@ -229,19 +227,19 @@ final class MaestroVoiceTranscriber: VoiceTranscribing, @unchecked Sendable {
     func isOnDeviceSupported(locale: Locale) -> Bool { true }
 }
 
-final class MaestroAISynthesisService: AISynthesisService, @unchecked Sendable {
+@MainActor
+final class MaestroAISynthesisService: AISynthesisService {
     private let testState: MaestroTestState
 
-    @MainActor
     init(testState: MaestroTestState) {
         self.testState = testState
     }
 
-    func synthesize(answers: [QuestionnaireAnswer], ritualId: UUID, mode: AIResponseMode) async throws -> AIResponseResult {
-        let route = await MainActor.run { testState.synthesisState }
+    nonisolated func synthesize(answers: [QuestionnaireAnswer], ritualId: UUID, mode: AIResponseMode) async throws -> AIResponseResult {
+        let route = await self.testState.synthesisState
         switch route {
         case .ready:
-            let response = await MainActor.run { testState.response(for: ritualId, mode: mode) }
+            let response = await self.testState.response(for: ritualId, mode: mode)
             return .ready(response)
         case .queued:
             return .queued(estimatedDelivery: nil)

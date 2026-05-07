@@ -140,7 +140,7 @@ final class CompositionRoot {
         self.ethicalLogger = logger
 
         // Synthesis queue
-        let synthQueue = SynthesisQueue(modelContainer: container, ritualRepository: ritualRepo)
+        let synthQueue = SynthesisQueue(modelContainer: container)
 
         // Cloud AI clients
         let httpClient = URLSessionHTTPClient()
@@ -218,8 +218,8 @@ final class CompositionRoot {
             #else
             self.speechSynthesizer = SpeechSynthesizer()
             #endif
-        } else if APIKeyResolver.isPresent(infoKey: "ELEVENLABS_API_KEY"),
-                  let key = try? APIKeyResolver.resolve(infoKey: "ELEVENLABS_API_KEY") {
+        } else if APIKeyResolver.isPresentInBundle(infoKey: "ELEVENLABS_API_KEY"),
+                  let key = try? APIKeyResolver.resolveBundleOnly(infoKey: "ELEVENLABS_API_KEY") {
             self.speechSynthesizer = FallbackTextToSpeech(
                 primary: ElevenLabsSynthesizer(apiKey: key),
                 fallback: SpeechSynthesizer(),

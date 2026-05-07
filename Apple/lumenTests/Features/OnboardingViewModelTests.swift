@@ -2,22 +2,20 @@ import Testing
 import Foundation
 @testable import lumen
 
-final class MockOnboardingScheduler: AlarmScheduling, @unchecked Sendable {
-    private let lock = NSLock()
-    private var _scheduledAlarms: [Alarm] = []
-    private var _authRequested = false
+actor MockOnboardingScheduler: AlarmScheduling {
+    private(set) var scheduledAlarms: [Alarm] = []
+    private(set) var authRequested = false
     var authorizationResult: Bool = true
 
-    var scheduledAlarms: [Alarm] { lock.withLock { _scheduledAlarms } }
-    var authRequested: Bool { lock.withLock { _authRequested } }
+    func setAuthorizationResult(_ value: Bool) { authorizationResult = value }
 
     func requestAuthorizationIfNeeded() async throws -> Bool {
-        lock.withLock { _authRequested = true }
+        authRequested = true
         return authorizationResult
     }
 
     func schedule(_ alarm: Alarm) async throws {
-        lock.withLock { _scheduledAlarms.append(alarm) }
+        scheduledAlarms.append(alarm)
     }
 
     func cancel(id: UUID) async throws {}
@@ -77,7 +75,7 @@ struct OnboardingViewModelTests {
     @MainActor
     func notificationAuthorizationGranted() async {
         let scheduler = MockOnboardingScheduler()
-        scheduler.authorizationResult = true
+        await scheduler.setAuthorizationResult(true)
         let repo = MockAlarmRepository()
         let vm = OnboardingViewModel(
             scheduler: scheduler,
@@ -85,14 +83,15 @@ struct OnboardingViewModelTests {
         )
         await vm.requestNotificationAuthorization()
         #expect(vm.notificationsAuthorized == true)
-        #expect(scheduler.authRequested == true)
+        let requested = await scheduler.authRequested
+        #expect(requested == true)
     }
 
     @Test("requestNotificationAuthorization sets authorized false when denied")
     @MainActor
     func notificationAuthorizationDenied() async {
         let scheduler = MockOnboardingScheduler()
-        scheduler.authorizationResult = false
+        await scheduler.setAuthorizationResult(false)
         let repo = MockAlarmRepository()
         let vm = OnboardingViewModel(
             scheduler: scheduler,
@@ -113,8 +112,10 @@ struct OnboardingViewModelTests {
             scheduleAlarm: ScheduleAlarm(repository: repo, scheduler: scheduler)
         )
         try await vm.scheduleFirstAlarm()
-        #expect(repo.alarms.count == 1)
-        #expect(scheduler.scheduledAlarms.count == 1)
+        let alarmCount = await repo.alarms.count
+        let schedCount = await scheduler.scheduledAlarms.count
+        #expect(alarmCount == 1)
+        #expect(schedCount == 1)
         OnboardingFlag.reset()
     }
 

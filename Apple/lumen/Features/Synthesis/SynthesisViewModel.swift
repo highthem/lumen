@@ -67,7 +67,7 @@ final class SynthesisViewModel {
     }
 
     func stopTTS() async {
-        speakSynthesisUC.stop()
+        await speakSynthesisUC.stop()
         ttsPlaying = false
         ttsCurrentBlock = 0
     }

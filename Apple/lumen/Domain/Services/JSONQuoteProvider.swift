@@ -1,9 +1,8 @@
 import Foundation
 
-final class JSONQuoteProvider: QuoteProviding, @unchecked Sendable {
+actor JSONQuoteProvider: QuoteProviding {
 
     private let quotes: [Quote]
-    private let queue = DispatchQueue(label: "com.lumen.quoteprovider", qos: .userInitiated)
     private let userDefaults: UserDefaults
 
     init(userDefaults: UserDefaults = .standard) {
@@ -18,23 +17,21 @@ final class JSONQuoteProvider: QuoteProviding, @unchecked Sendable {
     }
 
     func random(lang: String) -> Quote? {
-        queue.sync {
-            let filtered = quotes.filter { $0.lang == lang }
-            guard !filtered.isEmpty else { return nil }
+        let filtered = quotes.filter { $0.lang == lang }
+        guard !filtered.isEmpty else { return nil }
 
-            let recentKey = "lumen.quotes.recent.\(lang)"
-            var recentMap = loadRecentMap(key: recentKey)
-            pruneOldEntries(&recentMap)
+        let recentKey = "lumen.quotes.recent.\(lang)"
+        var recentMap = loadRecentMap(key: recentKey)
+        pruneOldEntries(&recentMap)
 
-            let candidates = filtered.filter { recentMap[$0.id.uuidString] == nil }
-            let pool = candidates.isEmpty ? filtered : candidates
+        let candidates = filtered.filter { recentMap[$0.id.uuidString] == nil }
+        let pool = candidates.isEmpty ? filtered : candidates
 
-            guard let chosen = pool.randomElement() else { return nil }
+        guard let chosen = pool.randomElement() else { return nil }
 
-            recentMap[chosen.id.uuidString] = Date().timeIntervalSince1970
-            saveRecentMap(recentMap, key: recentKey)
-            return chosen
-        }
+        recentMap[chosen.id.uuidString] = Date().timeIntervalSince1970
+        saveRecentMap(recentMap, key: recentKey)
+        return chosen
     }
 
     // MARK: - Helpers

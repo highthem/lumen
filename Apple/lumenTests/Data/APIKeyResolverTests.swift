@@ -2,32 +2,32 @@ import XCTest
 @testable import lumen
 
 final class APIKeyResolverTests: XCTestCase {
-    override func setUp() {
-        super.setUp()
-        APIKeyResolver._resetUserKeysForTesting()
+    override func setUp() async throws {
+        try await super.setUp()
+        await APIKeyResolver._resetUserKeysForTesting()
     }
 
-    override func tearDown() {
-        APIKeyResolver._resetUserKeysForTesting()
-        super.tearDown()
+    override func tearDown() async throws {
+        await APIKeyResolver._resetUserKeysForTesting()
+        try await super.tearDown()
     }
 
-    func testUserKeyTakesPrecedenceOverBundleKey() throws {
+    func testUserKeyTakesPrecedenceOverBundleKey() async throws {
         // The user-configured key should always win over the build-time
         // Info.plist value, regardless of whether the host bundle has a key.
-        APIKeyResolver.setUserKey("sk-proj-USER-OVERRIDE-1234567", for: .openai)
-        let resolved = try APIKeyResolver.resolve(infoKey: "OPENAI_API_KEY")
+        await APIKeyResolver.setUserKey("sk-proj-USER-OVERRIDE-1234567", for: .openai)
+        let resolved = try await APIKeyResolver.resolve(infoKey: "OPENAI_API_KEY")
         XCTAssertEqual(resolved, "sk-proj-USER-OVERRIDE-1234567")
     }
 
-    func testUserKeyDoesNotBleedAcrossProviders() throws {
+    func testUserKeyDoesNotBleedAcrossProviders() async throws {
         // Setting an OpenAI user key must not affect the Anthropic resolution path.
-        APIKeyResolver.setUserKey("sk-proj-OPENAI-USER-1234567", for: .openai)
+        await APIKeyResolver.setUserKey("sk-proj-OPENAI-USER-1234567", for: .openai)
 
         // Whatever Anthropic returns (real bundle key or `missingAPIKey` throw),
         // it must NOT be the OpenAI user key.
         do {
-            let anthropic = try APIKeyResolver.resolve(infoKey: "ANTHROPIC_API_KEY")
+            let anthropic = try await APIKeyResolver.resolve(infoKey: "ANTHROPIC_API_KEY")
             XCTAssertNotEqual(anthropic, "sk-proj-OPENAI-USER-1234567")
         } catch {
             // Throwing missingAPIKey when there's no Anthropic key anywhere is fine.
@@ -38,14 +38,14 @@ final class APIKeyResolverTests: XCTestCase {
         }
     }
 
-    func testClearUserKey() throws {
-        APIKeyResolver.setUserKey("sk-proj-USER-1234567", for: .openai)
-        APIKeyResolver.setUserKey(nil, for: .openai)
+    func testClearUserKey() async throws {
+        await APIKeyResolver.setUserKey("sk-proj-USER-1234567", for: .openai)
+        await APIKeyResolver.setUserKey(nil, for: .openai)
 
         // After clearing, resolution falls back to the bundle key (if present)
         // or throws missingAPIKey. Either way it must NOT return the user key.
         do {
-            let resolved = try APIKeyResolver.resolve(infoKey: "OPENAI_API_KEY")
+            let resolved = try await APIKeyResolver.resolve(infoKey: "OPENAI_API_KEY")
             XCTAssertNotEqual(resolved, "sk-proj-USER-1234567")
         } catch AIError.missingAPIKey {
             // OK — bundle has no key either, expected fallback.

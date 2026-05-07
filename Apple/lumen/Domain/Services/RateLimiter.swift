@@ -1,7 +1,5 @@
 import Foundation
 
-// UserDefaults is @MainActor in Swift 6; wrap access in nonisolated(unsafe)
-// so the actor can mutate it from its own executor without races (single-writer via actor).
 actor RateLimiter: RateLimiting {
 
     private let autoCountKey      = "lumen.ratelimiter.autoCount"
@@ -16,11 +14,11 @@ actor RateLimiter: RateLimiting {
     private let askLumenCap = 3
 
     private let clock: any LumenClock
-    nonisolated(unsafe) private let store: UserDefaults
+    private let store: UserDefaults
 
-    init(clock: any LumenClock = SystemClock(), userDefaults: UserDefaults = .standard) {
+    init(clock: any LumenClock = SystemClock(), suiteName: String? = nil) {
         self.clock = clock
-        self.store = userDefaults
+        self.store = suiteName.flatMap { UserDefaults(suiteName: $0) } ?? .standard
     }
 
     // MARK: - Day-boundary reset
