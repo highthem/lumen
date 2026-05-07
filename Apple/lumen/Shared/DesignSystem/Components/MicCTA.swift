@@ -8,6 +8,7 @@ struct MicCTA: View {
     let isListening: Bool
     let onPressDown: () -> Void
     let onPressUp: () -> Void
+    var accessibilityID: String = "mic-button"
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var pressed = false
@@ -82,6 +83,7 @@ struct MicCTA: View {
                 }
         )
         .accessibilityElement()
+        .accessibilityIdentifier(accessibilityID)
         .accessibilityLabel(isListening ? "Relâche pour arrêter" : "Maintiens pour parler")
         .accessibilityAddTraits(.isButton)
     }
@@ -158,3 +160,18 @@ private struct CradleArc: Shape {
         return p
     }
 }
+
+#if DEBUG
+#Preview {
+    @Previewable @State var listening = false
+    VStack(spacing: LumenSpacing.xl) {
+        MicCTA(isListening: listening, onPressDown: { listening = true }, onPressUp: { listening = false })
+        Text(listening ? "listening…" : "idle")
+            .lumenFont(.caption)
+            .foregroundStyle(LumenColor.textTertiary)
+    }
+    .padding(LumenSpacing.l)
+    .frame(maxWidth: .infinity, maxHeight: .infinity)
+    .background(LumenColor.bgPrimary)
+}
+#endif

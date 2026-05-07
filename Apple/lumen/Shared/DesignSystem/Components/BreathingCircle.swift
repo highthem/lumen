@@ -9,6 +9,13 @@ struct BreathingCircle: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private static let breathScale: CGFloat = 1.045
+    private var usesReducedMotion: Bool {
+        #if DEBUG
+        reduceMotion || UserDefaults.standard.string(forKey: "reduceMotion") == "true"
+        #else
+        reduceMotion
+        #endif
+    }
 
     var body: some View {
         ZStack {
@@ -28,10 +35,20 @@ struct BreathingCircle: View {
                 .frame(width: size, height: size)
         }
         .scaleEffect(breathing ? Self.breathScale : 1.0)
-        .animation(reduceMotion ? nil : LumenAnimation.breath, value: breathing)
+        .animation(usesReducedMotion ? nil : LumenAnimation.breath, value: breathing)
         .onAppear {
-            guard !reduceMotion else { return }
+            guard !usesReducedMotion else { return }
             breathing = true
         }
+        .accessibilityIdentifier(usesReducedMotion ? "presence-circle" : "presence-circle-animated")
     }
 }
+
+#if DEBUG
+#Preview {
+    BreathingCircle()
+        .padding(LumenSpacing.l)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(LumenColor.bgPrimary)
+}
+#endif

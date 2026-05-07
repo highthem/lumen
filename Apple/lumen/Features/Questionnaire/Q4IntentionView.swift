@@ -92,7 +92,8 @@ struct Q4IntentionView: View {
             MicCTA(
                 isListening: state == .listening,
                 onPressDown: { vm.startDictation(for: .intention) },
-                onPressUp: { Task { await vm.stopDictation(for: .intention) } }
+                onPressUp: { Task { await vm.stopDictation(for: .intention) } },
+                accessibilityID: "mic-button"
             )
 
             switch state {
@@ -111,6 +112,7 @@ struct Q4IntentionView: View {
                             .foregroundStyle(LumenColor.textSecondary)
                     }
                     .buttonStyle(.plain)
+                    .accessibilityIdentifier("intention-keyboard-toggle")
                 }
 
             case .listening:
@@ -148,6 +150,7 @@ struct Q4IntentionView: View {
                         .foregroundStyle(LumenColor.textSecondary)
                 }
                 .buttonStyle(.plain)
+                .accessibilityIdentifier("intention-keyboard-toggle")
                 Spacer()
 
             case .transcribed:
@@ -196,7 +199,8 @@ struct Q4IntentionView: View {
             placeholder: "présence",
             font: .questionnaireHero,
             color: LumenColor.accent,
-            maxWidth: LumenSize.cardForm
+            maxWidth: LumenSize.cardForm,
+            accessibilityID: "intention-textfield"
         )
     }
 }

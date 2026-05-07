@@ -43,3 +43,14 @@ struct AppleIntelligenceBadge: View {
         }
     }
 }
+
+#if DEBUG
+#Preview {
+    VStack(spacing: LumenSpacing.l) {
+        AppleIntelligenceBadge()
+        AppleIntelligenceBadge(shimmer: true)
+    }
+    .padding(LumenSpacing.l)
+    .background(LumenColor.bgPrimary)
+}
+#endif

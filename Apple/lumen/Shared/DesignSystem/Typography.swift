@@ -1,6 +1,6 @@
 import SwiftUI
 
-enum LumenFont: Sendable {
+enum LumenFont: Sendable, CaseIterable {
     // Sans-serif / system tokens
     case heroDisplay
     case synthesisHero

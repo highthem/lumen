@@ -38,3 +38,20 @@ struct LumenSegmentedControl<Option: Hashable & Identifiable>: View {
         .clipShape(RoundedRectangle(cornerRadius: LumenRadius.s, style: .continuous))
     }
 }
+
+#if DEBUG
+private struct SegmentedControlPreviewOption: Hashable, Identifiable {
+    let id: String
+    var label: String { id }
+}
+
+#Preview {
+    @Previewable @State var selection = SegmentedControlPreviewOption(id: "Semaine")
+    let options: [SegmentedControlPreviewOption] = [
+        .init(id: "Jour"), .init(id: "Semaine"), .init(id: "Mois")
+    ]
+    LumenSegmentedControl(options: options, selection: $selection, label: { $0.label })
+        .padding(LumenSpacing.l)
+        .background(LumenColor.bgPrimary)
+}
+#endif

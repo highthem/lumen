@@ -18,6 +18,7 @@ struct RootView: View {
     @State private var appState: AppStateMachine.State = .idle
     @State private var hasCompletedOnboarding: Bool = OnboardingFlag.isCompleted
     @State private var ritualFlow: RitualFlowState = .none
+    @State private var questionnaireInitialStep: QuestionnaireStep = .mood
     @State private var selectedTab: Int = 0
     @State private var showAskLumen = false
     @State private var dashboardRefreshKey: Int = 0
@@ -29,6 +30,7 @@ struct RootView: View {
 
     init(composition: CompositionRoot = CompositionRoot()) {
         self.composition = composition
+        _splashFinished = State(initialValue: composition.testMode.isMaestro)
     }
 
     private var isAlarmRinging: Bool {
@@ -52,6 +54,9 @@ struct RootView: View {
     var body: some View {
         rootBody
             .preferredColorScheme(currentAppearance.preferredColorScheme)
+            .onOpenURL { url in
+                Task { await handleDeepLink(url) }
+            }
     }
 
     private var currentAppearance: AppAppearance {
@@ -93,6 +98,7 @@ struct RootView: View {
                                 Task {
                                     await composition.audioPlayer.stop()
                                     try? await composition.snoozeAlarm.execute(alarmId: alarmId)
+                                    await composition.appStateMachine.send(.alarmSilenced)
                                 }
                             },
                             onSilence: {
@@ -199,7 +205,8 @@ struct RootView: View {
                 SettingsAdvancedViewModel(
                     keyStore: composition.userAPIKeyStore,
                     openAIClient: composition.openAIClient,
-                    anthropicClient: composition.anthropicClient
+                    anthropicClient: composition.anthropicClient,
+                    usesDeterministicValidation: composition.testMode.isMaestro
                 )
             },
             keyStore: composition.userAPIKeyStore
@@ -232,7 +239,8 @@ struct RootView: View {
                 vm: QuestionnaireFlowViewModel(
                     startRitual: composition.startRitual,
                     saveAnswer: composition.saveQuestionnaireAnswer,
-                    dictation: composition.dictateAnswer
+                    dictation: composition.dictateAnswer,
+                    initialStep: questionnaireInitialStep
                 ),
                 onComplete: { ritualId in
                     ritualFlow = .synthesis(ritualId)
@@ -255,6 +263,40 @@ struct RootView: View {
                 }
             )
         }
+    }
+
+    @MainActor
+    private func handleDeepLink(_ url: URL) async {
+        #if DEBUG
+        guard composition.testMode.isMaestro, let testState = composition.maestroTestState else { return }
+        guard let route = await MaestroTestSupport.route(for: url, composition: composition, state: testState) else { return }
+
+        splashFinished = true
+        hasCompletedOnboarding = true
+
+        switch route {
+        case .dashboard:
+            ritualFlow = .none
+            selectedTab = 0
+            dashboardRefreshKey &+= 1
+
+        case .timer:
+            questionnaireInitialStep = .mood
+            ritualFlow = .timer
+
+        case .questionnaire(let step):
+            questionnaireInitialStep = step
+            ritualFlow = .questionnaire(UUID())
+
+        case .synthesis(let ritualId):
+            ritualFlow = .synthesis(ritualId)
+
+        case .alarmRinging(let alarmId):
+            appState = .alarmRinging(alarmId: alarmId)
+        }
+        #else
+        _ = url
+        #endif
     }
 }
 

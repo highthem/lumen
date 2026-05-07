@@ -11,3 +11,12 @@ struct WheelTimePicker: View {
             .frame(maxWidth: .infinity)
     }
 }
+
+#if DEBUG
+#Preview {
+    @Previewable @State var date = Date()
+    WheelTimePicker(selection: $date)
+        .padding(LumenSpacing.l)
+        .background(LumenColor.bgPrimary)
+}
+#endif

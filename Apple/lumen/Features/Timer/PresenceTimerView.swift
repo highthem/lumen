@@ -45,6 +45,7 @@ struct PresenceTimerView: View {
                     GhostCTA(title: "Passer →") {
                         vm.skip()
                     }
+                    .accessibilityIdentifier("presence-timer-skip-button")
                 }
                 .padding(.bottom, LumenSpacing.l)
             }
@@ -59,5 +60,6 @@ struct PresenceTimerView: View {
                 onComplete()
             }
         }
+        .accessibilityIdentifier("presence-timer-screen")
     }
 }

@@ -12,6 +12,7 @@ struct ListenPlayer: View {
     /// When playing, optional elapsed label, e.g. "1:12".
     let elapsedLabel: String?
     let onTap: () -> Void
+    var accessibilityID: String = "synthesis-listen-button"
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
@@ -44,6 +45,7 @@ struct ListenPlayer: View {
         }
         .buttonStyle(.plain)
         .accessibilityElement(children: .combine)
+        .accessibilityIdentifier(accessibilityID)
         .accessibilityAddTraits(.isButton)
         .accessibilityLabel(isPlaying ? "Pause la synthèse" : "Écouter ta synthèse")
         .accessibilityValue(isPlaying ? (elapsedLabel ?? "") : durationLabel)
@@ -126,6 +128,7 @@ struct ListenPlayer: View {
         }
         .frame(height: Self.progressBarHeight)
         .clipShape(RoundedRectangle(cornerRadius: Self.progressBarRadius, style: .continuous))
+        .accessibilityIdentifier("synthesis-progress-bar")
     }
 }
 
@@ -174,3 +177,19 @@ private struct MiniWave: View {
         return Self.barBaseHeights[index] + CGFloat(offsetByPhase)
     }
 }
+
+#if DEBUG
+#Preview {
+    @Previewable @State var playing = false
+    @Previewable @State var progress: Double = 0.4
+    VStack(spacing: LumenSpacing.l) {
+        ListenPlayer(isPlaying: playing, progress: progress, durationLabel: "38 s", elapsedLabel: "0:14") {
+            playing.toggle()
+        }
+        Slider(value: $progress, in: 0...1)
+            .tint(LumenColor.accent)
+    }
+    .padding(LumenSpacing.l)
+    .background(LumenColor.bgPrimary)
+}
+#endif

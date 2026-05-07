@@ -35,3 +35,14 @@ struct KineticText: View {
         words.prefix(visibleCount).joined(separator: " ")
     }
 }
+
+#if DEBUG
+#Preview {
+    KineticText(["Honore", "ta", "lenteur", "et", "écoute"])
+        .lumenFont(.title2)
+        .foregroundStyle(LumenColor.textPrimary)
+        .padding(LumenSpacing.l)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+        .background(LumenColor.bgPrimary)
+}
+#endif

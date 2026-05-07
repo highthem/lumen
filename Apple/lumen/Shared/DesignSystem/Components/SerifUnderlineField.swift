@@ -20,6 +20,7 @@ struct SerifUnderlineField: View {
     var maxWidth: CGFloat = LumenSize.cardField
     /// `nil` for single-line, `n` for an upper bound on lines (auto-grows up to it).
     var lineLimit: Int? = nil
+    var accessibilityID: String?
 
     @FocusState private var focused: Bool
 
@@ -40,6 +41,7 @@ struct SerifUnderlineField: View {
             .tint(underlineColor)
             .autocorrectionDisabled(false)
             .focused($focused)
+            .accessibilityIdentifier(accessibilityID ?? "")
 
             Rectangle()
                 .fill(underlineColor)
@@ -49,3 +51,16 @@ struct SerifUnderlineField: View {
         .onAppear { focused = true }
     }
 }
+
+#if DEBUG
+#Preview {
+    @Previewable @State var single = ""
+    @Previewable @State var multi = ""
+    VStack(spacing: LumenSpacing.xl) {
+        SerifUnderlineField(text: $single, placeholder: "ton intention…")
+        SerifUnderlineField(text: $multi, placeholder: "trois gratitudes…", lineLimit: 4)
+    }
+    .padding(LumenSpacing.l)
+    .background(LumenColor.bgPrimary)
+}
+#endif

@@ -50,6 +50,7 @@ struct DashboardHomeView: View {
             }
         }
         .task(id: refreshKey) { await vm.load() }
+        .accessibilityIdentifier("dashboard-screen")
     }
 
     // MARK: - Headers
@@ -100,6 +101,7 @@ struct DashboardHomeView: View {
             PrimaryCTA("Programmer mon réveil") {
                 onNavigateToAlarms()
             }
+            .accessibilityIdentifier("ritual-cta")
         }
     }
 
@@ -121,6 +123,7 @@ struct DashboardHomeView: View {
             PrimaryCTA("Démarrer") {
                 onStartRitual()
             }
+            .accessibilityIdentifier("ritual-cta")
             .padding(.top, LumenSpacing.s)
         }
         .padding(LumenSpacing.l)

@@ -56,6 +56,7 @@ struct AskLumenView: View {
                                         .stroke(LumenColor.divider, lineWidth: LumenSize.hairline)
                                 )
                                 .clipShape(RoundedRectangle(cornerRadius: LumenRadius.m, style: .continuous))
+                                .accessibilityIdentifier("ask-lumen-input")
                         }
 
                         AskMicButton(state: vm.micState,
@@ -124,6 +125,7 @@ struct AskLumenView: View {
                     ) {
                         Task { await vm.ask() }
                     }
+                    .accessibilityIdentifier("ask-lumen-send")
                 }
                 .padding(.horizontal, LumenSpacing.l)
                 .padding(.bottom, LumenSpacing.l)
@@ -157,6 +159,7 @@ struct AskLumenView: View {
                 .padding(.top, LumenSpacing.xs)
             }
         }
+        .accessibilityIdentifier("ask-lumen-response")
     }
 }
 

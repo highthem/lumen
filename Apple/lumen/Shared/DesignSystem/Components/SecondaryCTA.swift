@@ -30,3 +30,14 @@ extension SecondaryCTA where Label == Text {
         self.isEnabled = isEnabled
     }
 }
+
+#if DEBUG
+#Preview {
+    VStack(spacing: LumenSpacing.l) {
+        SecondaryCTA("Plus tard") {}
+        SecondaryCTA("Plus tard", isEnabled: false) {}
+    }
+    .padding(LumenSpacing.l)
+    .background(LumenColor.bgPrimary)
+}
+#endif

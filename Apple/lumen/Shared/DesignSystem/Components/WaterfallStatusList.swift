@@ -78,3 +78,16 @@ struct WaterfallStatusList: View {
         }
     }
 }
+
+#if DEBUG
+#Preview {
+    WaterfallStatusList(steps: [
+        .init(label: "Capture vocale",     status: .live,    statusLabel: "Live"),
+        .init(label: "Transcription",      sublabel: "iOS Speech", status: .live, statusLabel: "OK"),
+        .init(label: "Synthèse OpenAI",    status: .standby, statusLabel: "Standby"),
+        .init(label: "Repli Claude",       status: .warn,    statusLabel: "Warn"),
+    ])
+    .padding(LumenSpacing.l)
+    .background(LumenColor.bgPrimary)
+}
+#endif

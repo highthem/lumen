@@ -13,6 +13,7 @@ enum OnboardingStep: Int, CaseIterable, Sendable {
 final class OnboardingViewModel {
     var step: OnboardingStep = .welcome
     var notificationsAuthorized: Bool = false
+    var notificationsDenied: Bool = false
     var firstAlarmTime: Date = {
         var c = Calendar.current.dateComponents([.year, .month, .day], from: Date())
         c.hour = 7; c.minute = 0; c.second = 0
@@ -38,6 +39,7 @@ final class OnboardingViewModel {
     func requestNotificationAuthorization() async {
         let granted = (try? await scheduler.requestAuthorizationIfNeeded()) ?? false
         notificationsAuthorized = granted
+        notificationsDenied = !granted
     }
 
     func scheduleFirstAlarm() async throws {

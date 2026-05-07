@@ -62,6 +62,14 @@ struct OnboardingPermissionsView: View {
                 .foregroundStyle(LumenColor.textSecondary)
                 .frame(maxWidth: .infinity, alignment: .center)
 
+            if vm.notificationsDenied {
+                Text("Tu pourras activer plus tard.")
+                    .lumenFont(.footnote)
+                    .foregroundStyle(LumenColor.textSecondary)
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .padding(.top, LumenSpacing.s)
+            }
+
             Spacer()
 
             PrimaryCTA("Continuer") { vm.advance() }

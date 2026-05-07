@@ -117,11 +117,13 @@ struct AlarmRingingView: View {
                         .stroke(LumenColor.accent, lineWidth: LumenSize.strokeMd)
                 )
                 .buttonStyle(.plain)
+                .accessibilityIdentifier("alarm-snooze-button")
 
                 PrimaryCTA("Silence") {
                     LumenHaptic.alarmSilence()
                     onSilence()
                 }
+                .accessibilityIdentifier("alarm-silence-button")
             }
             .padding(.horizontal, LumenSpacing.l)
             .padding(.bottom, LumenSpacing.l)

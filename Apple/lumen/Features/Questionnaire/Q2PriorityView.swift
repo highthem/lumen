@@ -119,5 +119,6 @@ struct Q2PriorityView: View {
             )
         }
         .buttonStyle(.plain)
+        .accessibilityIdentifier("priority-\(category.rawValue)")
     }
 }

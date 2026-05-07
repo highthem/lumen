@@ -35,11 +35,13 @@ struct AlarmListView: View {
                     } label: {
                         Image(systemName: "plus")
                     }
+                    .accessibilityIdentifier("alarm-add-button")
                 }
             }
             .task {
                 await vm.load()
             }
+            .accessibilityIdentifier("alarm-list-screen")
             .sheet(isPresented: $creating, onDismiss: {
                 Task { await vm.load() }
             }) {
@@ -80,6 +82,7 @@ struct AlarmListView: View {
             .tint(LumenColor.accent)
         }
         .padding(.vertical, LumenSpacing.s)
+        .accessibilityIdentifier("alarm-row-\(timeString(from: alarm.time))")
     }
 
     private func timeString(from date: Date) -> String {

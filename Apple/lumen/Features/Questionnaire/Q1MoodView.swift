@@ -98,6 +98,7 @@ struct Q1MoodView: View {
                         .frame(width: LumenSize.dotMd, height: LumenSize.dotMd)
                         .scaleEffect(i == vm.moodLevel ? Self.activeDotScale : 1.0)
                         .animation(LumenAnimation.quick, value: vm.moodLevel)
+                        .accessibilityIdentifier("mood-\(i)")
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .trailing)

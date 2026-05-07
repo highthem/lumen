@@ -44,3 +44,15 @@ struct FooterRow: View {
         .frame(height: 56)
     }
 }
+
+#if DEBUG
+#Preview {
+    VStack(spacing: LumenSpacing.l) {
+        FooterRow(backTitle: "Retour", nextTitle: "Continuer", isNextEnabled: true,  onBack: {}, onNext: {})
+        FooterRow(backTitle: "Retour", nextTitle: "Continuer", isNextEnabled: false, onBack: {}, onNext: {})
+        FooterRow(backTitle: "Retour", nextTitle: "Commencer", isNextEnabled: true,  onBack: {}, onNext: {}, showBack: false)
+    }
+    .padding(LumenSpacing.l)
+    .background(LumenColor.bgPrimary)
+}
+#endif

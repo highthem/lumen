@@ -31,3 +31,14 @@ struct DashboardCard: View {
         .buttonStyle(.plain)
     }
 }
+
+#if DEBUG
+#Preview {
+    VStack(spacing: LumenSpacing.l) {
+        DashboardCard(eyebrow: "Énergie", value: "7 / 10", footnote: "Pic à 9h", action: {})
+        DashboardCard(eyebrow: "Intention", value: nil, footnote: nil, action: {})
+    }
+    .padding(LumenSpacing.l)
+    .background(LumenColor.bgPrimary)
+}
+#endif

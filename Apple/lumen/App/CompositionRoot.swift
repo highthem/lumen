@@ -6,7 +6,12 @@ import UserNotifications
 @MainActor
 @Observable
 final class CompositionRoot {
-    // Sprint 1 — Alarm
+    let testMode: LumenUITestMode
+    #if DEBUG
+    let maestroTestState: MaestroTestState?
+    #endif
+
+    // Alarm
     let appStateMachine: AppStateMachine
     let modelContainer: ModelContainer
     let alarmRepository: any AlarmRepository
@@ -18,7 +23,7 @@ final class CompositionRoot {
     let cancelAlarm: CancelAlarm
     let notificationActionsHandler: NotificationActionsHandler
 
-    // Sprint 2 — Ritual / AI
+    // Ritual / AI
     let ritualRepository: any RitualRepository
     let ethicalLogRepository: any EthicalLogRepository
     let rateLimiter: RateLimiter
@@ -42,7 +47,13 @@ final class CompositionRoot {
     let dictateAnswer: DictateAnswer
     let speakSynthesis: SpeakSynthesis
 
-    init() {
+    init(testMode: LumenUITestMode = .current) {
+        self.testMode = testMode
+        #if DEBUG
+        let maestroState = testMode.isMaestro ? MaestroTestState() : nil
+        self.maestroTestState = maestroState
+        #endif
+
         let machine = AppStateMachine()
         self.appStateMachine = machine
 
@@ -55,7 +66,7 @@ final class CompositionRoot {
         ])
         let container: ModelContainer
         do {
-            let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
+            let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: testMode.isMaestro)
             container = try ModelContainer(for: schema, configurations: [config])
         } catch {
             // On-disk store failed (corrupted, schema migration, low storage).
@@ -74,11 +85,19 @@ final class CompositionRoot {
         let repo = SwiftDataAlarmRepository(modelContainer: container)
         self.alarmRepository = repo
 
-        let scheduler = NotificationScheduler(soundProvider: sounds)
+        #if DEBUG
+        let scheduler: any AlarmScheduling = testMode.isMaestro ? MaestroAlarmScheduler() : NotificationScheduler(soundProvider: sounds)
+        #else
+        let scheduler: any AlarmScheduling = NotificationScheduler(soundProvider: sounds)
+        #endif
         self.alarmScheduler = scheduler
 
         let sessionManager = AudioSessionManager()
+        #if DEBUG
+        self.audioPlayer = testMode.isMaestro ? MaestroAudioPlayer() : AudioPlayer(session: sessionManager, soundProvider: sounds)
+        #else
         self.audioPlayer = AudioPlayer(session: sessionManager, soundProvider: sounds)
+        #endif
 
         let schedule = ScheduleAlarm(repository: repo, scheduler: scheduler)
         self.scheduleAlarm = schedule
@@ -159,7 +178,25 @@ final class CompositionRoot {
         self.networkMonitor = monitor
 
         // Waterfall AI synthesis service
-        let synthesisService = WaterfallAISynthesisService(
+        let synthesisService: any AISynthesisService
+        #if DEBUG
+        if let maestroState {
+            synthesisService = MaestroAISynthesisService(testState: maestroState)
+        } else {
+            synthesisService = WaterfallAISynthesisService(
+                cloudClients: [openaiClient, anthropicClient],
+                onDevice: onDeviceClient,
+                onDeviceAvailable: onDeviceAvailable,
+                queue: synthQueue,
+                rateLimiter: limiter,
+                ethicalLogger: logger,
+                contentSafety: ContentSafetyDetector(),
+                supportResources: SupportResourcesProvider(),
+                reachability: monitor
+            )
+        }
+        #else
+        synthesisService = WaterfallAISynthesisService(
             cloudClients: [openaiClient, anthropicClient],
             onDevice: onDeviceClient,
             onDeviceAvailable: onDeviceAvailable,
@@ -170,11 +207,18 @@ final class CompositionRoot {
             supportResources: SupportResourcesProvider(),
             reachability: monitor
         )
+        #endif
         self.aiSynthesisService = synthesisService
 
         // Voice
         self.speechRecognizer = SpeechRecognizer()
-        if APIKeyResolver.isPresent(infoKey: "ELEVENLABS_API_KEY"),
+        if testMode.isMaestro {
+            #if DEBUG
+            self.speechSynthesizer = MaestroTextToSpeech()
+            #else
+            self.speechSynthesizer = SpeechSynthesizer()
+            #endif
+        } else if APIKeyResolver.isPresent(infoKey: "ELEVENLABS_API_KEY"),
            let key = try? APIKeyResolver.resolve(infoKey: "ELEVENLABS_API_KEY") {
             self.speechSynthesizer = ElevenLabsSynthesizer(apiKey: key)
         } else {
@@ -191,7 +235,15 @@ final class CompositionRoot {
         self.buildDashboardSnapshot = BuildDashboardSnapshot(ritualRepository: ritualRepo)
         self.exportEthicalLogs = ExportEthicalLogs(logRepository: logRepo)
         self.eraseEthicalLogs = EraseEthicalLogs(logRepository: logRepo)
+        #if DEBUG
+        if testMode.isMaestro {
+            self.dictateAnswer = DictateAnswer(transcriber: MaestroVoiceTranscriber())
+        } else {
+            self.dictateAnswer = DictateAnswer(transcriber: self.speechRecognizer)
+        }
+        #else
         self.dictateAnswer = DictateAnswer(transcriber: self.speechRecognizer)
+        #endif
         self.speakSynthesis = SpeakSynthesis(tts: self.speechSynthesizer)
     }
 }

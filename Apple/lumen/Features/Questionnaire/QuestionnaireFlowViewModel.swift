@@ -34,11 +34,15 @@ final class QuestionnaireFlowViewModel {
     init(
         startRitual: StartRitual,
         saveAnswer: SaveQuestionnaireAnswer,
-        dictation: DictateAnswer
+        dictation: DictateAnswer,
+        initialStep: QuestionnaireStep = .mood
     ) {
         self.startRitual = startRitual
         self.saveAnswer = saveAnswer
         self.dictation = dictation
+        self.step = initialStep
+        self.editingByKeyboard = !SettingsViewModel.isVoiceModeEnabled
+        self.intentionEditingByKeyboard = !SettingsViewModel.isVoiceModeEnabled
     }
 
     // MARK: - Lifecycle
@@ -140,7 +144,7 @@ final class QuestionnaireFlowViewModel {
                 gratitudeText = text
                 micState = .transcribed
             case .error(let err):
-                if err == .unsupportedLocale { editingByKeyboard = true }
+                if err == .unsupportedLocale || err == .permissionDenied { editingByKeyboard = true }
                 micState = .idle
             case .finished:
                 if micState == .listening { micState = gratitudeText.isEmpty ? .idle : .transcribed }
@@ -153,7 +157,7 @@ final class QuestionnaireFlowViewModel {
                 intentionWord = text
                 intentionMicState = .transcribed
             case .error(let err):
-                if err == .unsupportedLocale { intentionEditingByKeyboard = true }
+                if err == .unsupportedLocale || err == .permissionDenied { intentionEditingByKeyboard = true }
                 intentionMicState = .idle
             case .finished:
                 if intentionMicState == .listening { intentionMicState = intentionWord.isEmpty ? .idle : .transcribed }

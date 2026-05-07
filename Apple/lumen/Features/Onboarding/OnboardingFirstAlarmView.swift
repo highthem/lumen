@@ -36,6 +36,7 @@ struct OnboardingFirstAlarmView: View {
 
             WheelTimePicker(selection: $vm.firstAlarmTime)
                 .frame(maxWidth: .infinity)
+                .accessibilityIdentifier("alarm-time-picker")
 
             Spacer().frame(height: LumenSpacing.m)
 

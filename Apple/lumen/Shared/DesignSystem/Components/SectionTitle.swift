@@ -13,3 +13,15 @@ struct SectionTitle: View {
             .foregroundStyle(LumenColor.textPrimary)
     }
 }
+
+#if DEBUG
+#Preview {
+    VStack(alignment: .leading, spacing: LumenSpacing.l) {
+        SectionTitle("Aujourd'hui")
+        SectionTitle("Hier matin")
+    }
+    .frame(maxWidth: .infinity, alignment: .leading)
+    .padding(LumenSpacing.l)
+    .background(LumenColor.bgPrimary)
+}
+#endif

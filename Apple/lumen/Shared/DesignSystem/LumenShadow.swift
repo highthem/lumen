@@ -1,11 +1,15 @@
 import SwiftUI
 
-enum LumenShadow: Sendable {
+enum LumenShadow: Sendable, CaseIterable {
     case subtle
     case elevated
     case liteCard
     case accentGlow(active: Bool)
     case alarmTextHalo
+
+    static var allCases: [LumenShadow] {
+        [.subtle, .elevated, .liteCard, .accentGlow(active: true), .accentGlow(active: false), .alarmTextHalo]
+    }
 
     var color: Color {
         switch self {

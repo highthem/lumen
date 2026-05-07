@@ -21,3 +21,15 @@ struct Toast: View {
         .clipShape(RoundedRectangle(cornerRadius: LumenRadius.m, style: .continuous))
     }
 }
+
+#if DEBUG
+#Preview {
+    VStack(spacing: LumenSpacing.l) {
+        Toast(message: "Synthèse prête à écouter")
+        Toast(message: "Sans accent dot", accentDot: false)
+    }
+    .padding(LumenSpacing.l)
+    .frame(maxWidth: .infinity, maxHeight: .infinity)
+    .background(LumenColor.bgPrimary)
+}
+#endif

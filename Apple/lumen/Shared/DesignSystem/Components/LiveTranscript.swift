@@ -46,3 +46,17 @@ struct LiveTranscript: View {
         }
     }
 }
+
+#if DEBUG
+#Preview {
+    LiveTranscript(
+        text: "Trois choses à honorer ce matin avant de plonger.",
+        font: .bodySerif,
+        color: LumenColor.textPrimary,
+        isItalic: true
+    )
+    .padding(LumenSpacing.l)
+    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+    .background(LumenColor.bgPrimary)
+}
+#endif

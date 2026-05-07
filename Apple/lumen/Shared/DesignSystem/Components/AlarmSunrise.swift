@@ -38,3 +38,11 @@ struct AlarmSunrise: View {
         }
     }
 }
+
+#if DEBUG
+#Preview {
+    AlarmSunrise()
+        .frame(height: 320)
+        .background(LumenColor.bgPrimary)
+}
+#endif

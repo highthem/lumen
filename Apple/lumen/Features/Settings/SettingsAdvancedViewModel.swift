@@ -23,15 +23,18 @@ final class SettingsAdvancedViewModel {
     private let keyStore: UserAPIKeyStore
     private let openAIClient: OpenAIClient
     private let anthropicClient: AnthropicClient
+    private let usesDeterministicValidation: Bool
 
     init(
         keyStore: UserAPIKeyStore,
         openAIClient: OpenAIClient,
-        anthropicClient: AnthropicClient
+        anthropicClient: AnthropicClient,
+        usesDeterministicValidation: Bool = false
     ) {
         self.keyStore = keyStore
         self.openAIClient = openAIClient
         self.anthropicClient = anthropicClient
+        self.usesDeterministicValidation = usesDeterministicValidation
         self.provider = keyStore.provider
     }
 
@@ -82,6 +85,12 @@ final class SettingsAdvancedViewModel {
         let trimmed = keyDraft.trimmingCharacters(in: .whitespacesAndNewlines)
         guard UserAPIKeyStore.isValidKey(trimmed, for: provider) else {
             state = .invalid("Format invalide. Vérifie le préfixe et la longueur.")
+            return
+        }
+        if usesDeterministicValidation {
+            state = trimmed.localizedCaseInsensitiveContains("fake")
+                ? .invalid("Clé refusée par \(provider.displayName). Vérifie qu'elle est complète et active.")
+                : .valid
             return
         }
         state = .testing

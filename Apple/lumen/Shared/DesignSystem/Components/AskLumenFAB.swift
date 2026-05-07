@@ -22,7 +22,16 @@ struct AskLumenFAB: View {
             .lumenShadow(.elevated)
         }
         .buttonStyle(.plain)
+        .accessibilityIdentifier("ask-lumen-fab")
         .accessibilityLabel("Ask Lumen")
         .accessibilityHint("Pose une question à Lumen sur ton matin")
     }
 }
+
+#if DEBUG
+#Preview {
+    AskLumenFAB {}
+        .padding(LumenSpacing.l)
+        .background(LumenColor.bgPrimary)
+}
+#endif

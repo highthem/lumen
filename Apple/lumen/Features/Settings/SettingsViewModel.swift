@@ -38,8 +38,14 @@ struct SpeedOption: Identifiable, Hashable, Sendable {
 @MainActor
 @Observable
 final class SettingsViewModel {
+    static let voiceDefaultKey = "lumen.settings.voiceDefault"
+
+    static var isVoiceModeEnabled: Bool {
+        (UserDefaults.standard.object(forKey: voiceDefaultKey) as? Bool) ?? true
+    }
+
     var voiceModeEnabled: Bool {
-        didSet { UserDefaults.standard.set(voiceModeEnabled, forKey: voiceDefaultKey) }
+        didSet { UserDefaults.standard.set(voiceModeEnabled, forKey: Self.voiceDefaultKey) }
     }
     var selectedVoiceId: String {
         didSet { UserDefaults.standard.set(selectedVoiceId, forKey: voiceIdKey) }
@@ -70,7 +76,6 @@ final class SettingsViewModel {
     private let eraseLogs: EraseEthicalLogs
     private let soundProvider: any SoundProviding
     private let audioPlayer: any AudioPlaying
-    private let voiceDefaultKey = "lumen.settings.voiceDefault"
     private let voiceIdKey = "lumen.settings.voiceId"
     private let breathingSoundKey = "lumen.settings.breathingSoundId"
 
@@ -88,7 +93,7 @@ final class SettingsViewModel {
         self.audioPlayer = audioPlayer
 
         // M1: default ON when key has never been set
-        self.voiceModeEnabled = (UserDefaults.standard.object(forKey: "lumen.settings.voiceDefault") as? Bool) ?? true
+        self.voiceModeEnabled = Self.isVoiceModeEnabled
 
         let storedAppearance = UserDefaults.standard.string(forKey: AppAppearance.storageKey)
             .flatMap { AppAppearance(rawValue: $0) } ?? .system

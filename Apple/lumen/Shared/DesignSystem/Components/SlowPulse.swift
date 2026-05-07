@@ -28,3 +28,12 @@ struct SlowPulse: View {
         }
     }
 }
+
+#if DEBUG
+#Preview {
+    SlowPulse()
+        .padding(LumenSpacing.l)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(LumenColor.bgPrimary)
+}
+#endif

@@ -151,3 +151,33 @@ struct CardDeck<Item: Hashable, Card: View>: View {
         }
     }
 }
+
+#if DEBUG
+#Preview {
+    @Previewable @State var current = 0
+    @Previewable @State var selected: DashboardCategory? = nil
+    CardDeck(items: DashboardCategory.allCases, current: $current, selected: $selected) { item, isSel in
+        VStack(spacing: LumenSpacing.m) {
+            PriorityIcon(category: item, size: 32)
+                .foregroundStyle(LumenColor.accent)
+            Text(item.displayName)
+                .lumenFont(.title2)
+                .foregroundStyle(LumenColor.textPrimary)
+            if isSel {
+                Text("selected")
+                    .lumenFont(.caption)
+                    .foregroundStyle(LumenColor.accent)
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding(LumenSpacing.l)
+        .background(
+            RoundedRectangle(cornerRadius: LumenRadius.l)
+                .fill(LumenColor.bgSecondary)
+        )
+        .onTapGesture { selected = item }
+    }
+    .padding(LumenSpacing.l)
+    .background(LumenColor.bgPrimary)
+}
+#endif

@@ -14,3 +14,11 @@ struct GhostCTA: View {
         }
     }
 }
+
+#if DEBUG
+#Preview {
+    GhostCTA(title: "Passer cette étape") {}
+        .padding(LumenSpacing.l)
+        .background(LumenColor.bgPrimary)
+}
+#endif

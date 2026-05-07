@@ -21,3 +21,15 @@ struct ProgressDots4: View {
         return LumenColor.bgTertiary
     }
 }
+
+#if DEBUG
+#Preview {
+    VStack(spacing: LumenSpacing.l) {
+        ForEach(0..<4, id: \.self) { i in
+            ProgressDots4(current: i)
+        }
+    }
+    .padding(LumenSpacing.l)
+    .background(LumenColor.bgPrimary)
+}
+#endif

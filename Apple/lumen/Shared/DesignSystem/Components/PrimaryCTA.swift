@@ -26,3 +26,14 @@ extension PrimaryCTA where Label == Text {
         self.isEnabled = isEnabled
     }
 }
+
+#if DEBUG
+#Preview {
+    VStack(spacing: LumenSpacing.l) {
+        PrimaryCTA("Continuer") {}
+        PrimaryCTA("Continuer", isEnabled: false) {}
+    }
+    .padding(LumenSpacing.l)
+    .background(LumenColor.bgPrimary)
+}
+#endif

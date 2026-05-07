@@ -13,6 +13,7 @@ struct AlarmEditView: View {
                     DatePicker("Heure", selection: $vm.time, displayedComponents: .hourAndMinute)
                         .datePickerStyle(.wheel)
                         .labelsHidden()
+                        .accessibilityIdentifier("alarm-time-picker")
                 }
 
                 Section("Récurrence") {
@@ -44,6 +45,7 @@ struct AlarmEditView: View {
                             vm.soundId = sound.id
                             vm.previewSound(sound.id)
                         }
+                        .accessibilityIdentifier(vm.previewingSoundId == sound.id ? "sound-preview-playing" : "alarm-sound-\(sound.id)")
                     }
                 }
 
@@ -77,6 +79,7 @@ struct AlarmEditView: View {
                         }
                     }
                     .bold()
+                    .accessibilityIdentifier("alarm-save-button")
                 }
             }
             .alert("Supprimer cette alarme ?", isPresented: $showDeleteConfirm) {

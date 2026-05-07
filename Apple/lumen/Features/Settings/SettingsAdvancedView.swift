@@ -105,6 +105,7 @@ struct SettingsAdvancedView: View {
             )
         }
         .buttonStyle(.plain)
+        .accessibilityIdentifier("provider-\(provider.rawValue)")
     }
 
     private var keyFieldSection: some View {
@@ -129,6 +130,7 @@ struct SettingsAdvancedView: View {
                 .autocorrectionDisabled()
                 .textInputAutocapitalization(.never)
                 .submitLabel(.done)
+                .accessibilityIdentifier("api-key-input")
 
                 trailingActionButton
             }
@@ -231,9 +233,11 @@ struct SettingsAdvancedView: View {
                     SecondaryCTA("Tester la clé", isEnabled: vm.canTest) {
                         Task { await vm.testKey() }
                     }
+                    .accessibilityIdentifier("test-key-button")
                     PrimaryCTA("Enregistrer", isEnabled: vm.canSave) {
                         Task { await vm.save() }
                     }
+                    .accessibilityIdentifier(vm.canSave ? "save-key-button" : "save-button-disabled")
                 }
             }
         }

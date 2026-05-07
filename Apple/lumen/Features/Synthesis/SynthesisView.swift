@@ -34,6 +34,7 @@ struct SynthesisView: View {
             }
         }
         .task { await vm.load() }
+        .accessibilityIdentifier("synthesis-screen")
         .onDisappear {
             // Speech synthesis is on a long-lived AVSpeechSynthesizer; without
             // an explicit stop here the voice keeps reading after the screen
@@ -97,7 +98,8 @@ struct SynthesisView: View {
                 progress: ttsProgress,
                 durationLabel: "≈ 38 s",
                 elapsedLabel: vm.ttsPlaying ? "Lecture · paragraphe \(vm.ttsCurrentBlock + 1) sur 3" : nil,
-                onTap: { Task { await vm.toggleTTS() } }
+                onTap: { Task { await vm.toggleTTS() } },
+                accessibilityID: "synthesis-listen-button"
             )
 
             // Footer actions
@@ -113,6 +115,7 @@ struct SynthesisView: View {
                         PrimaryCTA("Continuer →") {
                             onComplete()
                         }
+                        .accessibilityIdentifier("synthesis-continue-button")
                     }
 
                     Text("Régénérations · \(vm.remainingRegens) / 3 restantes")
@@ -123,6 +126,7 @@ struct SynthesisView: View {
                     PrimaryCTA("Continuer →") {
                         onComplete()
                     }
+                    .accessibilityIdentifier("synthesis-continue-button")
                 }
             }
         }
@@ -198,6 +202,7 @@ struct SynthesisView: View {
         .animation(reduceMotion ? LumenAnimation.standard : LumenAnimation.decelerateLong, value: revealedBlocks)
         .animation(LumenAnimation.standard, value: vm.ttsCurrentBlock)
         .animation(LumenAnimation.standard, value: vm.ttsPlaying)
+        .accessibilityIdentifier("synthesis-block-\(blockIndex)")
     }
 
     /// Spec reveal: 3 blocks fade-in + slide-up 12pt, 250ms cumulative delay,
@@ -237,6 +242,7 @@ struct SynthesisView: View {
             PrimaryCTA("Continuer vers le dashboard") {
                 onComplete()
             }
+            .accessibilityIdentifier("synthesis-continue-button")
         }
         .frame(maxWidth: .infinity)
     }
@@ -255,6 +261,7 @@ struct SynthesisView: View {
             PrimaryCTA("Continuer vers le dashboard") {
                 onComplete()
             }
+            .accessibilityIdentifier("synthesis-continue-button")
         }
         .frame(maxWidth: .infinity)
     }
@@ -283,6 +290,7 @@ struct SynthesisView: View {
             PrimaryCTA("Continuer vers le dashboard") {
                 onComplete()
             }
+            .accessibilityIdentifier("synthesis-continue-button")
         }
         .frame(maxWidth: .infinity)
     }

@@ -10,3 +10,16 @@ struct LumenToggle: View {
             .tint(LumenColor.accent)
     }
 }
+
+#if DEBUG
+#Preview {
+    @Previewable @State var on = true
+    @Previewable @State var off = false
+    VStack(spacing: LumenSpacing.l) {
+        LumenToggle(isOn: $on, label: "Voix lente")
+        LumenToggle(isOn: $off, label: "Notifications")
+    }
+    .padding(LumenSpacing.l)
+    .background(LumenColor.bgPrimary)
+}
+#endif

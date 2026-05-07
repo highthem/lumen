@@ -95,7 +95,8 @@ struct Q3GratitudeView: View {
             MicCTA(
                 isListening: state == .listening,
                 onPressDown: { vm.startDictation(for: .gratitude) },
-                onPressUp: { Task { await vm.stopDictation(for: .gratitude) } }
+                onPressUp: { Task { await vm.stopDictation(for: .gratitude) } },
+                accessibilityID: "mic-button"
             )
 
             switch state {
@@ -114,6 +115,7 @@ struct Q3GratitudeView: View {
                             .foregroundStyle(LumenColor.textSecondary)
                     }
                     .buttonStyle(.plain)
+                    .accessibilityIdentifier("gratitude-keyboard-toggle")
                 }
 
             case .listening:
@@ -153,6 +155,7 @@ struct Q3GratitudeView: View {
                         .foregroundStyle(LumenColor.textSecondary)
                 }
                 .buttonStyle(.plain)
+                .accessibilityIdentifier("gratitude-keyboard-toggle")
                 Spacer()
 
             case .transcribed:
@@ -202,7 +205,8 @@ struct Q3GratitudeView: View {
             text: $vm.gratitudeText,
             placeholder: "Le silence avant que les enfants se lèvent.",
             font: .inputSerifLg,
-            lineLimit: 4
+            lineLimit: 4,
+            accessibilityID: "gratitude-textarea"
         )
     }
 }

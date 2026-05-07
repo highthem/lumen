@@ -133,3 +133,19 @@ struct PriorityIcon: View {
         .frame(width: size, height: size)
     }
 }
+
+#if DEBUG
+#Preview {
+    HStack(spacing: LumenSpacing.l) {
+        ForEach(DashboardCategory.allCases, id: \.self) { c in
+            VStack(spacing: 4) {
+                PriorityIcon(category: c, size: 28)
+                    .foregroundStyle(LumenColor.accent)
+                Text(c.rawValue).lumenFont(.caption).foregroundStyle(LumenColor.textTertiary)
+            }
+        }
+    }
+    .padding(LumenSpacing.l)
+    .background(LumenColor.bgPrimary)
+}
+#endif

@@ -112,3 +112,20 @@ private extension Color {
         self.init(red: r, green: g, blue: b)
     }
 }
+
+#if DEBUG
+#Preview {
+    @Previewable @State var level = 2
+    ChromaticSlider(level: $level) { ink in
+        VStack(spacing: LumenSpacing.s) {
+            Text("level \(level)")
+                .font(.system(size: 28, weight: .medium, design: .serif))
+                .foregroundStyle(ink)
+            Text("drag up or down")
+                .font(.system(size: 14, design: .serif))
+                .italic()
+                .foregroundStyle(ink.opacity(0.7))
+        }
+    }
+}
+#endif

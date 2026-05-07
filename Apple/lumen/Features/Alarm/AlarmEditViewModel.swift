@@ -8,6 +8,7 @@ final class AlarmEditViewModel {
     var recurrence: AlarmRecurrence
     var soundId: String
     var isActive: Bool
+    var previewingSoundId: String?
 
     private let existingAlarm: Alarm?
     private let repo: any AlarmRepository
@@ -53,6 +54,7 @@ final class AlarmEditViewModel {
     }
 
     func previewSound(_ id: String) {
+        previewingSoundId = id
         Task {
             await audioPlayer.stop()
             try? await audioPlayer.play(soundId: id, fadeIn: false)
@@ -60,6 +62,7 @@ final class AlarmEditViewModel {
     }
 
     func stopPreview() {
+        previewingSoundId = nil
         Task { await audioPlayer.stop() }
     }
 

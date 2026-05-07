@@ -44,6 +44,7 @@ struct SettingsView: View {
                 vm.load()
                 Task { await keyStore.load() }
             }
+            .accessibilityIdentifier("settings-screen")
             .onDisappear {
                 vm.stopPreview()
             }
@@ -101,6 +102,7 @@ struct SettingsView: View {
     private var voiceSection: some View {
         Section("Voix") {
             LumenToggle(isOn: $vm.voiceModeEnabled, label: "Mode vocal par défaut")
+                .accessibilityIdentifier("voice-default-toggle")
 
             if !vm.availableVoices.isEmpty {
                 Picker("Voix", selection: $vm.selectedVoiceId) {
@@ -215,6 +217,7 @@ struct SettingsView: View {
                 }
             }
             .foregroundStyle(LumenColor.accent)
+            .accessibilityIdentifier("export-json-button")
 
             Button("Effacer mes logs", role: .destructive) {
                 showEraseAlert = true
@@ -230,6 +233,7 @@ struct SettingsView: View {
                 }
             }
             .pickerStyle(.segmented)
+            .accessibilityIdentifier("appearance-picker")
         }
     }
 
