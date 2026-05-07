@@ -1,0 +1,1453 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<title>Lumen Morning — Réveille‑toi sans écran</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="description" content="Une heure de matin loin des notifications. Réveil progressif par lumière, voix, et synthèse à écouter. iOS." />
+<meta property="og:title" content="Lumen Morning — Réveille‑toi sans écran" />
+<meta property="og:description" content="Une heure de matin loin des notifications. iOS." />
+<link rel="icon" href="favicon.ico" sizes="any" />
+<style>
+:root {
+  /* Dark (hero) */
+  --d-bg:        #0F0D0B;
+  --d-bg-el:    #1A1714;
+  --d-bg-hi:    #2A241F;
+  --d-text:     #F5EFE6;
+  --d-text-2:   #9A8D7D;
+  --d-text-3:   #6A5E51;
+  --d-accent:   #E8C39E;
+  --d-accent-2: #A68566;
+  --d-divider:  #2E2822;
+
+  /* Light (body) */
+  --l-bg:       #FAF6EF;
+  --l-bg-el:   #FFFFFF;
+  --l-bg-hi:   #F2ECDE;
+  --l-text:    #1F1A14;
+  --l-text-2:  #6B5F50;
+  --l-text-3:  #A89A88;
+  --l-accent:  #A67C52;
+  --l-accent-2:#C9A882;
+  --l-divider: #E5DDC9;
+
+  --serif: "New York", Charter, "Iowan Old Style", Georgia, serif;
+  --sans:  -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", system-ui, sans-serif;
+  --mono:  "SF Mono", ui-monospace, Menlo, monospace;
+
+  --max: 1200px;
+  --gutter: 32px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: var(--sans);
+  background: var(--l-bg);
+  color: var(--l-text);
+  font-size: 17px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+img { max-width: 100%; display: block; }
+a { color: inherit; text-decoration: none; }
+button { font: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+
+/* ─── Top nav (fixed, dark while over hero, transparent then) ────────────── */
+nav.top {
+  position: fixed; top: 0; left: 0; right: 0;
+  z-index: 50;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 18px 32px;
+  color: var(--d-text);
+  transition: background 200ms, backdrop-filter 200ms, border-color 200ms;
+  border-bottom: 1px solid transparent;
+}
+nav.top.scrolled {
+  background: rgba(15, 13, 11, 0.78);
+  backdrop-filter: saturate(140%) blur(14px);
+  -webkit-backdrop-filter: saturate(140%) blur(14px);
+  border-bottom-color: var(--d-divider);
+}
+nav.top .brand {
+  display: flex; align-items: center; gap: 10px;
+  font-family: var(--serif); font-size: 19px;
+  letter-spacing: -0.005em;
+}
+nav.top .brand .dot {
+  width: 10px; height: 10px; border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, #FAE6CB, var(--d-accent) 60%, var(--d-accent-2) 100%);
+  box-shadow: 0 0 12px rgba(232, 195, 158, 0.6);
+}
+nav.top .brand em { color: var(--d-accent); font-style: italic; font-weight: 400; }
+
+nav.top .right {
+  display: flex; align-items: center; gap: 16px;
+  font-size: 14px;
+}
+nav.top .right .lang {
+  display: flex; align-items: center; gap: 4px;
+  border: 1px solid rgba(245, 239, 230, 0.18);
+  border-radius: 999px;
+  padding: 4px;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+}
+nav.top .right .lang button {
+  padding: 4px 10px;
+  border-radius: 999px;
+  color: var(--d-text-2);
+  transition: background 150ms, color 150ms;
+}
+nav.top .right .lang button.active {
+  background: var(--d-accent);
+  color: var(--d-bg);
+  font-weight: 600;
+}
+nav.top .right a.cta {
+  padding: 8px 18px;
+  background: var(--d-accent);
+  color: var(--d-bg);
+  border-radius: 999px;
+  font-weight: 600;
+  transition: transform 150ms, background 150ms;
+}
+nav.top .right a.cta:hover { background: #f5d3a8; transform: translateY(-1px); }
+
+/* ─── Hero ─────────────────────────────────────────────────────────────── */
+section.hero {
+  position: relative;
+  min-height: 100vh;
+  background: var(--d-bg);
+  color: var(--d-text);
+  overflow: hidden;
+  display: flex; flex-direction: column;
+  justify-content: center; align-items: center;
+  padding: 140px 32px 80px;
+}
+section.hero .anim-frame {
+  position: absolute; inset: 0;
+  z-index: 1;
+  opacity: 0.85;
+}
+section.hero .anim-frame iframe {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  border: 0;
+  pointer-events: none;
+}
+section.hero .scrim {
+  position: absolute; inset: 0;
+  z-index: 2;
+  background:
+    radial-gradient(ellipse at center, transparent 0%, rgba(15,13,11,0.5) 60%, rgba(15,13,11,0.92) 100%),
+    linear-gradient(180deg, rgba(15,13,11,0.3) 0%, rgba(15,13,11,0) 30%, rgba(15,13,11,0.3) 70%, rgba(15,13,11,0.95) 100%);
+}
+section.hero .inner {
+  position: relative; z-index: 3;
+  text-align: center;
+  max-width: 880px;
+}
+section.hero .eyebrow {
+  font-size: 11px;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: rgba(245, 239, 230, 0.55);
+  margin-bottom: 28px;
+  display: inline-flex; align-items: center; gap: 10px;
+}
+section.hero .eyebrow::before,
+section.hero .eyebrow::after {
+  content: ""; display: block;
+  width: 28px; height: 1px;
+  background: rgba(245, 239, 230, 0.25);
+}
+section.hero h1 {
+  font-family: var(--serif);
+  font-size: clamp(44px, 7vw, 96px);
+  font-weight: 400;
+  letter-spacing: -0.025em;
+  line-height: 1.04;
+  text-wrap: balance;
+}
+section.hero h1 em {
+  color: var(--d-accent);
+  font-style: italic;
+  font-weight: 400;
+}
+section.hero p.lede {
+  margin: 32px auto 0;
+  max-width: 580px;
+  font-size: 19px;
+  line-height: 1.55;
+  color: rgba(245, 239, 230, 0.78);
+  text-wrap: pretty;
+}
+section.hero .cta-row {
+  margin-top: 48px;
+  display: flex; gap: 14px; justify-content: center;
+  flex-wrap: wrap;
+}
+.btn-app-store {
+  display: inline-flex; align-items: center; gap: 12px;
+  padding: 14px 22px;
+  background: var(--d-text);
+  color: var(--d-bg);
+  border-radius: 14px;
+  font-weight: 500;
+  transition: transform 150ms, background 150ms;
+}
+.btn-app-store:hover { background: #fff; transform: translateY(-1px); }
+.btn-app-store .icn { width: 26px; height: 26px; }
+.btn-app-store .stack { display: flex; flex-direction: column; align-items: flex-start; line-height: 1.1; }
+.btn-app-store .stack .small { font-size: 11px; opacity: 0.72; }
+.btn-app-store .stack .big { font-size: 17px; font-weight: 600; }
+
+.btn-secondary {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 14px 22px;
+  background: transparent;
+  color: var(--d-text);
+  border: 1px solid rgba(245, 239, 230, 0.25);
+  border-radius: 14px;
+  font-size: 15px;
+  font-weight: 500;
+  transition: border-color 150ms, transform 150ms;
+}
+.btn-secondary:hover { border-color: var(--d-accent); transform: translateY(-1px); }
+
+section.hero .below {
+  position: relative; z-index: 3;
+  margin-top: 64px;
+  display: flex; gap: 56px; justify-content: center;
+  flex-wrap: wrap;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(245, 239, 230, 0.45);
+}
+section.hero .below span { display: inline-flex; align-items: center; gap: 8px; }
+section.hero .below span::before {
+  content: ""; width: 4px; height: 4px; border-radius: 50%;
+  background: var(--d-accent); opacity: 0.6;
+}
+
+section.hero .scroll-hint {
+  position: absolute; bottom: 32px; left: 50%;
+  transform: translateX(-50%);
+  z-index: 3;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: rgba(245, 239, 230, 0.4);
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+}
+section.hero .scroll-hint::after {
+  content: "";
+  width: 1px; height: 36px;
+  background: linear-gradient(180deg, rgba(245, 239, 230, 0.4), transparent);
+  animation: scroll-hint 2s ease-in-out infinite;
+}
+@keyframes scroll-hint {
+  0%   { transform: scaleY(0); transform-origin: top; }
+  50%  { transform: scaleY(1); transform-origin: top; }
+  51%  { transform: scaleY(1); transform-origin: bottom; }
+  100% { transform: scaleY(0); transform-origin: bottom; }
+}
+
+/* ─── Manifesto strip — bridge between dark hero and light body ─────────── */
+section.manifesto {
+  background: var(--l-bg);
+  padding: 120px 32px;
+}
+section.manifesto .inner {
+  max-width: 880px; margin: 0 auto;
+  text-align: center;
+}
+section.manifesto .eyebrow {
+  font-size: 11px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--l-text-3);
+  margin-bottom: 24px;
+}
+section.manifesto p {
+  font-family: var(--serif);
+  font-size: clamp(28px, 3.6vw, 42px);
+  font-weight: 400;
+  letter-spacing: -0.015em;
+  line-height: 1.3;
+  color: var(--l-text);
+  text-wrap: pretty;
+}
+section.manifesto p em { color: var(--l-accent); font-style: italic; }
+
+/* ─── Le rituel en 4 étapes ─────────────────────────────────────────────── */
+section.ritual {
+  background: var(--l-bg-hi);
+  padding: 140px 32px 120px;
+  position: relative;
+  overflow: hidden;
+}
+section.ritual .header {
+  max-width: 1200px; margin: 0 auto 72px;
+  display: flex; align-items: flex-end; justify-content: space-between;
+  gap: 48px;
+  flex-wrap: wrap;
+}
+section.ritual .header .left { max-width: 600px; }
+section.ritual .header .num {
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.22em;
+  color: var(--l-text-3);
+  margin-bottom: 18px;
+}
+section.ritual h2 {
+  font-family: var(--serif);
+  font-size: clamp(36px, 5vw, 60px);
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  color: var(--l-text);
+}
+section.ritual h2 em { color: var(--l-accent); font-style: italic; }
+section.ritual .header .right {
+  font-size: 16px; line-height: 1.6; color: var(--l-text-2);
+  max-width: 380px;
+}
+
+section.ritual .steps {
+  max-width: 1200px; margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 28px;
+}
+.step {
+  background: var(--l-bg-el);
+  border: 1px solid var(--l-divider);
+  border-radius: 28px;
+  padding: 36px 36px 0;
+  display: flex; flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+.step .meta {
+  display: flex; align-items: center; gap: 14px;
+  margin-bottom: 16px;
+}
+.step .meta .step-num {
+  font-family: var(--mono);
+  font-size: 13px;
+  letter-spacing: 0.18em;
+  color: var(--l-accent);
+  padding: 4px 10px;
+  border: 1px solid var(--l-accent-2);
+  border-radius: 999px;
+}
+.step .meta .step-time {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--l-text-3);
+}
+.step h3 {
+  font-family: var(--serif);
+  font-size: 32px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  line-height: 1.15;
+  color: var(--l-text);
+  margin-bottom: 12px;
+}
+.step h3 em { color: var(--l-accent); font-style: italic; }
+.step p {
+  font-size: 16px;
+  color: var(--l-text-2);
+  line-height: 1.55;
+  max-width: 480px;
+  margin-bottom: 28px;
+}
+.step .visual {
+  margin-top: auto;
+  position: relative;
+  height: 320px;
+  background: var(--d-bg);
+  border-radius: 24px 24px 0 0;
+  overflow: hidden;
+  margin-left: -10px; margin-right: -10px;
+  border-top: 1px solid var(--l-divider);
+}
+.step .visual iframe {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  border: 0; pointer-events: none;
+}
+
+/* ─── Captures iPhone — carrousel ───────────────────────────────────────── */
+section.gallery {
+  background: var(--l-bg);
+  padding: 140px 0 120px;
+  overflow: hidden;
+}
+section.gallery .header {
+  max-width: 1200px; margin: 0 auto 64px;
+  padding: 0 32px;
+  text-align: center;
+}
+section.gallery .num {
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.22em;
+  color: var(--l-text-3);
+  margin-bottom: 18px;
+}
+section.gallery h2 {
+  font-family: var(--serif);
+  font-size: clamp(36px, 5vw, 56px);
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+section.gallery h2 em { color: var(--l-accent); font-style: italic; }
+section.gallery .sub {
+  margin-top: 16px; font-size: 17px; color: var(--l-text-2);
+  max-width: 580px; margin-left: auto; margin-right: auto;
+}
+
+.carousel {
+  display: flex;
+  gap: 24px;
+  padding: 24px 32px 48px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+}
+.carousel::-webkit-scrollbar { display: none; }
+
+.phone-card {
+  flex: 0 0 auto;
+  width: 280px;
+  scroll-snap-align: center;
+  display: flex; flex-direction: column;
+  align-items: center;
+}
+.phone-shell {
+  width: 280px; height: 600px;
+  background: linear-gradient(180deg, #1a1714 0%, #0a0908 100%);
+  border-radius: 38px;
+  padding: 12px;
+  box-shadow:
+    0 28px 60px rgba(31, 26, 20, 0.18),
+    0 8px 16px rgba(31, 26, 20, 0.08),
+    inset 0 0 0 1.5px rgba(255, 255, 255, 0.04);
+  position: relative;
+}
+.phone-screen {
+  width: 100%; height: 100%;
+  background: var(--d-bg);
+  border-radius: 28px;
+  overflow: hidden;
+  position: relative;
+}
+.phone-shell::before {
+  content: ""; position: absolute;
+  left: 50%; top: 22px;
+  width: 80px; height: 22px;
+  background: #000;
+  border-radius: 12px;
+  transform: translateX(-50%);
+  z-index: 2;
+}
+.phone-card .caption {
+  margin-top: 24px;
+  text-align: center;
+}
+.phone-card .caption .label {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--l-text-3);
+  margin-bottom: 6px;
+}
+.phone-card .caption .title {
+  font-family: var(--serif);
+  font-size: 20px;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+  color: var(--l-text);
+}
+
+.gallery-controls {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 32px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.gallery-controls .progress {
+  flex: 1; max-width: 600px; margin: 0 24px;
+  height: 2px; background: var(--l-divider);
+  border-radius: 1px;
+  position: relative;
+}
+.gallery-controls .progress .fill {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 25%;
+  background: var(--l-accent);
+  border-radius: 1px;
+  transition: width 200ms, left 200ms;
+}
+.gallery-controls .ctrl {
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--l-divider);
+  display: flex; align-items: center; justify-content: center;
+  background: var(--l-bg-el);
+  color: var(--l-text);
+  transition: border-color 150ms, transform 150ms;
+}
+.gallery-controls .ctrl:hover { border-color: var(--l-accent); }
+.gallery-controls .ctrl:active { transform: scale(0.96); }
+
+/* ─── Confidentialité ──────────────────────────────────────────────────── */
+section.privacy {
+  background: var(--d-bg);
+  color: var(--d-text);
+  padding: 140px 32px 120px;
+  position: relative;
+  overflow: hidden;
+}
+section.privacy::before {
+  content: "";
+  position: absolute;
+  top: -200px; left: -200px;
+  width: 700px; height: 700px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(232, 195, 158, 0.08) 0%, transparent 60%);
+  filter: blur(40px);
+}
+section.privacy .header {
+  max-width: 1200px; margin: 0 auto 80px;
+}
+section.privacy .num {
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.22em;
+  color: var(--d-text-3);
+  margin-bottom: 18px;
+}
+section.privacy h2 {
+  font-family: var(--serif);
+  font-size: clamp(36px, 5vw, 60px);
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  max-width: 900px;
+  text-wrap: pretty;
+}
+section.privacy h2 em { color: var(--d-accent); font-style: italic; }
+section.privacy .sub {
+  margin-top: 20px;
+  max-width: 640px;
+  font-size: 17px;
+  line-height: 1.6;
+  color: var(--d-text-2);
+}
+
+section.privacy .points {
+  max-width: 1200px; margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 32px;
+}
+.privacy-point {
+  background: var(--d-bg-el);
+  border: 1px solid var(--d-divider);
+  border-radius: 24px;
+  padding: 36px;
+}
+.privacy-point .icn {
+  width: 44px; height: 44px;
+  border-radius: 12px;
+  background: rgba(232, 195, 158, 0.1);
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 24px;
+}
+.privacy-point .icn svg { width: 22px; height: 22px; stroke: var(--d-accent); }
+.privacy-point h3 {
+  font-family: var(--serif);
+  font-size: 22px;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+  margin-bottom: 12px;
+}
+.privacy-point p {
+  font-size: 15px;
+  color: var(--d-text-2);
+  line-height: 1.6;
+}
+.privacy-point .footnote {
+  margin-top: 18px;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--d-text-3);
+}
+
+/* ─── FAQ ─────────────────────────────────────────────────────────────── */
+section.faq {
+  background: var(--l-bg);
+  padding: 140px 32px 120px;
+}
+section.faq .inner { max-width: 920px; margin: 0 auto; }
+section.faq .header { margin-bottom: 64px; }
+section.faq .num {
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.22em;
+  color: var(--l-text-3);
+  margin-bottom: 18px;
+}
+section.faq h2 {
+  font-family: var(--serif);
+  font-size: clamp(36px, 5vw, 56px);
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+section.faq h2 em { color: var(--l-accent); font-style: italic; }
+
+.faq-item {
+  border-top: 1px solid var(--l-divider);
+  padding: 28px 0;
+}
+.faq-item:last-child { border-bottom: 1px solid var(--l-divider); }
+.faq-item summary {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 24px;
+  font-family: var(--serif);
+  font-size: 22px;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+  color: var(--l-text);
+  cursor: pointer;
+  list-style: none;
+}
+.faq-item summary::-webkit-details-marker { display: none; }
+.faq-item summary::after {
+  content: "+";
+  font-family: var(--sans);
+  font-size: 28px;
+  font-weight: 300;
+  color: var(--l-text-3);
+  transition: transform 200ms;
+}
+.faq-item[open] summary::after { content: "−"; }
+.faq-item .answer {
+  margin-top: 16px;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--l-text-2);
+  max-width: 720px;
+}
+
+/* ─── Footer / waitlist ──────────────────────────────────────────────── */
+section.footer-cta {
+  background: var(--d-bg);
+  color: var(--d-text);
+  padding: 140px 32px 0;
+  position: relative;
+  overflow: hidden;
+}
+section.footer-cta .glow {
+  position: absolute;
+  left: 50%; top: -200px;
+  width: 1000px; height: 1000px;
+  margin-left: -500px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(232, 195, 158, 0.18) 0%, rgba(232, 195, 158, 0) 60%);
+  filter: blur(40px);
+  pointer-events: none;
+}
+section.footer-cta .inner {
+  position: relative; z-index: 2;
+  max-width: 720px; margin: 0 auto;
+  text-align: center;
+}
+section.footer-cta .num {
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.22em;
+  color: var(--d-text-3);
+  margin-bottom: 24px;
+}
+section.footer-cta h2 {
+  font-family: var(--serif);
+  font-size: clamp(38px, 5.5vw, 64px);
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  text-wrap: balance;
+}
+section.footer-cta h2 em { color: var(--d-accent); font-style: italic; }
+section.footer-cta .lede {
+  margin-top: 24px;
+  font-size: 17px;
+  color: var(--d-text-2);
+  line-height: 1.6;
+}
+
+.cta-row-final {
+  margin: 48px auto 0;
+  display: flex; gap: 14px; justify-content: center;
+  flex-wrap: wrap;
+}
+
+.waitlist {
+  margin: 56px auto 0;
+  background: var(--d-bg-el);
+  border: 1px solid var(--d-divider);
+  border-radius: 24px;
+  padding: 36px;
+  text-align: left;
+}
+.waitlist .label {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--d-text-3);
+  margin-bottom: 8px;
+}
+.waitlist .title {
+  font-family: var(--serif);
+  font-size: 22px;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+  margin-bottom: 24px;
+}
+.waitlist .title em { color: var(--d-accent); font-style: italic; }
+.waitlist input,
+.waitlist textarea {
+  width: 100%;
+  background: transparent;
+  border: 1px solid var(--d-divider);
+  border-radius: 14px;
+  padding: 14px 16px;
+  font-family: inherit;
+  font-size: 16px;
+  color: var(--d-text);
+  margin-bottom: 12px;
+  resize: none;
+  transition: border-color 150ms;
+}
+.waitlist input::placeholder,
+.waitlist textarea::placeholder { color: var(--d-text-3); }
+.waitlist input:focus,
+.waitlist textarea:focus { outline: none; border-color: var(--d-accent); }
+.waitlist textarea { min-height: 64px; }
+.waitlist .submit-row {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: 8px;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.waitlist .counter {
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  color: var(--d-text-2);
+  display: inline-flex; align-items: center; gap: 8px;
+}
+.waitlist .counter::before {
+  content: "";
+  width: 8px; height: 8px; border-radius: 50%;
+  background: #7FA58A;
+  box-shadow: 0 0 8px rgba(127, 165, 138, 0.6);
+  animation: pulse 2.4s ease-in-out infinite;
+}
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+.waitlist button.submit {
+  padding: 12px 24px;
+  background: var(--d-accent);
+  color: var(--d-bg);
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 15px;
+  transition: background 150ms, transform 150ms;
+}
+.waitlist button.submit:hover { background: #f5d3a8; transform: translateY(-1px); }
+
+.waitlist .success {
+  display: none;
+  padding: 24px;
+  background: rgba(127, 165, 138, 0.08);
+  border: 1px solid rgba(127, 165, 138, 0.3);
+  border-radius: 16px;
+  text-align: center;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 18px;
+  color: var(--d-accent);
+}
+.waitlist.sent form { display: none; }
+.waitlist.sent .success { display: block; }
+
+footer.bottom {
+  margin-top: 120px;
+  padding: 48px 32px 36px;
+  border-top: 1px solid var(--d-divider);
+  display: flex; justify-content: space-between; align-items: center;
+  flex-wrap: wrap;
+  gap: 24px;
+  font-size: 13px;
+  color: var(--d-text-3);
+}
+footer.bottom .left {
+  display: flex; align-items: center; gap: 10px;
+  font-family: var(--serif);
+  color: var(--d-text-2);
+  font-size: 15px;
+}
+footer.bottom .left em { color: var(--d-accent); font-style: italic; }
+footer.bottom .legal a {
+  margin-left: 24px;
+  color: var(--d-text-3);
+  transition: color 150ms;
+}
+footer.bottom .legal a:hover { color: var(--d-accent); }
+
+/* ─── Responsive ─────────────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  nav.top { padding: 14px 20px; }
+  nav.top .right .lang { display: none; }
+  section.hero { padding: 120px 20px 80px; }
+  section.hero .below { gap: 24px; flex-direction: column; align-items: center; }
+  section.manifesto { padding: 80px 20px; }
+  section.ritual,
+  section.gallery,
+  section.privacy,
+  section.faq,
+  section.footer-cta { padding-left: 20px; padding-right: 20px; }
+  section.ritual .steps { grid-template-columns: 1fr; }
+  section.ritual .header { flex-direction: column; align-items: flex-start; }
+  section.privacy .points { grid-template-columns: 1fr; }
+  .step .visual { height: 220px; }
+  .phone-shell { width: 240px; height: 510px; }
+  .phone-card { width: 240px; }
+}
+
+/* ─── i18n: hide alt language by default ─────────────────────────────── */
+html[lang="en"] [data-fr], html[lang="en"] [data-fr-block] { display: none !important; }
+html[lang="fr"] [data-en], html[lang="fr"] [data-en-block] { display: none !important; }
+</style>
+</head>
+
+<body>
+
+<!-- ─── NAV ─────────────────────────────────────────────────────────── -->
+<nav class="top">
+  <a class="brand" href="#top">
+    <span class="dot"></span>
+    <span>Lumen <em>Morning</em></span>
+  </a>
+  <div class="right">
+    <div class="lang" role="group" aria-label="Language">
+      <button data-set-lang="fr" class="active">FR</button>
+      <button data-set-lang="en">EN</button>
+    </div>
+    <a class="cta" href="https://testflight.apple.com/join/qvj5JcAQ" target="_blank" rel="noopener" data-fr>Télécharger</a>
+    <a class="cta" href="https://testflight.apple.com/join/qvj5JcAQ" target="_blank" rel="noopener" data-en>Download</a>
+  </div>
+</nav>
+
+<!-- ─── HERO ─────────────────────────────────────────────────────────── -->
+<section class="hero" id="top">
+  <div class="anim-frame" aria-hidden="true">
+    <iframe src="animations/loop.html?loop=ambient&chrome=0" title=""></iframe>
+  </div>
+  <div class="scrim"></div>
+
+  <div class="inner">
+    <div class="eyebrow" data-fr>iOS · Disponible bientôt</div>
+    <div class="eyebrow" data-en>iOS · Coming soon</div>
+
+    <h1 data-fr>Réveille‑toi<br/><em>sans écran.</em></h1>
+    <h1 data-en>Wake without<br/><em>your screen.</em></h1>
+
+    <p class="lede" data-fr>
+      Une heure de matin loin des notifications. Lumière progressive, voix qui écoute, synthèse à écouter en buvant ton café.
+    </p>
+    <p class="lede" data-en>
+      An hour of morning, away from notifications. Progressive light, a voice that listens, a synthesis you can listen to over coffee.
+    </p>
+
+    <div class="cta-row">
+      <a class="btn-app-store" href="https://testflight.apple.com/join/qvj5JcAQ" target="_blank" rel="noopener" aria-label="Try Lumen Morning on TestFlight">
+        <svg class="icn" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09l.01-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
+        </svg>
+        <div class="stack">
+          <span class="small" data-fr>Essayer la bêta</span>
+          <span class="small" data-en>Try the beta</span>
+          <span class="big">TestFlight</span>
+        </div>
+      </a>
+      <a class="btn-secondary" href="#ritual">
+        <span data-fr>Voir le rituel</span>
+        <span data-en>See the ritual</span>
+        <span aria-hidden="true">↓</span>
+      </a>
+    </div>
+  </div>
+
+  <div class="below">
+    <span data-fr>Réveil progressif lumière</span>
+    <span data-en>Progressive light alarm</span>
+    <span data-fr>Voix transcrite localement</span>
+    <span data-en>Voice transcribed locally</span>
+    <span data-fr>Synthèse audio en 2 minutes</span>
+    <span data-en>Audio synthesis in 2 minutes</span>
+  </div>
+
+  <div class="scroll-hint">
+    <span data-fr>Descends</span>
+    <span data-en>Scroll</span>
+  </div>
+</section>
+
+<!-- ─── MANIFESTO ─────────────────────────────────────────────────────── -->
+<section class="manifesto">
+  <div class="inner">
+    <div class="eyebrow" data-fr>Manifesto</div>
+    <div class="eyebrow" data-en>Manifesto</div>
+    <p data-fr>
+      La première heure du jour ne devrait pas appartenir à un fil de notifications. Elle devrait t'appartenir — <em>à toi, ton corps, ce que tu portes ce matin.</em> Lumen Morning crée cette heure, sans interruption.
+    </p>
+    <p data-en>
+      The first hour of the day shouldn't belong to a notification feed. It should be yours — <em>your body, what you carry this morning.</em> Lumen Morning gives you that hour, uninterrupted.
+    </p>
+  </div>
+</section>
+
+<!-- ─── LE RITUEL ─────────────────────────────────────────────────────── -->
+<section class="ritual" id="ritual">
+  <div class="header">
+    <div class="left">
+      <div class="num">01 — RITUEL</div>
+      <h2 data-fr>Quatre <em>moments,</em><br/>un seul matin.</h2>
+      <h2 data-en>Four <em>moments,</em><br/>one single morning.</h2>
+    </div>
+    <div class="right">
+      <p data-fr>
+        Pas d'app à doom-scroller. Tu suis un rituel court, guidé, qui se finit par 60 secondes d'écoute — puis le téléphone disparaît.
+      </p>
+      <p data-en>
+        No app to doom-scroll. A short guided ritual that ends with 60 seconds of listening — then your phone disappears.
+      </p>
+    </div>
+  </div>
+
+  <div class="steps">
+    <div class="step">
+      <div class="meta">
+        <span class="step-num">01</span>
+        <span class="step-time" data-fr>06:25 · 5 min</span>
+        <span class="step-time" data-en>06:25 · 5 min</span>
+      </div>
+      <h3 data-fr><em>Sunrise.</em><br/>La lumière vient avant le son.</h3>
+      <h3 data-en><em>Sunrise.</em><br/>Light comes before sound.</h3>
+      <p data-fr>Le gradient se lève sur ton écran pendant cinq minutes. Aucune sonnerie. Aucune notification. Juste une couleur qui change.</p>
+      <p data-en>The gradient rises on your screen for five minutes. No alarm. No notifications. Just color, slowly changing.</p>
+      <div class="visual"><iframe src="animations/loop.html?loop=sunrise&chrome=0" aria-hidden="true" tabindex="-1"></iframe></div>
+    </div>
+
+    <div class="step">
+      <div class="meta">
+        <span class="step-num">02</span>
+        <span class="step-time" data-fr>06:30 · 90 sec</span>
+        <span class="step-time" data-en>06:30 · 90 sec</span>
+      </div>
+      <h3 data-fr><em>Voix.</em><br/>Tu parles, l'app écoute.</h3>
+      <h3 data-en><em>Voice.</em><br/>You speak, the app listens.</h3>
+      <p data-fr>Trois questions, à voix haute. Comment tu te sens, ce qui pèse, une priorité. Transcrit en local sur ton iPhone.</p>
+      <p data-en>Three questions, out loud. How you feel, what's heavy, one priority. Transcribed on-device, never sent.</p>
+      <div class="visual"><iframe src="animations/loop.html?loop=voice&chrome=0" aria-hidden="true" tabindex="-1"></iframe></div>
+    </div>
+
+    <div class="step">
+      <div class="meta">
+        <span class="step-num">03</span>
+        <span class="step-time" data-fr>06:32 · 30 sec</span>
+        <span class="step-time" data-en>06:32 · 30 sec</span>
+      </div>
+      <h3 data-fr><em>Une priorité.</em><br/>Pas une to-do.</h3>
+      <h3 data-en><em>One priority.</em><br/>Not a to-do list.</h3>
+      <p data-fr>Trois cartes, un swipe. Tu choisis la chose qui compte aujourd'hui — celle qui restera si tu n'en fais qu'une.</p>
+      <p data-en>Three cards, one swipe. You pick the thing that matters today — the one that stays if you only do one.</p>
+      <div class="visual"><iframe src="animations/loop.html?loop=deck&chrome=0" aria-hidden="true" tabindex="-1"></iframe></div>
+    </div>
+
+    <div class="step">
+      <div class="meta">
+        <span class="step-num">04</span>
+        <span class="step-time" data-fr>06:42 · 1 min</span>
+        <span class="step-time" data-en>06:42 · 1 min</span>
+      </div>
+      <h3 data-fr><em>Synthèse.</em><br/>Écoute, ne lis pas.</h3>
+      <h3 data-en><em>Synthesis.</em><br/>Listen, don't read.</h3>
+      <p data-fr>Couleur du jour, boussole, phrase à garder. Une voix calme te lit ta synthèse pendant que tu fais autre chose.</p>
+      <p data-en>Color of the day, compass, phrase to keep. A calm voice reads your synthesis while you do something else.</p>
+      <div class="visual"><iframe src="animations/loop.html?loop=synth&chrome=0" aria-hidden="true" tabindex="-1"></iframe></div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── GALLERY iPhone ────────────────────────────────────────────────── -->
+<section class="gallery" id="gallery">
+  <div class="header">
+    <div class="num">02 — IN APP</div>
+    <h2 data-fr>Comment ça <em>se passe</em>.</h2>
+    <h2 data-en>How it <em>actually feels</em>.</h2>
+    <p class="sub" data-fr>Six écrans, en français. Sable, italiques, jamais de bleu de notification.</p>
+    <p class="sub" data-en>Six screens, in French. Sand, italics, never notification blue.</p>
+  </div>
+
+  <div class="carousel" id="carousel" aria-label="App screenshots">
+    <!-- Screen 1: Dashboard -->
+    <div class="phone-card">
+      <div class="phone-shell"><div class="phone-screen">
+        <svg viewBox="0 0 280 600" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice" style="width:100%;height:100%;display:block;">
+          <rect width="280" height="600" fill="#0F0D0B"/>
+          <text x="20" y="74" fill="#6A5E51" font-family="ui-monospace,monospace" font-size="9" letter-spacing="2">JEUDI 8 MAI · 06:42</text>
+          <text x="20" y="120" fill="#F5EFE6" font-family="serif" font-size="28" letter-spacing="-0.5" font-style="italic">Bonjour,</text>
+          <text x="20" y="156" fill="#F5EFE6" font-family="serif" font-size="28" letter-spacing="-0.5">Marc.</text>
+          <rect x="20" y="200" width="240" height="80" rx="14" fill="#1A1714" stroke="#2E2822"/>
+          <text x="38" y="226" fill="#E8C39E" font-family="ui-monospace,monospace" font-size="8" letter-spacing="2">COULEUR DU JOUR</text>
+          <text x="38" y="252" fill="#F5EFE6" font-family="serif" font-size="20">Sable chaud</text>
+          <circle cx="232" cy="240" r="14" fill="#E8C39E"/>
+          <rect x="20" y="296" width="240" height="64" rx="14" fill="#1A1714" stroke="#2E2822"/>
+          <text x="38" y="320" fill="#7FA58A" font-family="ui-monospace,monospace" font-size="8" letter-spacing="2">BOUSSOLE</text>
+          <text x="38" y="344" fill="#F5EFE6" font-family="serif" font-size="17">Le chapitre 3</text>
+          <rect x="20" y="376" width="240" height="100" rx="14" fill="#1A1714" stroke="#2E2822"/>
+          <circle cx="50" cy="416" r="20" fill="#E8C39E"/>
+          <polygon points="46,408 46,424 56,416" fill="#0F0D0B"/>
+          <text x="80" y="412" fill="#6A5E51" font-family="ui-monospace,monospace" font-size="8" letter-spacing="2">ÉCOUTER · 1:12</text>
+          <rect x="80" y="426" width="160" height="3" rx="1" fill="#2E2822"/>
+          <rect x="80" y="426" width="44" height="3" rx="1" fill="#E8C39E"/>
+          <text x="20" y="520" fill="#9A8D7D" font-family="serif" font-size="14" font-style="italic">« Calme, mais stable. »</text>
+          <rect x="100" y="546" width="80" height="36" rx="18" fill="#1A1714" stroke="#2E2822"/>
+          <text x="140" y="568" text-anchor="middle" fill="#F5EFE6" font-family="ui-monospace,monospace" font-size="9" letter-spacing="2">ASK LUMEN</text>
+        </svg>
+      </div></div>
+      <div class="caption">
+        <div class="label">01 · DASHBOARD</div>
+        <div class="title" data-fr>Le matin</div>
+        <div class="title" data-en>Morning view</div>
+      </div>
+    </div>
+
+    <!-- Screen 2: Sunrise alarm -->
+    <div class="phone-card">
+      <div class="phone-shell"><div class="phone-screen">
+        <svg viewBox="0 0 280 600" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice" style="width:100%;height:100%;display:block;">
+          <defs>
+            <linearGradient id="sunrise-g" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#FAE6CB"/>
+              <stop offset="0.25" stop-color="#F5C896"/>
+              <stop offset="0.5" stop-color="#D88860"/>
+              <stop offset="0.72" stop-color="#7A3F2A"/>
+              <stop offset="0.88" stop-color="#3A2618"/>
+              <stop offset="1" stop-color="#1A1410"/>
+            </linearGradient>
+            <radialGradient id="sun-glow" cx="0.5" cy="0.55" r="0.55">
+              <stop offset="0" stop-color="#FAE6CB" stop-opacity="0.9"/>
+              <stop offset="0.4" stop-color="#F5C896" stop-opacity="0.4"/>
+              <stop offset="1" stop-color="#F5C896" stop-opacity="0"/>
+            </radialGradient>
+          </defs>
+          <rect width="280" height="600" fill="url(#sunrise-g)"/>
+          <ellipse cx="140" cy="340" rx="200" ry="200" fill="url(#sun-glow)"/>
+          <text x="140" y="120" text-anchor="middle" fill="#F5EFE6" font-family="serif" font-size="56" font-weight="300" letter-spacing="-2">06:30</text>
+          <text x="140" y="320" text-anchor="middle" fill="#F5EFE6" font-family="serif" font-size="13" font-style="italic" opacity="0.85">« La première lumière</text>
+          <text x="140" y="338" text-anchor="middle" fill="#F5EFE6" font-family="serif" font-size="13" font-style="italic" opacity="0.85">t'appartient. »</text>
+          <rect x="80" y="494" width="120" height="42" rx="21" fill="#F5EFE6" opacity="0.95"/>
+          <text x="140" y="520" text-anchor="middle" fill="#0F0D0B" font-family="-apple-system,sans-serif" font-size="14" font-weight="600" letter-spacing="0.5">Silence</text>
+        </svg>
+      </div></div>
+      <div class="caption">
+        <div class="label">02 · ALARM</div>
+        <div class="title" data-fr>Réveil progressif</div>
+        <div class="title" data-en>Sunrise alarm</div>
+      </div>
+    </div>
+
+    <!-- Screen 3: Q1 Slider -->
+    <div class="phone-card">
+      <div class="phone-shell"><div class="phone-screen">
+        <svg viewBox="0 0 280 600" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice" style="width:100%;height:100%;display:block;">
+          <defs>
+            <linearGradient id="q1-g" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#F5D9A8"/>
+              <stop offset="0.3" stop-color="#C4A882"/>
+              <stop offset="0.55" stop-color="#7A6B5A"/>
+              <stop offset="0.78" stop-color="#4F4D5E"/>
+              <stop offset="1" stop-color="#3B2A4A"/>
+            </linearGradient>
+          </defs>
+          <rect width="280" height="600" fill="url(#q1-g)"/>
+          <text x="20" y="64" fill="#F5EFE6" font-family="ui-monospace,monospace" font-size="9" letter-spacing="2" opacity="0.6">Q1 · RESSENTI</text>
+          <text x="20" y="120" fill="#F5EFE6" font-family="serif" font-size="32" font-style="italic" letter-spacing="-0.5">Comment</text>
+          <text x="20" y="158" fill="#F5EFE6" font-family="serif" font-size="32" letter-spacing="-0.5">tu te sens ?</text>
+          <circle cx="140" cy="380" r="36" fill="#F5EFE6" opacity="0.95"/>
+          <line x1="240" y1="380" x2="266" y2="380" stroke="#F5EFE6" stroke-width="1.5"/>
+          <text x="140" y="468" text-anchor="middle" fill="#F5EFE6" font-family="serif" font-size="22" font-style="italic">Lent, mais stable</text>
+          <text x="140" y="554" text-anchor="middle" fill="#F5EFE6" font-family="ui-monospace,monospace" font-size="9" letter-spacing="2" opacity="0.5">GLISSE LE CERCLE</text>
+        </svg>
+      </div></div>
+      <div class="caption">
+        <div class="label">03 · MOOD</div>
+        <div class="title" data-fr>Glisse, dis-le</div>
+        <div class="title" data-en>Drag, name it</div>
+      </div>
+    </div>
+
+    <!-- Screen 4: Voice -->
+    <div class="phone-card">
+      <div class="phone-shell"><div class="phone-screen">
+        <svg viewBox="0 0 280 600" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice" style="width:100%;height:100%;display:block;">
+          <rect width="280" height="600" fill="#0F0D0B"/>
+          <radialGradient id="voice-g" cx="0.5" cy="1" r="0.6">
+            <stop offset="0" stop-color="#7A3F2A" stop-opacity="0.4"/>
+            <stop offset="1" stop-color="#0F0D0B" stop-opacity="0"/>
+          </radialGradient>
+          <rect x="0" y="280" width="280" height="320" fill="url(#voice-g)"/>
+          <text x="20" y="64" fill="#6A5E51" font-family="ui-monospace,monospace" font-size="9" letter-spacing="2">Q3 · COMMENT TE SENS-TU ?</text>
+          <text x="20" y="180" fill="#F5EFE6" font-family="serif" font-size="22" font-style="italic" letter-spacing="-0.3">Je me sens un peu</text>
+          <text x="20" y="208" fill="#E8C39E" font-family="serif" font-size="22" font-style="italic" letter-spacing="-0.3">lourd<tspan fill="#F5EFE6"> ce matin…</tspan></text>
+          <text x="20" y="236" fill="#F5EFE6" font-family="serif" font-size="22" font-style="italic" letter-spacing="-0.3">mais <tspan fill="#E8C39E">reposé.</tspan></text>
+          <circle cx="140" cy="440" r="120" stroke="#E8C39E" stroke-width="1" opacity="0.15" fill="none"/>
+          <circle cx="140" cy="440" r="80" stroke="#E8C39E" stroke-width="1" opacity="0.3" fill="none"/>
+          <circle cx="140" cy="440" r="40" stroke="#E8C39E" stroke-width="1" opacity="0.5" fill="none"/>
+          <circle cx="140" cy="440" r="28" fill="#E8C39E"/>
+          <rect x="135" y="430" width="10" height="20" rx="5" fill="#0F0D0B"/>
+          <path d="M129 444a11 11 0 0022 0M140 455v6M134 461h12" stroke="#0F0D0B" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+          <text x="140" y="552" text-anchor="middle" fill="#9A8D7D" font-family="ui-monospace,monospace" font-size="8" letter-spacing="2" opacity="0.7">VOIX TRANSCRITE EN LOCAL</text>
+        </svg>
+      </div></div>
+      <div class="caption">
+        <div class="label">04 · VOICE</div>
+        <div class="title" data-fr>Voix qui écoute</div>
+        <div class="title" data-en>A voice that listens</div>
+      </div>
+    </div>
+
+    <!-- Screen 5: Cards Q2 -->
+    <div class="phone-card">
+      <div class="phone-shell"><div class="phone-screen">
+        <svg viewBox="0 0 280 600" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice" style="width:100%;height:100%;display:block;">
+          <rect width="280" height="600" fill="#0F0D0B"/>
+          <text x="20" y="64" fill="#6A5E51" font-family="ui-monospace,monospace" font-size="9" letter-spacing="2">Q2 · UNE PRIORITÉ</text>
+          <text x="20" y="120" fill="#F5EFE6" font-family="serif" font-size="22" letter-spacing="-0.3">Si tu ne fais</text>
+          <text x="20" y="148" fill="#F5EFE6" font-family="serif" font-size="22" letter-spacing="-0.3">qu'une chose,</text>
+          <text x="20" y="176" fill="#E8C39E" font-family="serif" font-size="22" font-style="italic" letter-spacing="-0.3">ce sera quoi ?</text>
+          <!-- back card 3 -->
+          <rect x="48" y="290" width="184" height="240" rx="20" fill="#1A1714" stroke="#2E2822" opacity="0.55" transform="translate(0,16)"/>
+          <!-- back card 2 -->
+          <rect x="38" y="282" width="204" height="240" rx="20" fill="#1A1714" stroke="#2E2822" opacity="0.78" transform="translate(0,8)"/>
+          <!-- top selected card -->
+          <rect x="28" y="274" width="224" height="240" rx="22" fill="url(#sand-g)" stroke="#E8C39E"/>
+          <defs>
+            <linearGradient id="sand-g" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#E8C39E"/>
+              <stop offset="1" stop-color="#A68566"/>
+            </linearGradient>
+          </defs>
+          <text x="48" y="308" fill="#0F0D0B" font-family="ui-monospace,monospace" font-size="8" letter-spacing="2" opacity="0.6">OPTION 1 / 3</text>
+          <text x="48" y="424" fill="#0F0D0B" font-family="serif" font-size="26" letter-spacing="-0.3">Écrire 30 min</text>
+          <text x="48" y="448" fill="#0F0D0B" font-family="-apple-system,sans-serif" font-size="13" opacity="0.7">Le chapitre 3</text>
+          <text x="48" y="500" fill="#0F0D0B" font-family="ui-monospace,monospace" font-size="8" letter-spacing="2" opacity="0.55">SWIPE →</text>
+        </svg>
+      </div></div>
+      <div class="caption">
+        <div class="label">05 · DECK</div>
+        <div class="title" data-fr>Une carte, un choix</div>
+        <div class="title" data-en>One card, one choice</div>
+      </div>
+    </div>
+
+    <!-- Screen 6: Synthesis -->
+    <div class="phone-card">
+      <div class="phone-shell"><div class="phone-screen">
+        <svg viewBox="0 0 280 600" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice" style="width:100%;height:100%;display:block;">
+          <rect width="280" height="600" fill="#0F0D0B"/>
+          <radialGradient id="synth-g" cx="0.9" cy="0" r="0.6">
+            <stop offset="0" stop-color="#E8C39E" stop-opacity="0.15"/>
+            <stop offset="1" stop-color="#0F0D0B" stop-opacity="0"/>
+          </radialGradient>
+          <rect width="280" height="280" fill="url(#synth-g)"/>
+          <text x="20" y="64" fill="#6A5E51" font-family="ui-monospace,monospace" font-size="9" letter-spacing="2">SYNTHÈSE · 06:42</text>
+          <text x="20" y="116" fill="#F5EFE6" font-family="serif" font-size="22" letter-spacing="-0.3">Ce que tu portes</text>
+          <text x="20" y="144" fill="#E8C39E" font-family="serif" font-size="22" font-style="italic" letter-spacing="-0.3">ce matin</text>
+          <rect x="20" y="170" width="240" height="74" rx="14" fill="#1A1714" stroke="#2E2822"/>
+          <text x="36" y="194" fill="#E8C39E" font-family="ui-monospace,monospace" font-size="8" letter-spacing="2">COULEUR DU JOUR</text>
+          <text x="36" y="218" fill="#F5EFE6" font-family="serif" font-size="17">Sable chaud</text>
+          <text x="36" y="234" fill="#9A8D7D" font-family="-apple-system,sans-serif" font-size="11">Lent, mais stable</text>
+          <rect x="20" y="258" width="240" height="74" rx="14" fill="#1A1714" stroke="#2E2822"/>
+          <text x="36" y="282" fill="#7FA58A" font-family="ui-monospace,monospace" font-size="8" letter-spacing="2">BOUSSOLE</text>
+          <text x="36" y="306" fill="#F5EFE6" font-family="serif" font-size="17">Le chapitre 3</text>
+          <text x="36" y="322" fill="#9A8D7D" font-family="-apple-system,sans-serif" font-size="11">30 min · avant le reste</text>
+          <rect x="20" y="346" width="240" height="74" rx="14" fill="#1A1714" stroke="#2E2822"/>
+          <text x="36" y="370" fill="#D4A853" font-family="ui-monospace,monospace" font-size="8" letter-spacing="2">PHRASE À GARDER</text>
+          <text x="36" y="394" fill="#F5EFE6" font-family="serif" font-size="14" font-style="italic">« Calme, mais stable. »</text>
+          <rect x="20" y="496" width="240" height="60" rx="14" fill="#1A1714" stroke="#2E2822"/>
+          <circle cx="50" cy="526" r="16" fill="#E8C39E"/>
+          <polygon points="46,520 46,532 56,526" fill="#0F0D0B"/>
+          <text x="78" y="520" fill="#6A5E51" font-family="ui-monospace,monospace" font-size="8" letter-spacing="2">ÉCOUTER · 1 MIN 12</text>
+          <rect x="78" y="530" width="166" height="3" rx="1" fill="#2E2822"/>
+          <rect x="78" y="530" width="50" height="3" rx="1" fill="#E8C39E"/>
+        </svg>
+      </div></div>
+      <div class="caption">
+        <div class="label">06 · SYNTHESIS</div>
+        <div class="title" data-fr>Écouter, ne pas lire</div>
+        <div class="title" data-en>Listen, don't read</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="gallery-controls">
+    <button class="ctrl prev" aria-label="Previous">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M9 2 4 7l5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <div class="progress"><div class="fill" id="gallery-fill"></div></div>
+    <button class="ctrl next" aria-label="Next">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M5 2l5 5-5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+  </div>
+</section>
+
+<!-- ─── PRIVACY ───────────────────────────────────────────────────────── -->
+<section class="privacy">
+  <div class="header">
+    <div class="num">03 — VIE PRIVÉE</div>
+    <h2 data-fr>Ta voix ne <em>quitte pas</em> ton téléphone.</h2>
+    <h2 data-en>Your voice <em>doesn't leave</em> your phone.</h2>
+    <p class="sub" data-fr>
+      La transcription est faite en local, par iOS. L'analyse passe par un modèle léger sur l'appareil. Si tu veux activer un modèle plus puissant, tu utilises ta propre clé API — pas un serveur Lumen.
+    </p>
+    <p class="sub" data-en>
+      Transcription happens on-device, by iOS. Analysis runs through a small on-device model. If you want a heavier model, you bring your own API key — not a Lumen server.
+    </p>
+  </div>
+
+  <div class="points">
+    <div class="privacy-point">
+      <div class="icn">
+        <svg viewBox="0 0 22 22" fill="none" stroke-width="1.6"><rect x="4" y="9" width="14" height="10" rx="2"/><path d="M7 9V6a4 4 0 0 1 8 0v3"/></svg>
+      </div>
+      <h3 data-fr>Transcription locale</h3>
+      <h3 data-en>On-device transcription</h3>
+      <p data-fr>SFSpeechRecognizer d'Apple, 100 % sur l'appareil. Le micro ne s'active que pendant les questions.</p>
+      <p data-en>Apple's SFSpeechRecognizer, 100% on device. The mic is only on during questions.</p>
+      <div class="footnote">iOS 17+</div>
+    </div>
+
+    <div class="privacy-point">
+      <div class="icn">
+        <svg viewBox="0 0 22 22" fill="none" stroke-width="1.6"><circle cx="11" cy="11" r="8"/><path d="M3 11h16M11 3a13 13 0 0 1 0 16M11 3a13 13 0 0 0 0 16"/></svg>
+      </div>
+      <h3 data-fr>Aucun compte requis</h3>
+      <h3 data-en>No account required</h3>
+      <p data-fr>Pas d'email, pas de cloud, pas d'historique sur nos serveurs. Tu peux utiliser Lumen Morning offline.</p>
+      <p data-en>No email, no cloud, no history on our servers. Lumen Morning works offline.</p>
+      <div class="footnote" data-fr>RIEN N'EST ENVOYÉ</div>
+      <div class="footnote" data-en>NOTHING SENT</div>
+    </div>
+
+    <div class="privacy-point">
+      <div class="icn">
+        <svg viewBox="0 0 22 22" fill="none" stroke-width="1.6"><path d="M11 3l8 4v6c0 4-3.5 7-8 8-4.5-1-8-4-8-8V7l8-4z"/><path d="M8 11l2 2 4-4"/></svg>
+      </div>
+      <h3 data-fr>BYO API key</h3>
+      <h3 data-en>Bring your own key</h3>
+      <p data-fr>Mode avancé : utilise ta clé OpenAI ou Anthropic, stockée dans le Keychain. Tu paies, tu contrôles, on ne voit rien.</p>
+      <p data-en>Advanced mode: use your OpenAI or Anthropic key, stored in the Keychain. You pay, you control, we see nothing.</p>
+      <div class="footnote">KEYCHAIN · NEVER SYNCED</div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── FAQ ───────────────────────────────────────────────────────────── -->
+<section class="faq">
+  <div class="inner">
+    <div class="header">
+      <div class="num">04 — QUESTIONS</div>
+      <h2 data-fr>Ce qu'on nous <em>demande</em>.</h2>
+      <h2 data-en>What people <em>ask</em>.</h2>
+    </div>
+
+    <details class="faq-item">
+      <summary>
+        <span data-fr>C'est encore une app de méditation ?</span>
+        <span data-en>Is this another meditation app?</span>
+      </summary>
+      <div class="answer" data-fr>Non. Lumen Morning ne te demande pas de respirer pendant 10 minutes. C'est un rituel court (10–15 min) qui remplace ton réveil et le scroll qui suit. Pas d'abonnement bien-être, pas de gamification.</div>
+      <div class="answer" data-en>No. Lumen Morning doesn't ask you to breathe for 10 minutes. It's a short ritual (10–15 min) that replaces your alarm and the scroll that follows. No wellness subscription, no gamification.</div>
+    </details>
+
+    <details class="faq-item">
+      <summary>
+        <span data-fr>Combien de temps ça prend chaque matin ?</span>
+        <span data-en>How long does it take each morning?</span>
+      </summary>
+      <div class="answer" data-fr>Le sunrise dure 5 minutes (en arrière-plan, tu peux ne pas regarder). Les questions et la synthèse audio prennent 5 à 7 minutes selon ton humeur. Total : ~12 min.</div>
+      <div class="answer" data-en>The sunrise lasts 5 minutes (in the background, you don't have to watch). The questions and audio synthesis take 5–7 minutes depending on your mood. Total: ~12 min.</div>
+    </details>
+
+    <details class="faq-item">
+      <summary>
+        <span data-fr>Pourquoi pas Android ?</span>
+        <span data-en>Why not Android?</span>
+      </summary>
+      <div class="answer" data-fr>iOS d'abord, parce que la pile audio + reconnaissance vocale en local est solide et homogène. Android suit si la traction le justifie.</div>
+      <div class="answer" data-en>iOS first, because the on-device audio + speech stack is mature and consistent. Android follows if traction warrants.</div>
+    </details>
+
+    <details class="faq-item">
+      <summary>
+        <span data-fr>C'est gratuit ? Combien ça coûte ?</span>
+        <span data-en>Is it free? How much?</span>
+      </summary>
+      <div class="answer" data-fr>Gratuit pour le rituel de base + le modèle local. Le mode avancé (analyse plus fine, BYO key) est inclus, mais nécessite ta propre clé API et ses coûts. Pas de freemium qui bride.</div>
+      <div class="answer" data-en>Free for the core ritual + on-device model. Advanced mode (deeper analysis, BYO key) is included, but uses your own API key and its costs. No freemium gating.</div>
+    </details>
+
+    <details class="faq-item">
+      <summary>
+        <span data-fr>Et si je rate un matin ?</span>
+        <span data-en>What if I miss a morning?</span>
+      </summary>
+      <div class="answer" data-fr>Rien. Pas de streak, pas de notification de culpabilité. Si tu reviens, ta synthèse de la veille est toujours là.</div>
+      <div class="answer" data-en>Nothing. No streak, no guilt notification. When you come back, yesterday's synthesis is still there.</div>
+    </details>
+
+    <details class="faq-item">
+      <summary>
+        <span data-fr>Mes données partent où exactement ?</span>
+        <span data-en>Where exactly does my data go?</span>
+      </summary>
+      <div class="answer" data-fr>Sur ton iPhone. Stocké dans Core Data + Keychain. Si tu actives la synthèse audio cloud (BYO key), seul le texte de tes réponses est envoyé à OpenAI/Anthropic — ta voix, jamais.</div>
+      <div class="answer" data-en>On your iPhone. Stored in Core Data + Keychain. If you enable cloud audio synthesis (BYO key), only the text of your answers is sent to OpenAI/Anthropic — never your voice.</div>
+    </details>
+  </div>
+</section>
+
+<!-- ─── FOOTER CTA / WAITLIST ─────────────────────────────────────────── -->
+<section class="footer-cta" id="download">
+  <div class="glow"></div>
+  <div class="inner">
+    <div class="num">05 — DEMAIN MATIN</div>
+    <h2 data-fr>Tu mérites un matin <em>qui ne t'arrache pas</em> au sommeil.</h2>
+    <h2 data-en>You deserve a morning <em>that doesn't tear you</em> from sleep.</h2>
+    <p class="lede" data-fr>L'app est en bêta sur TestFlight. Rejoins le programme pour la tester dès ce matin.</p>
+    <p class="lede" data-en>The app is in TestFlight beta. Join the program to try it this morning.</p>
+
+    <div class="cta-row-final">
+      <a class="btn-app-store" href="https://testflight.apple.com/join/qvj5JcAQ" target="_blank" rel="noopener" aria-label="Try Lumen Morning on TestFlight">
+        <svg class="icn" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09l.01-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
+        </svg>
+        <div class="stack">
+          <span class="small" data-fr>Essayer la bêta</span>
+          <span class="small" data-en>Try the beta</span>
+          <span class="big">TestFlight</span>
+        </div>
+      </a>
+    </div>
+  </div>
+
+  <footer class="bottom">
+    <div class="left">
+      <span>Lumen <em>Morning</em></span>
+      <span style="opacity:0.5;">·</span>
+      <span style="font-family: var(--mono); font-size:11px; letter-spacing:0.18em; text-transform:uppercase;">© 2026</span>
+    </div>
+    <div class="legal">
+      <a href="#" data-fr>Confidentialité</a>
+      <a href="#" data-en>Privacy</a>
+      <a href="#" data-fr>Mentions légales</a>
+      <a href="#" data-en>Terms</a>
+      <a href="mailto:hello@lumen.morning">hello@lumen.morning</a>
+    </div>
+  </footer>
+</section>
+
+<!-- ─── JS ───────────────────────────────────────────────────────────── -->
+<script>
+// ── i18n: just toggle html lang attribute, CSS handles visibility
+const html = document.documentElement;
+function setLang(lang) {
+  html.lang = lang;
+  document.querySelectorAll('[data-set-lang]').forEach(b => {
+    b.classList.toggle('active', b.dataset.setLang === lang);
+  });
+  // update placeholders
+  document.querySelectorAll('input, textarea').forEach(el => {
+    const ph = el.dataset[`${lang}Ph`];
+    if (ph) el.placeholder = ph;
+  });
+  try { localStorage.setItem('lumen:lang', lang); } catch {}
+}
+document.querySelectorAll('[data-set-lang]').forEach(b => {
+  b.addEventListener('click', () => setLang(b.dataset.setLang));
+});
+try {
+  const saved = localStorage.getItem('lumen:lang');
+  if (saved) setLang(saved);
+  else if ((navigator.language || 'fr').startsWith('en')) setLang('en');
+} catch {}
+
+// ── Nav scroll background
+const nav = document.querySelector('nav.top');
+const onScroll = () => {
+  nav.classList.toggle('scrolled', window.scrollY > 60);
+};
+window.addEventListener('scroll', onScroll, { passive: true });
+onScroll();
+
+// ── Carousel
+const carousel = document.getElementById('carousel');
+const fill = document.getElementById('gallery-fill');
+const cards = carousel.querySelectorAll('.phone-card');
+function updateProgress() {
+  const max = carousel.scrollWidth - carousel.clientWidth;
+  const pct = max > 0 ? carousel.scrollLeft / max : 0;
+  const cardWidth = 100 / cards.length;
+  fill.style.width = `${cardWidth + (100 - cardWidth) * pct}%`;
+  fill.style.left = '0';
+}
+carousel.addEventListener('scroll', updateProgress, { passive: true });
+updateProgress();
+document.querySelector('.gallery-controls .next').addEventListener('click', () => {
+  carousel.scrollBy({ left: 304, behavior: 'smooth' });
+});
+document.querySelector('.gallery-controls .prev').addEventListener('click', () => {
+  carousel.scrollBy({ left: -304, behavior: 'smooth' });
+});
+
+</script>
+
+</body>
+</html>
