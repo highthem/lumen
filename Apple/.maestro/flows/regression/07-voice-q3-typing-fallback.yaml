@@ -4,15 +4,19 @@ env:
   RITUAL_DEEPLINK: "lumen://ritual/q3"
 ---
 - launchApp:
-    clearState: false
+    clearState: true
+    arguments:
+      isMaestro: "true"
 
 - openLink: ${RITUAL_DEEPLINK}
+- runFlow: ../_shared/confirm-ios-open-lumen.yaml
 
 # Q3 voice par défaut → tap "Écrire au clavier"
 - assertVisible: "Une gratitude"
 - assertVisible:
     id: "mic-button"
-- tapOn: "Écrire au clavier"
+- tapOn:
+    id: "gratitude-keyboard-toggle"
 - assertVisible:
     id: "gratitude-textarea"
 

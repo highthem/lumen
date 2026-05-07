@@ -6,16 +6,21 @@ tags:
   - ethics
 ---
 - launchApp:
-    clearState: false
+    clearState: true
+    arguments:
+      isMaestro: "true"
+- runFlow: ../_shared/confirm-ios-open-lumen.yaml
 
-- tapOn:
-    id: "settings-button"
+- openLink: "lumen://test/dashboard?state=ritual"
+- runFlow: ../_shared/confirm-ios-open-lumen.yaml
+- tapOn: "Réglages"
 
 # Scroll to ethical monitoring section
 - scrollUntilVisible:
-    element: "Exporter mes données"
+    element: "Exporter en JSON"
 
-- tapOn: "Exporter mes données"
+- tapOn:
+    id: "export-json-button"
 
 # ShareSheet expected
 - extendedWaitUntil:

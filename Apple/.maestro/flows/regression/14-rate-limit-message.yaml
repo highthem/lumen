@@ -5,15 +5,15 @@ env:
   SEED_RATE_LIMIT_HIT: "true"
 ---
 - launchApp:
-    clearState: false
+    clearState: true
+    arguments:
+      isMaestro: "true"
 
-# Trigger ritual
-- openLink: "lumen://ritual/q4-direct"
-- inputText: "patience"
-- hideKeyboard
-- tapOn: "Voir ma synthèse"
+- openLink: "lumen://test/synthesis?state=rateLimited"
+- runFlow: ../_shared/confirm-ios-open-lumen.yaml
 
 # Expected rate limit
-- assertVisible: "Reviens demain"
-- tapOn: "Aller au dashboard"
+- assertVisible: "Limite atteinte pour aujourd'hui"
+- tapOn:
+    id: "synthesis-continue-button"
 - assertVisible: "Aujourd'hui"

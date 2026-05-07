@@ -4,13 +4,17 @@ env:
   ALARM_DEEPLINK: "lumen://alarm/test-ringing"
 ---
 - launchApp:
-    clearState: false
+    clearState: true
+    arguments:
+      isMaestro: "true"
 
 # Trigger alarm ringing UI via deep link
 - openLink: ${ALARM_DEEPLINK}
+- runFlow: ../_shared/confirm-ios-open-lumen.yaml
 
 - assertVisible: "07:00"
-- tapOn: "Snooze 5 min"
+- tapOn:
+    id: "alarm-snooze-button"
 
 # After snooze, expect normal app (alarm rescheduled)
 - assertVisible: "Aujourd'hui"

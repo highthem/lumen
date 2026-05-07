@@ -3,19 +3,17 @@ tags: [edge, permissions, notif]
 ---
 - launchApp:
     clearState: true
+    arguments:
+      isMaestro: "true"
+    permissions:
+      notifications: deny
 
 # Onboarding jusqu'à permissions
 - tapOn: "Commencer"
 - tapOn: "Suivant"
 - assertVisible: "On a besoin"
-- tapOn: "Continuer"
-
-# System permission alert
-- extendedWaitUntil:
-    visible: "Send You Notifications"
-    timeout: 3000
-- tapOn: "Don't Allow"
+- tapOn: "Activer"
 
 # Onboarding continue, message dégradé doux
 - assertVisible: "Tu pourras activer plus tard"
-- tapOn: "Suivant"
+- tapOn: "Continuer"

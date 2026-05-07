@@ -6,6 +6,9 @@ tags:
 ---
 - launchApp:
     clearState: true
+    arguments:
+      isMaestro: "true"
+- runFlow: ../_shared/confirm-ios-open-lumen.yaml
 - extendedWaitUntil:
     visible: "Quelques minutes à toi."
     timeout: 3000

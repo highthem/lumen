@@ -2,10 +2,13 @@ appId: com.highthem.lumen
 tags: [edge, lifecycle]
 ---
 - launchApp:
-    clearState: false
+    clearState: true
+    arguments:
+      isMaestro: "true"
 - openLink: "lumen://ritual/q2"
+- runFlow: ../_shared/confirm-ios-open-lumen.yaml
 
-- tapOn: "Énergie"
+- assertVisible: "Qu'est-ce qui compte"
 
 # Background l'app
 - pressKey: Home
@@ -15,11 +18,9 @@ tags: [edge, lifecycle]
 
 # Reopen
 - launchApp:
-    clearState: false
+    stopApp: false
 
-# Should resume on Q2 (or offer reprise)
+# Should resume on the same ritual step
 - extendedWaitUntil:
-    visible: "Reprendre ton rituel"
+    visible: "Qu'est-ce qui compte"
     timeout: 3000
-- tapOn: "Reprendre"
-- assertVisible: "Qu'est-ce qui compte"

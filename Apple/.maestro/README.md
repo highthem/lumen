@@ -102,12 +102,7 @@ If you move a flow between folders, double-check these relative paths.
 Some flows assume the **Debug build of Lumen exposes test-only deep links**. Those app-side hooks are intentionally separate from the Maestro runner infrastructure.
 See `Project/04_tech/testing/maestro-scenarios.md` for the planned list.
 
-The flow `11-settings-byo-key.yaml` reads `MAESTRO_TEST_ANTHROPIC_KEY` from the env — supply a real (test-tier) key when running locally:
-
-```bash
-export MAESTRO_TEST_ANTHROPIC_KEY="sk-ant-…"
-maestro test Apple/.maestro/flows/regression/11-settings-byo-key.yaml
-```
+The BYO key flows run against DEBUG-only deterministic validation when launched with `isMaestro: "true"`, so they do not require real provider keys.
 
 ## Strategy
 

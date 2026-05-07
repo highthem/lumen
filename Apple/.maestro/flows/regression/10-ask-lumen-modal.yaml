@@ -2,13 +2,19 @@ appId: com.highthem.lumen
 tags: [regression, ai, ask-lumen]
 ---
 - launchApp:
-    clearState: false
+    clearState: true
+    arguments:
+      isMaestro: "true"
 
+- openLink: "lumen://test/dashboard?state=ritual"
+- runFlow: ../_shared/confirm-ios-open-lumen.yaml
 - assertVisible: "Aujourd'hui"
 - tapOn:
     id: "ask-lumen-fab"
 
 - assertVisible: "Ask Lumen"
+- tapOn:
+    id: "ask-lumen-input"
 - inputText: "Comment garder l'énergie ?"
 - tapOn:
     id: "ask-lumen-send"

@@ -2,11 +2,15 @@ appId: com.highthem.lumen
 tags: [regression, settings, audio]
 ---
 - launchApp:
-    clearState: false
+    clearState: true
+    arguments:
+      isMaestro: "true"
 
+- openLink: "lumen://test/dashboard?state=alarm"
+- runFlow: ../_shared/confirm-ios-open-lumen.yaml
+- tapOn: "Réveil"
 - tapOn:
-    id: "settings-button"
-- tapOn: "Son"
+    id: "alarm-row-07:00"
 
 # 5 alarmes disponibles
 - assertVisible: "Aube"
@@ -24,6 +28,7 @@ tags: [regression, settings, audio]
 - tapOn: "Bois"   # 2nd tap = stop preview
 
 # Save selection
-- tapOn: "Choisir"
+- tapOn:
+    id: "alarm-save-button"
 - assertVisible:
     text: "Bois"

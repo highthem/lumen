@@ -1,0 +1,7 @@
+appId: com.highthem.lumen
+---
+- runFlow:
+    when:
+      visible: "Open in “lumen”?"
+    commands:
+      - tapOn: "^Open$"

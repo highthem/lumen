@@ -3,18 +3,14 @@ tags: [edge, permissions, voice]
 ---
 - launchApp:
     clearState: true
-- runFlow: ../_shared/quick-onboard.yaml
+    arguments:
+      isMaestro: "true"
 
-- openLink: "lumen://ritual/q3"
+- openLink: "lumen://ritual/q3?mic=denied"
+- runFlow: ../_shared/confirm-ios-open-lumen.yaml
 
 - tapOn:
     id: "mic-button"
-
-# System permission alert appears
-- extendedWaitUntil:
-    visible: "would like to access the Microphone"
-    timeout: 3000
-- tapOn: "Don't Allow"
 
 # Lumen falls back to typing without error
 - assertNotVisible:

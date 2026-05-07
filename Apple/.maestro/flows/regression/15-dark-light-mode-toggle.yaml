@@ -2,28 +2,28 @@ appId: com.highthem.lumen
 tags: [regression, settings, appearance]
 ---
 - launchApp:
-    clearState: false
+    clearState: true
+    arguments:
+      isMaestro: "true"
 
+- openLink: "lumen://test/dashboard?state=ritual"
+- runFlow: ../_shared/confirm-ios-open-lumen.yaml
+- tapOn: "Réglages"
 - tapOn:
-    id: "settings-button"
-- tapOn: "Thème"
+    id: "appearance-picker"
 
 # Test all 3 modes
 - tapOn: "Sombre"
-- runFlow: ../_shared/back-to-dashboard.yaml
 - takeScreenshot: theme-dark
 - assertVisible:
-    id: "dashboard-screen"
+    id: "settings-screen"
 
 - tapOn:
-    id: "settings-button"
-- tapOn: "Thème"
+    id: "appearance-picker"
 - tapOn: "Clair"
-- runFlow: ../_shared/back-to-dashboard.yaml
 - takeScreenshot: theme-light
 
 - tapOn:
-    id: "settings-button"
-- tapOn: "Thème"
+    id: "appearance-picker"
 - tapOn: "Système"
 - assertVisible: "Système"

@@ -2,10 +2,13 @@ appId: com.highthem.lumen
 tags: [edge, byo, error]
 ---
 - launchApp:
-    clearState: false
+    clearState: true
+    arguments:
+      isMaestro: "true"
 
-- tapOn:
-    id: "settings-button"
+- openLink: "lumen://test/dashboard?state=ritual"
+- runFlow: ../_shared/confirm-ios-open-lumen.yaml
+- tapOn: "Réglages"
 - scrollUntilVisible:
     element: "Mode avancé"
 - tapOn: "Mode avancé"
@@ -15,7 +18,8 @@ tags: [edge, byo, error]
 - tapOn:
     id: "api-key-input"
 - inputText: "definitely-not-a-valid-key"
-- tapOn: "Tester la clé"
+- tapOn:
+    id: "test-key-button"
 
 # Error state
 - extendedWaitUntil:

@@ -7,36 +7,42 @@ env:
   RITUAL_DEEPLINK: "lumen://ritual/start"
 ---
 - launchApp:
-    clearState: false
+    clearState: true
+    arguments:
+      isMaestro: "true"
+- runFlow: ../_shared/confirm-ios-open-lumen.yaml
 
 # Trigger ritual via deep link (skip the real alarm)
 - openLink: ${RITUAL_DEEPLINK}
+- runFlow: ../_shared/confirm-ios-open-lumen.yaml
 
 # Timer présence (60s par défaut, on skip pour le test)
-- assertVisible: "Présence"
-- tapOn: "Passer"
+- assertVisible:
+    id: "presence-timer-screen"
+- tapOn: "Passer →"
 
 # Q1 Mood — sélectionner "posé"
-- assertVisible: "Comment tu te sens"
-- tapOn:
-    id: "mood-3"   # 3rd dot = posé
-- tapOn: "Suivant"
+- assertVisible: "posé"
+- tapOn: "posé"
 
 # Q2 Priority — sélectionner Énergie
 - assertVisible: "Qu'est-ce qui compte"
-- tapOn: "Énergie"
+- tapOn:
+    id: "priority-energy"
 - tapOn: "Suivant"
 
 # Q3 Gratitude — fallback typing (Maestro can't mic)
 - assertVisible: "Une gratitude"
-- tapOn: "Écrire au clavier"
+- tapOn:
+    id: "gratitude-keyboard-toggle"
 - inputText: "Le silence avant que les enfants se lèvent."
 - hideKeyboard
 - tapOn: "Suivant"
 
 # Q4 Intention — typing fallback
 - assertVisible: "Ton intention"
-- tapOn: "Écrire au clavier"
+- tapOn:
+    id: "intention-keyboard-toggle"
 - inputText: "présence"
 - hideKeyboard
 - tapOn: "Voir ma synthèse"
@@ -47,7 +53,8 @@ env:
     timeout: 8000   # cloud AI call
 - assertVisible:
     id: "synthesis-listen-button"
-- tapOn: "Continuer vers le dashboard"
+- tapOn:
+    id: "synthesis-continue-button"
 
 # Dashboard post-rituel
 - assertVisible: "Aujourd'hui"

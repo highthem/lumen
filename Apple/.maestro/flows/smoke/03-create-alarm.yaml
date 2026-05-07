@@ -5,21 +5,29 @@ tags:
   - alarm
 ---
 - launchApp:
-    clearState: false   # garde l'onboarding fait
+    clearState: true
+    arguments:
+      isMaestro: "true"
+- runFlow: ../_shared/confirm-ios-open-lumen.yaml
+
+- openLink: "lumen://test/dashboard?state=empty"
+- runFlow: ../_shared/confirm-ios-open-lumen.yaml
 
 # Depuis dashboard, ouvre alarmes
+- tapOn: "Réveil"
 - tapOn:
-    id: "settings-button"
-- tapOn: "Heure d'alarme"
+    id: "alarm-add-button"
 
 # Form
 - tapOn:
     id: "alarm-time-picker"
 - inputText: "0700"
-- tapOn: "Tous les jours de semaine"
-- tapOn: "Aube"   # son
-- tapOn: "Enregistrer"
+- tapOn: "Semaine"
+- tapOn:
+    id: "alarm-sound-alarm-aube"
+- tapOn:
+    id: "alarm-save-button"
 
 # Verify
 - assertVisible: "07:00"
-- assertVisible: "Lun-Ven"
+- assertVisible: "Lun – Ven"

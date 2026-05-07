@@ -2,10 +2,13 @@ appId: com.highthem.lumen
 tags: [regression, settings, byo]
 ---
 - launchApp:
-    clearState: false
+    clearState: true
+    arguments:
+      isMaestro: "true"
 
-- tapOn:
-    id: "settings-button"
+- openLink: "lumen://test/dashboard?state=ritual"
+- runFlow: ../_shared/confirm-ios-open-lumen.yaml
+- tapOn: "Réglages"
 - scrollUntilVisible:
     element: "Mode avancé"
 - tapOn: "Mode avancé"
@@ -16,7 +19,8 @@ tags: [regression, settings, byo]
 - tapOn:
     id: "api-key-input"
 - inputText: "sk-ant-fake-test-key-not-real"
-- tapOn: "Tester la clé"
+- tapOn:
+    id: "test-key-button"
 
 # Test should fail (fake key)
 - extendedWaitUntil:
@@ -27,11 +31,13 @@ tags: [regression, settings, byo]
 - tapOn:
     id: "api-key-input"
 - eraseText: 50
-- inputText: ${MAESTRO_TEST_ANTHROPIC_KEY}
-- tapOn: "Tester la clé"
+- inputText: "sk-ant-valid-maestro-key"
+- tapOn:
+    id: "test-key-button"
 - extendedWaitUntil:
     visible: "Clé valide"
     timeout: 8000
 
-- tapOn: "Enregistrer"
+- tapOn:
+    id: "save-key-button"
 - assertVisible: "Clé personnelle"

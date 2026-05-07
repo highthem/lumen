@@ -2,18 +2,21 @@ appId: com.highthem.lumen
 tags: [regression, settings, voice]
 ---
 - launchApp:
-    clearState: false
+    clearState: true
+    arguments:
+      isMaestro: "true"
 
-- tapOn:
-    id: "settings-button"
+- openLink: "lumen://test/dashboard?state=ritual"
+- runFlow: ../_shared/confirm-ios-open-lumen.yaml
+- tapOn: "Réglages"
 - scrollUntilVisible:
     element: "Mode vocal par défaut"
 - tapOn:
     id: "voice-default-toggle"
 
 # Verify Q3 default = typing (after toggle off)
-- runFlow: ../_shared/back-to-dashboard.yaml
 - openLink: "lumen://ritual/q3"
+- runFlow: ../_shared/confirm-ios-open-lumen.yaml
 - assertVisible:
     id: "gratitude-textarea"   # typing par défaut maintenant
 - assertNotVisible:
