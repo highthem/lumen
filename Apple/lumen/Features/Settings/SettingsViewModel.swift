@@ -48,6 +48,15 @@ final class SettingsViewModel {
     var appearance: AppAppearance {
         didSet { UserDefaults.standard.set(appearance.rawValue, forKey: AppAppearance.storageKey) }
     }
+    var breathingSoundId: String {
+        didSet {
+            UserDefaults.standard.set(breathingSoundId, forKey: breathingSoundKey)
+            Task {
+                await audioPlayer.stop()
+                try? await audioPlayer.play(soundId: breathingSoundId, fadeIn: false)
+            }
+        }
+    }
     var availableVoices: [TTSVoice] = []
 
     let speedOptions: [SpeedOption] = [
@@ -59,13 +68,24 @@ final class SettingsViewModel {
     private let tts: any TextToSpeeching
     private let exportLogs: ExportEthicalLogs
     private let eraseLogs: EraseEthicalLogs
+    private let soundProvider: any SoundProviding
+    private let audioPlayer: any AudioPlaying
     private let voiceDefaultKey = "lumen.settings.voiceDefault"
     private let voiceIdKey = "lumen.settings.voiceId"
+    private let breathingSoundKey = "lumen.settings.breathingSoundId"
 
-    init(tts: any TextToSpeeching, exportLogs: ExportEthicalLogs, eraseLogs: EraseEthicalLogs) {
+    init(
+        tts: any TextToSpeeching,
+        exportLogs: ExportEthicalLogs,
+        eraseLogs: EraseEthicalLogs,
+        soundProvider: any SoundProviding,
+        audioPlayer: any AudioPlaying
+    ) {
         self.tts = tts
         self.exportLogs = exportLogs
         self.eraseLogs = eraseLogs
+        self.soundProvider = soundProvider
+        self.audioPlayer = audioPlayer
 
         // M1: default ON when key has never been set
         self.voiceModeEnabled = (UserDefaults.standard.object(forKey: "lumen.settings.voiceDefault") as? Bool) ?? true
@@ -79,6 +99,17 @@ final class SettingsViewModel {
         // M2: pick FR voice by default; resolved in load() when voices are available
         let persisted = UserDefaults.standard.string(forKey: "lumen.settings.voiceId")
         self.selectedVoiceId = persisted ?? ""
+
+        let defaultBreathing = soundProvider.defaultSound(for: .breathing)?.id ?? "breath-aube"
+        self.breathingSoundId = UserDefaults.standard.string(forKey: breathingSoundKey) ?? defaultBreathing
+    }
+
+    var breathingSounds: [SoundEntry] {
+        soundProvider.sounds(for: .breathing)
+    }
+
+    func stopPreview() {
+        Task { await audioPlayer.stop() }
     }
 
     func load() {

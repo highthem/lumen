@@ -62,6 +62,11 @@ Captured during testing and used in the Loom demo:
 ### Sample ethical-monitoring export
 `docs/samples/ethical-monitoring-export.json` — anonymised JSON example matching the schema in [ETHICAL_MONITORING.md](ETHICAL_MONITORING.md).
 
+### Sound kit provenance
+`Design/sound-kit/` contains the alarm and breathing audio deliverables used by the app. The planned production path is SunoAPI sound generation with `model: V5`, followed by local mastering/encoding through `ffmpeg` and macOS `afconvert`.
+
+The app-facing audio manifest lives at `Apple/lumen/Shared/Resources/Sounds/Sounds.json`. Source prompts, Suno task IDs, selected candidate URLs, the commercial-use assumption confirmed by the account owner, and SHA-256 hashes are stored in `Design/sound-kit/source-files/sunoapi-generation-metadata.json` when generation is run. API credentials are supplied only through local `SUNOAPI_KEY` and are never stored in this repository.
+
 ## Demo materials
 
 - `demo/loom-recording.md` — script and shot list for the 5-minute Loom demo

@@ -4,9 +4,11 @@ import AVFoundation
 final class AudioPlayer: AudioPlaying, @unchecked Sendable {
     private var player: AVAudioPlayer?
     private let session: AudioSessionManager
+    private let soundProvider: any SoundProviding
 
-    init(session: AudioSessionManager) {
+    init(session: AudioSessionManager, soundProvider: any SoundProviding) {
         self.session = session
+        self.soundProvider = soundProvider
     }
 
     func configureSession() async throws {
@@ -14,7 +16,13 @@ final class AudioPlayer: AudioPlaying, @unchecked Sendable {
     }
 
     func play(soundId: String, fadeIn: Bool) async throws {
-        guard let url = Bundle.main.url(forResource: soundId, withExtension: "caf") else {
+        let url: URL?
+        if let entry = soundProvider.sound(id: soundId) {
+            url = Bundle.main.url(forResource: entry.resourceName, withExtension: entry.resourceExtension)
+        } else {
+            url = Bundle.main.url(forResource: soundId, withExtension: "caf")
+        }
+        guard let url else {
             return
         }
         let p = try AVAudioPlayer(contentsOf: url)

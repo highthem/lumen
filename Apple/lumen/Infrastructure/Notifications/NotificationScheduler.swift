@@ -2,6 +2,11 @@ import Foundation
 import UserNotifications
 
 final class NotificationScheduler: AlarmScheduling, @unchecked Sendable {
+    private let soundProvider: any SoundProviding
+
+    init(soundProvider: any SoundProviding) {
+        self.soundProvider = soundProvider
+    }
 
     func requestAuthorizationIfNeeded() async throws -> Bool {
         let center = UNUserNotificationCenter.current()
@@ -25,10 +30,12 @@ final class NotificationScheduler: AlarmScheduling, @unchecked Sendable {
         content.categoryIdentifier = LumenNotificationCategory.alarm.rawValue
         content.interruptionLevel = .timeSensitive
 
-        let soundName = alarm.soundId + ".caf"
-        let soundUrl = Bundle.main.url(forResource: alarm.soundId, withExtension: "caf")
+        let soundFileName = soundProvider.sound(id: alarm.soundId)?.filename ?? (alarm.soundId + ".caf")
+        let resName = (soundFileName as NSString).deletingPathExtension
+        let resExt = (soundFileName as NSString).pathExtension
+        let soundUrl = Bundle.main.url(forResource: resName, withExtension: resExt)
         content.sound = soundUrl != nil
-            ? UNNotificationSound(named: UNNotificationSoundName(soundName))
+            ? UNNotificationSound(named: UNNotificationSoundName(rawValue: soundFileName))
             : .default
 
         let calendar = Calendar.current

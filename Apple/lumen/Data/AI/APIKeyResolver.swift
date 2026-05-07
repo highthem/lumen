@@ -14,6 +14,7 @@ nonisolated enum APIKeyResolver {
     enum Provider: String, Sendable {
         case openai
         case anthropic
+        case elevenlabs
     }
 
     // Lock-protected snapshot accessed from any thread.
@@ -72,6 +73,7 @@ nonisolated enum APIKeyResolver {
         switch infoKey {
         case "OPENAI_API_KEY": .openai
         case "ANTHROPIC_API_KEY": .anthropic
+        case "ELEVENLABS_API_KEY": .elevenlabs
         default: nil
         }
     }

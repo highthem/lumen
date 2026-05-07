@@ -252,7 +252,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "set -eu\nINFO_PLIST=\"${TARGET_BUILD_DIR}/${INFOPLIST_PATH}\"\nif [ ! -f \"${INFO_PLIST}\" ]; then\n  echo \"warning: Info.plist not found at ${INFO_PLIST}\"\n  exit 0\nfi\ninject() {\n  local key=\"$1\"\n  local value=\"$2\"\n  if [ -z \"${value}\" ]; then\n    echo \"warning: ${key} build setting is empty — skipping injection\"\n    return\n  fi\n  /usr/libexec/PlistBuddy -c \"Delete :${key}\" \"${INFO_PLIST}\" >/dev/null 2>&1 || true\n  /usr/libexec/PlistBuddy -c \"Add :${key} string ${value}\" \"${INFO_PLIST}\"\n}\ninject OPENAI_API_KEY \"${OPENAI_API_KEY:-}\"\ninject ANTHROPIC_API_KEY \"${ANTHROPIC_API_KEY:-}\"\n/usr/libexec/PlistBuddy -c \"Delete :UIBackgroundModes\" \"${INFO_PLIST}\" >/dev/null 2>&1 || true\n/usr/libexec/PlistBuddy -c \"Add :UIBackgroundModes array\" \"${INFO_PLIST}\"\n/usr/libexec/PlistBuddy -c \"Add :UIBackgroundModes:0 string audio\" \"${INFO_PLIST}\"\necho \"Injected OPENAI_API_KEY, ANTHROPIC_API_KEY, UIBackgroundModes into Info.plist\"\n";
+			shellScript = "set -eu\nINFO_PLIST=\"${TARGET_BUILD_DIR}/${INFOPLIST_PATH}\"\nif [ ! -f \"${INFO_PLIST}\" ]; then\n  echo \"warning: Info.plist not found at ${INFO_PLIST}\"\n  exit 0\nfi\ninject() {\n  local key=\"$1\"\n  local value=\"$2\"\n  if [ -z \"${value}\" ]; then\n    echo \"warning: ${key} build setting is empty — skipping injection\"\n    return\n  fi\n  /usr/libexec/PlistBuddy -c \"Delete :${key}\" \"${INFO_PLIST}\" >/dev/null 2>&1 || true\n  /usr/libexec/PlistBuddy -c \"Add :${key} string ${value}\" \"${INFO_PLIST}\"\n}\ninject OPENAI_API_KEY \"${OPENAI_API_KEY:-}\"\ninject ANTHROPIC_API_KEY \"${ANTHROPIC_API_KEY:-}\"\ninject ELEVENLABS_API_KEY \"${ELEVENLABS_API_KEY:-}\"\n/usr/libexec/PlistBuddy -c \"Delete :UIBackgroundModes\" \"${INFO_PLIST}\" >/dev/null 2>&1 || true\n/usr/libexec/PlistBuddy -c \"Add :UIBackgroundModes array\" \"${INFO_PLIST}\"\n/usr/libexec/PlistBuddy -c \"Add :UIBackgroundModes:0 string audio\" \"${INFO_PLIST}\"\necho \"Injected OPENAI_API_KEY, ANTHROPIC_API_KEY, ELEVENLABS_API_KEY, UIBackgroundModes into Info.plist\"\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -430,6 +430,7 @@
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_ANTHROPIC_API_KEY = "$(ANTHROPIC_API_KEY)";
+				INFOPLIST_KEY_ELEVENLABS_API_KEY = "$(ELEVENLABS_API_KEY)";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Lumen utilise le micro pour transcrire ta réponse au questionnaire matinal. L'audio reste sur ton téléphone.";
 				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "La reconnaissance vocale fonctionne directement sur ton téléphone. Aucun audio n'est envoyé à Apple.";
 				INFOPLIST_KEY_OPENAI_API_KEY = "$(OPENAI_API_KEY)";
@@ -474,6 +475,7 @@
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_ANTHROPIC_API_KEY = "$(ANTHROPIC_API_KEY)";
+				INFOPLIST_KEY_ELEVENLABS_API_KEY = "$(ELEVENLABS_API_KEY)";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Lumen utilise le micro pour transcrire ta réponse au questionnaire matinal. L'audio reste sur ton téléphone.";
 				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "La reconnaissance vocale fonctionne directement sur ton téléphone. Aucun audio n'est envoyé à Apple.";
 				INFOPLIST_KEY_OPENAI_API_KEY = "$(OPENAI_API_KEY)";

@@ -6,8 +6,6 @@ struct AlarmEditView: View {
     @State private var showDeleteConfirm = false
     var onDelete: (() -> Void)?
 
-    private let availableSounds = ["lumen_dawn", "lumen_soft", "lumen_gentle"]
-
     var body: some View {
         NavigationStack {
             Form {
@@ -32,9 +30,19 @@ struct AlarmEditView: View {
                 }
 
                 Section("Son") {
-                    Picker("Son", selection: $vm.soundId) {
-                        ForEach(availableSounds, id: \.self) { sound in
-                            Text(sound).tag(sound)
+                    ForEach(vm.alarmSounds) { sound in
+                        HStack {
+                            Text(sound.displayName)
+                            Spacer()
+                            if vm.soundId == sound.id {
+                                Image(systemName: "checkmark")
+                                    .foregroundStyle(LumenColor.accent)
+                            }
+                        }
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            vm.soundId = sound.id
+                            vm.previewSound(sound.id)
                         }
                     }
                 }
@@ -55,11 +63,15 @@ struct AlarmEditView: View {
             .navigationTitle(vm.time.formatted(.dateTime.hour().minute()))
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
-                    Button("Annuler") { dismiss() }
+                    Button("Annuler") {
+                        vm.stopPreview()
+                        dismiss()
+                    }
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Enregistrer") {
                         Task {
+                            vm.stopPreview()
                             try? await vm.save()
                             dismiss()
                         }

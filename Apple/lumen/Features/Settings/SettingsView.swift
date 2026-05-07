@@ -17,6 +17,7 @@ struct SettingsView: View {
         NavigationStack {
             Form {
                 rituelSection
+                soundSection
                 voiceSection
                 aiSection
                 quotaSection
@@ -42,6 +43,9 @@ struct SettingsView: View {
             .onAppear {
                 vm.load()
                 Task { await keyStore.load() }
+            }
+            .onDisappear {
+                vm.stopPreview()
             }
         }
         .sheet(item: $exportItem) { item in
@@ -80,6 +84,16 @@ struct SettingsView: View {
                 Spacer()
                 Text("60 s")
                     .foregroundStyle(LumenColor.textSecondary)
+            }
+        }
+    }
+
+    private var soundSection: some View {
+        Section("Sons") {
+            Picker("Respiration", selection: $vm.breathingSoundId) {
+                ForEach(vm.breathingSounds) { sound in
+                    Text(sound.displayName).tag(sound.id)
+                }
             }
         }
     }

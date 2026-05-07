@@ -178,7 +178,9 @@ struct RootView: View {
                     alarm: alarm,
                     repo: composition.alarmRepository,
                     scheduler: composition.alarmScheduler,
-                    scheduleUseCase: composition.scheduleAlarm
+                    scheduleUseCase: composition.scheduleAlarm,
+                    soundProvider: composition.soundProvider,
+                    audioPlayer: composition.audioPlayer
                 )
             }
         )
@@ -189,7 +191,9 @@ struct RootView: View {
             vm: SettingsViewModel(
                 tts: composition.speechSynthesizer,
                 exportLogs: composition.exportEthicalLogs,
-                eraseLogs: composition.eraseEthicalLogs
+                eraseLogs: composition.eraseEthicalLogs,
+                soundProvider: composition.soundProvider,
+                audioPlayer: composition.audioPlayer
             ),
             makeAdvancedVM: {
                 SettingsAdvancedViewModel(
@@ -212,7 +216,11 @@ struct RootView: View {
 
         case .timer:
             PresenceTimerView(
-                vm: PresenceTimerViewModel(quoteProvider: composition.quoteProvider),
+                vm: PresenceTimerViewModel(
+                    quoteProvider: composition.quoteProvider,
+                    audioPlayer: composition.audioPlayer,
+                    soundProvider: composition.soundProvider
+                ),
                 onComplete: {
                     // Move to questionnaire with a placeholder ritual ID (startRitual will create it)
                     ritualFlow = .questionnaire(UUID())

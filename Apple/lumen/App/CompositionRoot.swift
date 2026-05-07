@@ -12,6 +12,7 @@ final class CompositionRoot {
     let alarmRepository: any AlarmRepository
     let alarmScheduler: any AlarmScheduling
     let audioPlayer: any AudioPlaying
+    let soundProvider: any SoundProviding
     let scheduleAlarm: ScheduleAlarm
     let snoozeAlarm: SnoozeAlarm
     let cancelAlarm: CancelAlarm
@@ -25,7 +26,7 @@ final class CompositionRoot {
     let aiSynthesisService: any AISynthesisService
     let networkMonitor: NetworkMonitor
     let speechRecognizer: SpeechRecognizer
-    let speechSynthesizer: SpeechSynthesizer
+    let speechSynthesizer: any TextToSpeeching
     let quoteProvider: any QuoteProviding
     let userAPIKeyStore: UserAPIKeyStore
     let openAIClient: OpenAIClient
@@ -65,15 +66,19 @@ final class CompositionRoot {
         }
         self.modelContainer = container
 
+        // Sounds
+        let sounds = JSONSoundProvider()
+        self.soundProvider = sounds
+
         // Alarm (Sprint 1)
         let repo = SwiftDataAlarmRepository(modelContainer: container)
         self.alarmRepository = repo
 
-        let scheduler = NotificationScheduler()
+        let scheduler = NotificationScheduler(soundProvider: sounds)
         self.alarmScheduler = scheduler
 
         let sessionManager = AudioSessionManager()
-        self.audioPlayer = AudioPlayer(session: sessionManager)
+        self.audioPlayer = AudioPlayer(session: sessionManager, soundProvider: sounds)
 
         let schedule = ScheduleAlarm(repository: repo, scheduler: scheduler)
         self.scheduleAlarm = schedule
@@ -169,7 +174,12 @@ final class CompositionRoot {
 
         // Voice
         self.speechRecognizer = SpeechRecognizer()
-        self.speechSynthesizer = SpeechSynthesizer()
+        if APIKeyResolver.isPresent(infoKey: "ELEVENLABS_API_KEY"),
+           let key = try? APIKeyResolver.resolve(infoKey: "ELEVENLABS_API_KEY") {
+            self.speechSynthesizer = ElevenLabsSynthesizer(apiKey: key)
+        } else {
+            self.speechSynthesizer = SpeechSynthesizer()
+        }
 
         // Quote provider
         self.quoteProvider = JSONQuoteProvider()

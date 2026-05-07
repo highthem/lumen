@@ -14,7 +14,7 @@ nonisolated struct Alarm: Identifiable, Equatable, Sendable, Codable, Hashable {
         id: UUID = UUID(),
         time: Date,
         recurrence: AlarmRecurrence = .none,
-        soundId: String = "lumen_dawn",
+        soundId: String = "alarm-aube",
         isActive: Bool = true,
         snoozeCount: Int = 0,
         createdAt: Date = Date(),

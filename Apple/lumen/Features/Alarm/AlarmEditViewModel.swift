@@ -13,17 +13,23 @@ final class AlarmEditViewModel {
     private let repo: any AlarmRepository
     private let scheduler: any AlarmScheduling
     private let scheduleUseCase: ScheduleAlarm
+    private let soundProvider: any SoundProviding
+    private let audioPlayer: any AudioPlaying
 
     init(
         alarm: Alarm? = nil,
         repo: any AlarmRepository,
         scheduler: any AlarmScheduling,
-        scheduleUseCase: ScheduleAlarm
+        scheduleUseCase: ScheduleAlarm,
+        soundProvider: any SoundProviding,
+        audioPlayer: any AudioPlaying
     ) {
         self.existingAlarm = alarm
         self.repo = repo
         self.scheduler = scheduler
         self.scheduleUseCase = scheduleUseCase
+        self.soundProvider = soundProvider
+        self.audioPlayer = audioPlayer
 
         if let alarm {
             self.time = alarm.time
@@ -37,9 +43,24 @@ final class AlarmEditViewModel {
             components.second = 0
             self.time = Calendar.current.date(from: components) ?? Date()
             self.recurrence = .none
-            self.soundId = "lumen_dawn"
+            self.soundId = soundProvider.defaultSound(for: .alarm)?.id ?? "alarm-aube"
             self.isActive = true
         }
+    }
+
+    var alarmSounds: [SoundEntry] {
+        soundProvider.sounds(for: .alarm)
+    }
+
+    func previewSound(_ id: String) {
+        Task {
+            await audioPlayer.stop()
+            try? await audioPlayer.play(soundId: id, fadeIn: false)
+        }
+    }
+
+    func stopPreview() {
+        Task { await audioPlayer.stop() }
     }
 
     @discardableResult

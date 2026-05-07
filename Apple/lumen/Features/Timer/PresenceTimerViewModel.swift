@@ -9,14 +9,24 @@ final class PresenceTimerViewModel {
     var isComplete = false
 
     private let quoteProvider: any QuoteProviding
+    private let audioPlayer: any AudioPlaying
+    private let soundProvider: any SoundProviding
     private var countdownTask: Task<Void, Never>?
 
-    init(quoteProvider: any QuoteProviding) {
+    init(quoteProvider: any QuoteProviding, audioPlayer: any AudioPlaying, soundProvider: any SoundProviding) {
         self.quoteProvider = quoteProvider
+        self.audioPlayer = audioPlayer
+        self.soundProvider = soundProvider
     }
 
     func start() async {
         quote = quoteProvider.random(lang: "fr")
+
+        let soundId = UserDefaults.standard.string(forKey: "lumen.settings.breathingSoundId")
+            ?? soundProvider.defaultSound(for: .breathing)?.id
+            ?? "breath-aube"
+        try? await audioPlayer.configureSession()
+        Task { try? await audioPlayer.play(soundId: soundId, fadeIn: true) }
 
         countdownTask?.cancel()
         countdownTask = Task {
@@ -29,10 +39,12 @@ final class PresenceTimerViewModel {
             isComplete = true
         }
         await countdownTask?.value
+        await audioPlayer.stop()
     }
 
     func skip() {
         countdownTask?.cancel()
+        Task { await audioPlayer.stop() }
         isComplete = true
     }
 }

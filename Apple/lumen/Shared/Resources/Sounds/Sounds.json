@@ -1,0 +1,84 @@
+{
+  "sounds": [
+    {
+      "id": "alarm-aube",
+      "displayKey": "sound.alarm.aube",
+      "kind": "alarm",
+      "filename": "alarm-aube.caf",
+      "durationSeconds": 30,
+      "lufsTarget": -16,
+      "isDefault": true,
+      "ambiance": "aube"
+    },
+    {
+      "id": "breath-aube",
+      "displayKey": "sound.breathing.aube",
+      "kind": "breathing",
+      "filename": "breath-aube.m4a",
+      "durationSeconds": 60,
+      "lufsTarget": -20,
+      "isDefault": true,
+      "ambiance": "aube"
+    },
+    {
+      "id": "alarm-bois",
+      "displayKey": "sound.alarm.bois",
+      "kind": "alarm",
+      "filename": "alarm-bois.caf",
+      "durationSeconds": 30,
+      "lufsTarget": -16,
+      "isDefault": false,
+      "ambiance": "bois"
+    },
+    {
+      "id": "breath-bois",
+      "displayKey": "sound.breathing.bois",
+      "kind": "breathing",
+      "filename": "breath-bois.m4a",
+      "durationSeconds": 60,
+      "lufsTarget": -20,
+      "isDefault": false,
+      "ambiance": "bois"
+    },
+    {
+      "id": "alarm-cloche",
+      "displayKey": "sound.alarm.cloche",
+      "kind": "alarm",
+      "filename": "alarm-cloche.caf",
+      "durationSeconds": 30,
+      "lufsTarget": -14,
+      "isDefault": false,
+      "ambiance": "silence"
+    },
+    {
+      "id": "breath-silence",
+      "displayKey": "sound.breathing.silence",
+      "kind": "breathing",
+      "filename": "breath-silence.m4a",
+      "durationSeconds": 60,
+      "lufsTarget": -32,
+      "isDefault": false,
+      "ambiance": "silence"
+    },
+    {
+      "id": "alarm-marée",
+      "displayKey": "sound.alarm.maree",
+      "kind": "alarm",
+      "filename": "alarm-marée.caf",
+      "durationSeconds": 30,
+      "lufsTarget": -16,
+      "isDefault": false,
+      "ambiance": null
+    },
+    {
+      "id": "alarm-souffle",
+      "displayKey": "sound.alarm.souffle",
+      "kind": "alarm",
+      "filename": "alarm-souffle.caf",
+      "durationSeconds": 30,
+      "lufsTarget": -16,
+      "isDefault": false,
+      "ambiance": null
+    }
+  ]
+}

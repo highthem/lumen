@@ -97,6 +97,12 @@ Voir US-AI8 (Project/02_product/user_stories/ai_synthesis.md) pour le détail de
 - **TTS (lecture synthèse) est on-device** via `AVSpeechSynthesizer` avec voix neural natives. Aucun audio généré n'est envoyé en cloud.
 - L'utilisateur peut désactiver input vocal et output vocal à tout moment dans Settings → Voice.
 
+### Sound kit provenance — audio généré hors produit
+- Le kit sonore Lumen (5 alarmes + 3 ambiances breathing) est produit comme artefact de design via SunoAPI, pas par une génération IA embarquée dans l'app.
+- Les prompts, IDs de tâches Suno, URLs sources, choix de candidat, hypothèse de licence commerciale confirmée par le propriétaire du compte, et hashes SHA-256 sont conservés dans `Design/sound-kit/source-files/sunoapi-generation-metadata.json`.
+- La clé SunoAPI reste locale (`SUNOAPI_KEY`) et n'est jamais commitée, loggée, ni exposée dans l'app iOS.
+- Les fichiers finaux embarqués (`.caf` alarmes, `.m4a` breathing) ne contiennent pas de voix utilisateur, transcription, prompt utilisateur, ni donnée personnelle.
+
 ### Cost control
 - Rate limit côté client (pas de dépendance serveur pour le plafond).
 - Logs des tokens par provider pour analyser les coûts par session.
