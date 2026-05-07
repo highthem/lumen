@@ -205,7 +205,7 @@ final class MaestroTextToSpeech: TextToSpeeching, @unchecked Sendable {
     func availableVoices() -> [TTSVoice] {
         [TTSVoice(id: "maestro-fr", name: "Maestro FR", lang: "fr-FR", quality: .default)]
     }
-    func speak(_ text: String, voiceId: String?, rate: Double) async {
+    func speak(_ text: String, voiceId: String?, rate: Double) async throws {
         isSpeaking = true
         try? await Task.sleep(for: .milliseconds(250))
         isSpeaking = false

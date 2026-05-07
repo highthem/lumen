@@ -29,8 +29,13 @@ Every AI interaction (success or failure) creates an `EthicalLog` entry persiste
 | `contentSafetyFlags` | [String] | Pre-flight detection results (e.g. `selfHarmCue`) |
 | `userFeedback` | String? | `positive` / `negative` / nil — only stored if explicitly given |
 | `privacyScope` | String | `user_input_only` (cloud) / `device_only` (Apple Intelligence) / `pending` (queue) |
+| `ttsProvider` | String? | `elevenlabs` / `apple-on-device` — which TTS rendered a synthesis (nil for non-TTS log entries) |
 
-**Out of the log on purpose:** email, account ID, location, IP address, device identifier, prompt content in clear.
+**Out of the log on purpose:** email, account ID, location, IP address, device identifier, prompt content in clear, **and the text being read aloud** — only the provider identifier is recorded.
+
+## TTS privacy
+
+Voice output uses ElevenLabs as the premium primary and `AVSpeechSynthesizer` as a runtime fallback. The synthesis text is transmitted to ElevenLabs **only** when the Settings toggle "Voix premium ElevenLabs" is on. When off, every synthesis is rendered 100 % on-device. No audio is ever cached on disk. The `tts_provider` field in the JSON export tells the user, after the fact, which provider rendered each synthesis.
 
 ## Pre-flight content safety
 

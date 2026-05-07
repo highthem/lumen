@@ -210,7 +210,7 @@ final class CompositionRoot {
         #endif
         self.aiSynthesisService = synthesisService
 
-        // Voice
+        // Voice output : ElevenLabs primary, AVSpeech fallback runtime
         self.speechRecognizer = SpeechRecognizer()
         if testMode.isMaestro {
             #if DEBUG
@@ -219,8 +219,15 @@ final class CompositionRoot {
             self.speechSynthesizer = SpeechSynthesizer()
             #endif
         } else if APIKeyResolver.isPresent(infoKey: "ELEVENLABS_API_KEY"),
-           let key = try? APIKeyResolver.resolve(infoKey: "ELEVENLABS_API_KEY") {
-            self.speechSynthesizer = ElevenLabsSynthesizer(apiKey: key)
+                  let key = try? APIKeyResolver.resolve(infoKey: "ELEVENLABS_API_KEY") {
+            self.speechSynthesizer = FallbackTextToSpeech(
+                primary: ElevenLabsSynthesizer(apiKey: key),
+                fallback: SpeechSynthesizer(),
+                logger: logger,
+                isPrimaryEnabled: {
+                    UserDefaults.standard.object(forKey: "lumen.settings.elevenLabsEnabled") as? Bool ?? true
+                }
+            )
         } else {
             self.speechSynthesizer = SpeechSynthesizer()
         }

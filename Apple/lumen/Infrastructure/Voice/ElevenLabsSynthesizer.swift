@@ -2,6 +2,14 @@ import Foundation
 import AVFoundation
 import os.log
 
+enum ElevenLabsError: Error {
+    case http(Int)
+    case invalidKey
+    case quotaExceeded
+    case decodeFailed
+    case timeout
+}
+
 final class ElevenLabsSynthesizer: TextToSpeeching, @unchecked Sendable {
     private let apiKey: String
     private let session: URLSession
@@ -13,9 +21,16 @@ final class ElevenLabsSynthesizer: TextToSpeeching, @unchecked Sendable {
         lock.withLock { _isSpeaking }
     }
 
-    init(apiKey: String, session: URLSession = .shared) {
+    init(apiKey: String, session: URLSession? = nil) {
         self.apiKey = apiKey
-        self.session = session
+        if let session {
+            self.session = session
+        } else {
+            // 8 s cap per ADR-007 — beyond this the FallbackTextToSpeech decorator takes over.
+            let config = URLSessionConfiguration.default
+            config.timeoutIntervalForRequest = 8
+            self.session = URLSession(configuration: config)
+        }
     }
 
     func availableVoices() -> [TTSVoice] {
@@ -41,18 +56,14 @@ final class ElevenLabsSynthesizer: TextToSpeeching, @unchecked Sendable {
         ]
     }
 
-    func speak(_ text: String, voiceId: String?, rate: Double) async {
+    func speak(_ text: String, voiceId: String?, rate: Double) async throws {
         let voice = voiceId ?? "XB0fDUnXU5powFXDhCwa"
 
         lock.withLock { _isSpeaking = true }
         defer { lock.withLock { _isSpeaking = false } }
 
-        do {
-            let audioData = try await fetchAudio(text: text, voiceId: voice, speed: rate)
-            try await playAudio(audioData)
-        } catch {
-            logger.warning("ElevenLabs TTS error: \(error) — silent fallback")
-        }
+        let audioData = try await fetchAudio(text: text, voiceId: voice, speed: rate)
+        try await playAudio(audioData)
     }
 
     func pause() {
@@ -102,17 +113,28 @@ final class ElevenLabsSynthesizer: TextToSpeeching, @unchecked Sendable {
         request.setValue(apiKey, forHTTPHeaderField: "xi-api-key")
         request.httpBody = try JSONSerialization.data(withJSONObject: body)
 
-        let (data, response) = try await session.data(for: request)
+        let data: Data
+        let response: URLResponse
+        do {
+            (data, response) = try await session.data(for: request)
+        } catch let error as URLError where error.code == .timedOut {
+            throw ElevenLabsError.timeout
+        }
 
         guard let httpResponse = response as? HTTPURLResponse else {
-            throw URLError(.badServerResponse)
+            throw ElevenLabsError.decodeFailed
         }
 
-        guard (200..<300).contains(httpResponse.statusCode) else {
-            throw URLError(.badServerResponse)
+        switch httpResponse.statusCode {
+        case 200..<300:
+            return data
+        case 401:
+            throw ElevenLabsError.invalidKey
+        case 429:
+            throw ElevenLabsError.quotaExceeded
+        default:
+            throw ElevenLabsError.http(httpResponse.statusCode)
         }
-
-        return data
     }
 
     private func playAudio(_ audioData: Data) async throws {
@@ -123,7 +145,12 @@ final class ElevenLabsSynthesizer: TextToSpeeching, @unchecked Sendable {
         try audioData.write(to: tempURL)
         defer { try? FileManager.default.removeItem(at: tempURL) }
 
-        let newPlayer = try AVAudioPlayer(contentsOf: tempURL)
+        let newPlayer: AVAudioPlayer
+        do {
+            newPlayer = try AVAudioPlayer(contentsOf: tempURL)
+        } catch {
+            throw ElevenLabsError.decodeFailed
+        }
 
         return try await withCheckedThrowingContinuation { continuation in
             let delegate = PlayerDelegate(onFinish: { [weak self] in

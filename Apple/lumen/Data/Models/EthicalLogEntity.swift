@@ -14,6 +14,7 @@ final class EthicalLogEntity {
     var flagsData: Data
     var userFeedbackRaw: String?
     var privacyScope: String
+    var ttsProvider: String?
 
     init(from log: EthicalLog) {
         self.id = log.id
@@ -27,6 +28,7 @@ final class EthicalLogEntity {
         self.flagsData = (try? JSONEncoder().encode(log.contentSafetyFlags)) ?? Data()
         self.userFeedbackRaw = log.userFeedback?.rawValue
         self.privacyScope = log.privacyScope
+        self.ttsProvider = log.ttsProvider
     }
 
     func toDomain() -> EthicalLog {
@@ -43,7 +45,8 @@ final class EthicalLogEntity {
             promptHash: promptHash,
             contentSafetyFlags: flags,
             userFeedback: feedback,
-            privacyScope: privacyScope
+            privacyScope: privacyScope,
+            ttsProvider: ttsProvider
         )
     }
 }

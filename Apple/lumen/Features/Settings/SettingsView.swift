@@ -104,6 +104,15 @@ struct SettingsView: View {
             LumenToggle(isOn: $vm.voiceModeEnabled, label: "Mode vocal par défaut")
                 .accessibilityIdentifier("voice-default-toggle")
 
+            if vm.elevenLabsKeyAvailable {
+                LumenToggle(isOn: $vm.elevenLabsEnabled, label: "Voix premium ElevenLabs")
+                    .accessibilityIdentifier("voice-elevenlabs-toggle")
+
+                Text("La voix premium est synthétisée par ElevenLabs. Le texte de ta synthèse y est transmis. Désactive le mode premium pour rester 100 % on-device.")
+                    .lumenFont(.footnote)
+                    .foregroundStyle(LumenColor.textSecondary)
+            }
+
             if !vm.availableVoices.isEmpty {
                 Picker("Voix", selection: $vm.selectedVoiceId) {
                     ForEach(vm.availableVoices) { voice in

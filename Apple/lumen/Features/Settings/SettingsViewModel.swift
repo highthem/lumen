@@ -39,6 +39,7 @@ struct SpeedOption: Identifiable, Hashable, Sendable {
 @Observable
 final class SettingsViewModel {
     static let voiceDefaultKey = "lumen.settings.voiceDefault"
+    static let elevenLabsEnabledKey = "lumen.settings.elevenLabsEnabled"
 
     static var isVoiceModeEnabled: Bool {
         (UserDefaults.standard.object(forKey: voiceDefaultKey) as? Bool) ?? true
@@ -47,6 +48,10 @@ final class SettingsViewModel {
     var voiceModeEnabled: Bool {
         didSet { UserDefaults.standard.set(voiceModeEnabled, forKey: Self.voiceDefaultKey) }
     }
+    var elevenLabsEnabled: Bool {
+        didSet { UserDefaults.standard.set(elevenLabsEnabled, forKey: Self.elevenLabsEnabledKey) }
+    }
+    let elevenLabsKeyAvailable: Bool
     var selectedVoiceId: String {
         didSet { UserDefaults.standard.set(selectedVoiceId, forKey: voiceIdKey) }
     }
@@ -94,6 +99,9 @@ final class SettingsViewModel {
 
         // M1: default ON when key has never been set
         self.voiceModeEnabled = Self.isVoiceModeEnabled
+
+        self.elevenLabsKeyAvailable = APIKeyResolver.isPresent(infoKey: "ELEVENLABS_API_KEY")
+        self.elevenLabsEnabled = (UserDefaults.standard.object(forKey: Self.elevenLabsEnabledKey) as? Bool) ?? true
 
         let storedAppearance = UserDefaults.standard.string(forKey: AppAppearance.storageKey)
             .flatMap { AppAppearance(rawValue: $0) } ?? .system

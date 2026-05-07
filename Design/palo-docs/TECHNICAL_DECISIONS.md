@@ -171,10 +171,13 @@ Settings → "Export my logs" generates a JSON file via `ShareSheet`. Settings �
 
 **Decision.** Add **voice input (dictation)** for Q3/Q4 and **voice output (TTS)** for the AI synthesis — in V1.
 
-| Capability | Apple framework | Cost | Privacy |
+| Capability | Framework | Cost | Privacy |
 |---|---|---|---|
 | Voice input | `Speech` (`SFSpeechRecognizer`) | 0 | On-device required (`requiresOnDeviceRecognition = true`) |
-| Voice output | `AVFoundation` (`AVSpeechSynthesizer`) | 0 | 100 % on-device, neural voices iOS 17+ |
+| Voice output (premium) | ElevenLabs HTTP API | API key | Synthesis text sent to ElevenLabs only when toggle is on |
+| Voice output (fallback) | `AVFoundation` (`AVSpeechSynthesizer`) | 0 | 100 % on-device, neural voices iOS 17+ |
+
+**Voice output — runtime fallback.** ElevenLabs is the primary TTS, with `AVSpeechSynthesizer` as a runtime fallback resolved at every `speak()` call. On any ElevenLabs failure (network, 4xx, 5xx, 8 s timeout) the `FallbackTextToSpeech` decorator transparently falls back to AVSpeech without restarting the app. The active provider is recorded in the `EthicalLog` (`tts_provider` field). A Settings toggle ("Voix premium ElevenLabs") lets the user force the on-device path.
 
 **Strict privacy stance.** `SFSpeechRecognitionRequest.requiresOnDeviceRecognition = true`. If on-device recognition isn't supported for the user's language (varies by device + language), **fallback to typing** rather than sending audio to Apple. Audio captured is **never persisted nor logged** — only the transcribed text is stored.
 

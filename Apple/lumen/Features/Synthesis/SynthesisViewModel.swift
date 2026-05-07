@@ -59,7 +59,9 @@ final class SynthesisViewModel {
             guard case .ready(let response) = state else { return }
             ttsPlaying = true
             ttsCurrentBlock = 0
-            await speakSynthesisUC.execute(response: response)
+            // Audio is best-effort; if both ElevenLabs and AVSpeech fail, stay calm —
+            // no technical error UI per CLAUDE.md.
+            try? await speakSynthesisUC.execute(response: response)
             ttsPlaying = false
         }
     }

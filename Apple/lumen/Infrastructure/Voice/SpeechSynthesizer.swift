@@ -48,7 +48,7 @@ final class SpeechSynthesizer: TextToSpeeching, @unchecked Sendable {
             .sorted { $0.quality > $1.quality }
     }
 
-    func speak(_ text: String, voiceId: String?, rate: Double) async {
+    func speak(_ text: String, voiceId: String?, rate: Double) async throws {
         let utterance = AVSpeechUtterance(string: text)
 
         if let voiceId, let voice = AVSpeechSynthesisVoice(identifier: voiceId) {

@@ -17,6 +17,7 @@ nonisolated struct EthicalLog: Identifiable, Sendable, Codable, Hashable {
     let contentSafetyFlags: [String]
     let userFeedback: UserFeedback?
     let privacyScope: String
+    let ttsProvider: String?
 
     init(
         id: UUID = UUID(),
@@ -29,7 +30,8 @@ nonisolated struct EthicalLog: Identifiable, Sendable, Codable, Hashable {
         promptHash: String,
         contentSafetyFlags: [String] = [],
         userFeedback: UserFeedback? = nil,
-        privacyScope: String
+        privacyScope: String,
+        ttsProvider: String? = nil
     ) {
         self.id = id
         self.timestamp = timestamp
@@ -42,5 +44,6 @@ nonisolated struct EthicalLog: Identifiable, Sendable, Codable, Hashable {
         self.contentSafetyFlags = contentSafetyFlags
         self.userFeedback = userFeedback
         self.privacyScope = privacyScope
+        self.ttsProvider = ttsProvider
     }
 }

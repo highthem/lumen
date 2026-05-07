@@ -65,4 +65,26 @@ actor EthicalLogger {
         )
         try await repository.save(log)
     }
+
+    /// Records which TTS provider rendered a synthesis. The text being read is never logged —
+    /// only the provider identifier ("elevenlabs" / "apple-on-device") and, on fallback,
+    /// a short reason string.
+    func logTTS(provider: String, success: Bool, fallbackReason: String?) async throws {
+        var flags: [String] = []
+        if !success { flags.append("tts_failed") }
+        if let fallbackReason { flags.append("tts_fallback:\(fallbackReason)") }
+
+        let privacyScope = (provider == "elevenlabs") ? "user_input_only" : "device_only"
+
+        let log = EthicalLog(
+            timestamp: clock.now(),
+            provider: "tts",
+            mode: "tts",
+            promptHash: "",
+            contentSafetyFlags: flags,
+            privacyScope: privacyScope,
+            ttsProvider: provider
+        )
+        try await repository.save(log)
+    }
 }
