@@ -60,7 +60,7 @@ Pas de permission supplémentaire pour ElevenLabs — c'est un appel HTTP standa
 
 ### UX
 
-#### Input vocal (Q3 Gratitude + Q4 Intention)
+#### Input vocal (Q3 Priorité + Q4 Gratitude)
 
 - Composant signature « Sunrise Echo » : pas de glyph micro générique, un cercle qui respire au cycle 4 s pendant l'écoute (cohérent avec le cercle respiration timer — voir style_guide.md, motion niveau 2 « signature »)
 - Auto-stop après 2 s de silence

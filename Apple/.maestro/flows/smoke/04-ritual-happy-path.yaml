@@ -31,26 +31,29 @@ env:
 - tapOn:
     point: "50%, 50%"
 
-# Q2 Energy — sélectionner Moyen
+# Q2 Energy — V11 breathing-orb + slider. Slider has a default of "moyen"
+# (level 2) and "Suivant" is always enabled, so the smoke flow just advances
+# without touching the slider. Visual layout is verified by manual e2e.
 - waitForAnimationToEnd:
     timeout: 3000
 - extendedWaitUntil:
     visible:
-      id: "energy-3"
+      id: "energy-orb"
     timeout: 8000
-- tapOn:
-    id: "energy-3"
 - tapOn: "Suivant"
 
-# Q3 Priority — sélectionner Énergie
+# Q3 Priority — V11 voice-first. Maestro can't drive the mic, so use the
+# keyboard fallback (mirrors the Q4 pattern).
 - waitForAnimationToEnd:
     timeout: 3000
 - extendedWaitUntil:
     visible:
-      id: "priority-energy"
+      id: "priority-keyboard-toggle"
     timeout: 8000
 - tapOn:
-    id: "priority-energy"
+    id: "priority-keyboard-toggle"
+- inputText: "Bloquer 90 minutes pour le brief."
+- hideKeyboard
 - tapOn: "Suivant"
 
 # Q4 Gratitude — fallback typing (Maestro can't mic)

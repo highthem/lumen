@@ -10,7 +10,7 @@ struct SleepPermissionSheet: View {
     var body: some View {
         VStack(spacing: LumenSpacing.l) {
             Image(systemName: "heart.fill")
-                .font(.system(size: 48))
+                .font(.system(size: LumenSize.heroIcon))
                 .foregroundStyle(LumenColor.accent)
                 .padding(.top, LumenSpacing.l)
 
@@ -69,8 +69,8 @@ struct SleepPermissionSheet: View {
         HStack(alignment: .top, spacing: LumenSpacing.s) {
             Circle()
                 .fill(LumenColor.accent)
-                .frame(width: 6, height: 6)
-                .padding(.top, 8)
+                .frame(width: LumenSize.dotMd, height: LumenSize.dotMd)
+                .padding(.top, LumenSpacing.s)
             Text(text)
                 .lumenFont(.body)
                 .foregroundStyle(LumenColor.textPrimary)

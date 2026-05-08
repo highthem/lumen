@@ -10,12 +10,12 @@ Référence : brief PALO + user stories.
 | F2 | Timer de présence 60s configurable + citation | P0 | US-T1 à US-T5 | 1 |
 | F2b | Audio ambient pendant le timer (3 ambiances) | P0 | US-T6 | 0,5 |
 | F1b | 5 sons d'alarme custom (sound kit) | P0 | US-A1 maj | 0,25 (intégration; production sons hors-dev) |
-| F3 | Questionnaire 4 étapes avec persistance | P0 | US-Q1 à US-Q3 | 1 |
-| F4 | Synthèse IA avec waterfall (OpenAI → Anthropic → offline) | P0 | US-AI1 à US-AI2 | 2-3 |
+| F3 | Questionnaire 4 étapes (Humeur slider · Énergie chips · Priorité voice · Gratitude voice) avec persistance | P0 | US-Q1 à US-Q5 | 1 |
+| F4 | Synthèse IA avec waterfall (OpenAI → Anthropic → Apple Intelligence → queue offline) | P0 | US-AI1 à US-AI2 | 2-3 |
 | F5 | Rate limiting local + monitoring éthique + export JSON | P0 | US-AI3, US-AI5 | 1-2 |
-| F6 | Dashboard 6 catégories | P0 | US-D1 à US-D3, US-D5 | 2 |
+| F6 | Dashboard V2 6 cards (Humeur · Énergie · Priorité · Gratitude · Présence · Sommeil) | P0 | US-D1 à US-D3, US-D5 | 2 |
 | F7 | Ask Lumen (accès rapide IA depuis dashboard) | P0 | US-AI6 | 0,5 |
-| F7b | Voice input (dictation Q3/Q4, on-device) | P0 | US-Q6, ADR-007 | 0,75 |
+| F7b | Voice input (dictation Q3 Priorité + Q4 Gratitude, on-device) | P0 | US-Q6, ADR-007 | 0,75 |
 | F7c | Voice output (TTS synthèse IA, on-device) | P0 | US-AI7, ADR-007 | 0,5 |
 | F7d | BYO API key (mode avancé Settings) + Keychain | P0 | US-AI8 | 1 |
 | F7e | Rebrand UI "Lumen AI" (waterfall caché derrière 1 nom) | P0 | ADR-004 update | 0,25 |

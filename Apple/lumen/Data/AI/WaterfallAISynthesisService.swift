@@ -52,7 +52,7 @@ nonisolated final class WaterfallAISynthesisService: AISynthesisService {
             switch answer.payload {
             case .mood(_, let tag): return tag
             case .energy: return nil
-            case .priority(_, let note): return note
+            case .priority(let text): return text
             case .gratitude(let text): return text
             }
         }.joined(separator: " ")
@@ -86,10 +86,10 @@ nonisolated final class WaterfallAISynthesisService: AISynthesisService {
                     return .ready(attempt.response)
                 } catch let error as AIError {
                     if case .missingAPIKey = error { sawMissingKey = true }
-                    print("⚠️ AI provider \(client.name) failed: \(error)")
+                    LumenLog.ai.warning("AI provider \(client.name) failed", error: error)
                     continue
                 } catch {
-                    print("⚠️ AI provider \(client.name) failed: \(error)")
+                    LumenLog.ai.warning("AI provider \(client.name) failed", error: error)
                     continue
                 }
             }
@@ -110,7 +110,7 @@ nonisolated final class WaterfallAISynthesisService: AISynthesisService {
                     )
                     return .ready(attempt.response)
                 } catch {
-                    print("⚠️ On-device AI failed: \(error)")
+                    LumenLog.ai.warning("On-device AI failed", error: error)
                 }
             }
 
@@ -141,7 +141,7 @@ nonisolated final class WaterfallAISynthesisService: AISynthesisService {
                 )
                 return .ready(attempt.response)
             } catch {
-                print("⚠️ Offline on-device AI failed: \(error)")
+                LumenLog.ai.warning("Offline on-device AI failed", error: error)
             }
         }
 

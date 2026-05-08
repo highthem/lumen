@@ -72,7 +72,7 @@ final class CompositionRoot {
         } catch {
             // On-disk store failed (corrupted, schema migration, low storage).
             // Fall back to in-memory so the app still launches; user can re-create alarms.
-            print("⚠️ ModelContainer on-disk init failed — falling back to in-memory: \(error)")
+            LumenLog.persistence.warning("ModelContainer on-disk init failed; falling back to in-memory", error: error)
             let memConfig = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
             container = try! ModelContainer(for: schema, configurations: [memConfig])
         }

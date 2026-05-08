@@ -167,9 +167,9 @@ Settings → "Export my logs" generates a JSON file via `ShareSheet`. Settings �
 
 ## ADR-007 — Voice integration (input + output)
 
-**Context.** Initial spec required typing for Q3 (Gratitude, ≤140 chars) and Q4 (Intention, ≤30 chars). Typing on iOS at wake-up is high friction: tired eyes, clumsy fingers, the keyboard takes 50 % of the screen and breaks the calm posture. Symmetrically, forcing the user to read the AI synthesis on-screen keeps them locked to the device when they should be transitioning to the rest of their morning (coffee, brushing teeth).
+**Context.** The morning ritual relies on two free-form questions — Q3 Priority and Q4 Gratitude. Typing on iOS at wake-up is high friction: tired eyes, clumsy fingers, the keyboard takes 50 % of the screen and breaks the calm posture. Symmetrically, forcing the user to read the AI synthesis on-screen keeps them locked to the device when they should be transitioning to the rest of their morning (coffee, brushing teeth).
 
-**Decision.** Add **voice input (dictation)** for Q3/Q4 and **voice output (TTS)** for the AI synthesis — in V1.
+**Decision.** Add **voice input (dictation)** for Q3 Priority + Q4 Gratitude and **voice output (TTS)** for the AI synthesis — in V1.
 
 | Capability | Framework | Cost | Privacy |
 |---|---|---|---|

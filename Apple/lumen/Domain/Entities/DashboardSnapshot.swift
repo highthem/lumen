@@ -6,8 +6,9 @@ struct MoodSummary: Sendable, Codable, Hashable {
 }
 
 struct PrioritySummary: Sendable, Codable, Hashable {
-    let category: PriorityCategory
-    let note: String?
+    /// Free-text answer the user dictated or typed at Q3 (V11 voice-first
+    /// shape). Replaces the V8-V10 category/note tuple.
+    let text: String
 }
 
 struct DashboardSnapshot: Sendable, Codable, Hashable {

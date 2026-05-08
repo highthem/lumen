@@ -62,9 +62,10 @@ final class SettingsViewModel {
     var breathingSoundId: String {
         didSet {
             UserDefaults.standard.set(breathingSoundId, forKey: breathingSoundKey)
-            Task {
+            let id = breathingSoundId
+            Task { @MainActor [audioPlayer] in
                 audioPlayer.stop()
-                try? await audioPlayer.play(soundId: breathingSoundId, fadeIn: false)
+                try? await audioPlayer.play(soundId: id, fadeIn: false)
             }
         }
     }

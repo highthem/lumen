@@ -57,7 +57,7 @@ Captured during testing and used in the Loom demo:
 `lumenTests/Fixtures/AIResponses/` — JSON fixtures matching each provider's response shape. Used to exercise the waterfall logic without hitting real APIs.
 
 ### Sample questionnaire answers
-`lumenTests/Fixtures/QuestionnaireAnswers/` — covering all five mood levels (Q1) and a representative spread of priorities (Q2), gratitudes (Q3), and intentions (Q4).
+`lumenTests/Fixtures/QuestionnaireAnswers/` — covering all five mood levels (Q1), all five energy levels (Q2), a representative spread of priorities (Q3), and gratitudes (Q4).
 
 ### Sample ethical-monitoring export
 `docs/samples/ethical-monitoring-export.json` — anonymised JSON example matching the schema in [ETHICAL_MONITORING.md](ETHICAL_MONITORING.md).

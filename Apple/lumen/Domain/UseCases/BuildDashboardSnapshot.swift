@@ -30,8 +30,8 @@ struct BuildDashboardSnapshot: Sendable {
                 mood = MoodSummary(level: level, tag: tag)
             case .energy(let level):
                 energy = level
-            case .priority(let category, let note):
-                priority = PrioritySummary(category: category, note: note)
+            case .priority(let text):
+                priority = PrioritySummary(text: text)
             case .gratitude(let text):
                 gratitude = text
             }

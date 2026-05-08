@@ -66,7 +66,6 @@ struct AlarmListView: View {
             VStack(alignment: .leading, spacing: LumenSpacing.xs) {
                 Text(timeString(from: alarm.time))
                     .lumenFont(.title1)
-                    .fontWeight(.medium)
                     .foregroundStyle(alarm.isActive ? LumenColor.textPrimary : LumenColor.textTertiary)
                 Text(recurrenceLabel(alarm.recurrence))
                     .lumenFont(.caption)

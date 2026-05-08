@@ -27,6 +27,7 @@ struct TypographyCatalog: View {
         case .wordmark:          return "wordmark"
         case .welcome:           return "welcome"
         case .questionnaireHero: return "questionnaireHero"
+        case .timePickerHero:    return "timePickerHero"
         case .alarmHero:         return "alarmHero"
         }
     }

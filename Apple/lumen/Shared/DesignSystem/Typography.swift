@@ -31,6 +31,7 @@ enum LumenFont: Sendable, CaseIterable {
     case wordmark         // 56pt — splash wordmark
     case welcome          // 56pt — onboarding welcome
     case questionnaireHero // 64pt — Q4 hero
+    case timePickerHero   // 56pt — alarm-edit + first-alarm wheel (selected row)
     case alarmHero        // 96pt — alarm clock
 
     var size: CGFloat {
@@ -57,6 +58,7 @@ enum LumenFont: Sendable, CaseIterable {
         case .wordmark: 56
         case .welcome: 56
         case .questionnaireHero: 64
+        case .timePickerHero: 56
         case .alarmHero: 96
         }
     }
@@ -69,7 +71,7 @@ enum LumenFont: Sendable, CaseIterable {
         case .body, .callout, .footnote, .caption: .regular
         case .bodySerif, .bodySerifSm, .bodySerifLg, .calloutSerif, .footnoteSerif: .regular
         case .inputSerifLg, .questionnaireQM, .displayBold, .welcome, .questionnaireHero: .medium
-        case .wordmark, .alarmHero: .regular
+        case .wordmark, .alarmHero, .timePickerHero: .regular
         }
     }
 
@@ -77,7 +79,7 @@ enum LumenFont: Sendable, CaseIterable {
         switch self {
         case .heroDisplay, .synthesisHero, .display, .title1, .title2: .serif
         case .bodySerif, .bodySerifSm, .bodySerifLg, .calloutSerif, .footnoteSerif: .serif
-        case .inputSerifLg, .questionnaireQM, .displayBold, .wordmark, .welcome, .questionnaireHero, .alarmHero: .serif
+        case .inputSerifLg, .questionnaireQM, .displayBold, .wordmark, .welcome, .questionnaireHero, .alarmHero, .timePickerHero: .serif
         default: .default
         }
     }
@@ -105,6 +107,7 @@ enum LumenFont: Sendable, CaseIterable {
         case .wordmark: 1.0
         case .welcome: 1.10
         case .questionnaireHero: 1.10
+        case .timePickerHero: 1.0
         case .alarmHero: 1.0
         }
     }
@@ -126,6 +129,7 @@ enum LumenFont: Sendable, CaseIterable {
         case .wordmark: -0.01 * size
         case .welcome: -0.01 * size
         case .questionnaireHero: -0.0175 * size
+        case .timePickerHero: -0.025 * size
         case .alarmHero: -0.03 * size
         default: 0
         }

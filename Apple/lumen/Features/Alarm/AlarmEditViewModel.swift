@@ -56,7 +56,7 @@ final class AlarmEditViewModel {
     func previewSound(_ id: String) {
         previewingSoundId = id
         audioPlayer.stop()
-        Task {
+        Task { @MainActor [audioPlayer] in
             try? await audioPlayer.play(soundId: id, fadeIn: false)
         }
     }

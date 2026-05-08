@@ -13,11 +13,15 @@ final class QuestionnaireFlowViewModel {
     var moodTag: String?
 
     // Q2 — Energy
-    var energyLevel: EnergyLevel?
+    /// Slider position 0…4 (corresponds to EnergyLevel by index). Default
+    /// to "moyen" so the slider has a calm initial state and `Suivant`
+    /// stays tappable without requiring a selection action.
+    var energyLevel: Int = 2
 
-    // Q3 — Priority
-    var priorityCategory: PriorityCategory?
-    var priorityNote: String = ""
+    // Q3 — Priority (V11 voice-first; mirrors gratitude state)
+    var priorityText: String = ""
+    var priorityMicState: MicState = .idle
+    var priorityEditingByKeyboard: Bool = false
 
     // Q4 — Gratitude
     var gratitudeText: String = ""
@@ -28,23 +32,33 @@ final class QuestionnaireFlowViewModel {
     private let saveAnswer: SaveQuestionnaireAnswer
     let dictation: DictateAnswer
     private var dictationTask: Task<Void, Never>?
+    /// When non-nil, the upstream presence timer already created today's ritual
+    /// and handed us its ID — `start()` then skips its redundant fetch and
+    /// hydrates the existing `Ritual` snapshot instead.
+    private let presetRitualId: UUID?
 
     init(
         startRitual: StartRitual,
         saveAnswer: SaveQuestionnaireAnswer,
         dictation: DictateAnswer,
-        initialStep: QuestionnaireStep = .mood
+        initialStep: QuestionnaireStep = .mood,
+        presetRitualId: UUID? = nil
     ) {
         self.startRitual = startRitual
         self.saveAnswer = saveAnswer
         self.dictation = dictation
         self.step = initialStep
+        self.presetRitualId = presetRitualId
         self.editingByKeyboard = !SettingsViewModel.isVoiceModeEnabled
     }
 
     // MARK: - Lifecycle
 
     func start() async {
+        // `startRitual.execute()` calls `fetchOrCreateToday()` which is idempotent:
+        // it returns the same ritual the presence timer already created (if any).
+        // We always call it — `presetRitualId` is a hint we can verify against,
+        // not a load-bearing parameter, so a stale hint can't desync state.
         do {
             ritual = try await startRitual.execute()
         } catch {
@@ -92,11 +106,11 @@ final class QuestionnaireFlowViewModel {
         case .mood:
             payload = .mood(level: moodLevel, tag: moodTag)
         case .energy:
-            guard let level = energyLevel else { return }
-            payload = .energy(level: level)
+            payload = .energy(level: EnergyLevel(sliderIndex: energyLevel))
         case .priority:
-            guard let category = priorityCategory else { return }
-            payload = .priority(category: category, note: priorityNote.isEmpty ? nil : priorityNote)
+            let trimmed = priorityText.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !trimmed.isEmpty else { return }
+            payload = .priority(text: trimmed)
         case .gratitude:
             guard !gratitudeText.isEmpty else { return }
             payload = .gratitude(text: gratitudeText)
@@ -109,11 +123,15 @@ final class QuestionnaireFlowViewModel {
 
     func startDictation(for targetStep: QuestionnaireStep) {
         dictationTask?.cancel()
-        dictationTask = Task {
-            let stream = dictation.execute(locale: Locale(identifier: "fr_FR"))
+        // Explicit MainActor isolation — without it, the Task inherits the
+        // enclosing context's isolation, which Swift 6 strict concurrency
+        // can't always prove safe for cross-actor mutation inside the loop.
+        dictationTask = Task { @MainActor [weak self] in
+            guard let self else { return }
+            let stream = self.dictation.execute(locale: Locale(identifier: "fr_FR"))
             for await state in stream {
                 guard !Task.isCancelled else { break }
-                handle(transcriptionState: state, for: targetStep)
+                self.handle(transcriptionState: state, for: targetStep)
             }
         }
     }
@@ -123,7 +141,13 @@ final class QuestionnaireFlowViewModel {
         await dictation.stop()
         switch targetStep {
         case .gratitude:
-            if micState == .listening { micState = gratitudeText.isEmpty ? .idle : .transcribed }
+            if micState == .listening {
+                micState = gratitudeText.isEmpty ? .idle : .transcribed
+            }
+        case .priority:
+            if priorityMicState == .listening {
+                priorityMicState = priorityText.isEmpty ? .idle : .transcribed
+            }
         default:
             break
         }
@@ -132,20 +156,45 @@ final class QuestionnaireFlowViewModel {
     private func handle(transcriptionState: VoiceTranscribingState, for targetStep: QuestionnaireStep) {
         switch targetStep {
         case .gratitude:
-            switch transcriptionState {
-            case .listening:
-                micState = .listening
-            case .transcribed(let text):
-                gratitudeText = text
-                micState = .transcribed
-            case .error(let err):
-                if err == .unsupportedLocale || err == .permissionDenied { editingByKeyboard = true }
-                micState = .idle
-            case .finished:
-                if micState == .listening { micState = gratitudeText.isEmpty ? .idle : .transcribed }
-            }
+            applyTranscriptionToGratitude(transcriptionState)
+        case .priority:
+            applyTranscriptionToPriority(transcriptionState)
         default:
             break
+        }
+    }
+
+    private func applyTranscriptionToGratitude(_ state: VoiceTranscribingState) {
+        switch state {
+        case .listening:
+            micState = .listening
+        case .transcribed(let text):
+            gratitudeText = text
+            micState = .transcribed
+        case .error(let err):
+            if err == .unsupportedLocale || err == .permissionDenied { editingByKeyboard = true }
+            micState = .idle
+        case .finished:
+            if micState == .listening {
+                micState = gratitudeText.isEmpty ? .idle : .transcribed
+            }
+        }
+    }
+
+    private func applyTranscriptionToPriority(_ state: VoiceTranscribingState) {
+        switch state {
+        case .listening:
+            priorityMicState = .listening
+        case .transcribed(let text):
+            priorityText = text
+            priorityMicState = .transcribed
+        case .error(let err):
+            if err == .unsupportedLocale || err == .permissionDenied { priorityEditingByKeyboard = true }
+            priorityMicState = .idle
+        case .finished:
+            if priorityMicState == .listening {
+                priorityMicState = priorityText.isEmpty ? .idle : .transcribed
+            }
         }
     }
 
@@ -153,5 +202,11 @@ final class QuestionnaireFlowViewModel {
         dictationTask?.cancel()
         gratitudeText = ""
         micState = .idle
+    }
+
+    func resetPriority() {
+        dictationTask?.cancel()
+        priorityText = ""
+        priorityMicState = .idle
     }
 }

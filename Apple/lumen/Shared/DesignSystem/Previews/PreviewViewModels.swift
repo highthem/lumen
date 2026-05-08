@@ -77,7 +77,12 @@ extension DashboardHomeViewModel {
         let alarmRepo = PreviewAlarmRepository()
         let sleep = NullSleepHealthService()
         let build = BuildDashboardSnapshot(ritualRepository: ritualRepo, sleepService: sleep)
-        let vm = DashboardHomeViewModel(buildDashboard: build, alarmRepository: alarmRepo, sleepService: sleep)
+        let vm = DashboardHomeViewModel(
+            buildDashboard: build,
+            alarmRepository: alarmRepo,
+            sleepService: sleep,
+            quoteProvider: JSONQuoteProvider()
+        )
         vm.snapshot = .preview
         vm.hasAnyAlarm = true
         vm.hasAnyRitual = true

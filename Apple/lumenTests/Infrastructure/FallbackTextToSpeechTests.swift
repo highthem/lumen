@@ -18,6 +18,9 @@ struct FallbackTextToSpeechTests {
             lastText = text
             if let e = shouldThrow { throw e }
         }
+        func progress() -> AsyncStream<TTSProgress> {
+            AsyncStream { cont in cont.finish() }
+        }
         func pause()  {}
         func resume() {}
         func stop()   {}

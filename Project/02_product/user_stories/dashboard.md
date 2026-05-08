@@ -31,10 +31,10 @@ Rationale : chaque card est alimentée — 4 par les questions, 1 par le timer, 
 **Afin de** ne pas re-saisir des infos et ne pas voir de placeholder vide
 
 **Critères d'acceptation :**
-- Humeur : tag de Q1 (ex. "posé", "vif").
+- Humeur : tag de Q1 (ex. "posé", "vif") dérivé de la position du `ChromaticSlider`.
 - Énergie : niveau de Q2 (À plat / Faiblard / Moyen / Bien chargé / Au top).
-- Priorité : catégorie de Q3 (Énergie / Travail / Relations / Corps / Gratitude).
-- Gratitude : texte de Q4.
+- Priorité : texte libre dicté ou tapé en Q3 (truncate 2 lignes max).
+- Gratitude : texte libre dicté ou tapé en Q4 (truncate 2 lignes max).
 - Présence : état persisté par le timer 60s (completed → "60 secondes prises" / partial → "Quelques secondes" / skipped → "Pas de présence ce matin").
 - Sommeil : durée + qualité depuis HealthKit. Si non autorisé / pas de données : CTA "Active Apple Santé pour voir ta nuit", tap → half-sheet permission.
 

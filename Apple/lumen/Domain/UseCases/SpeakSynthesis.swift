@@ -13,6 +13,13 @@ struct SpeakSynthesis: Sendable {
         try await tts.speak(text, voiceId: voiceId, rate: rate)
     }
 
+    /// Pass-through to the underlying TTS impl. The view subscribes BEFORE
+    /// calling `execute(...)` so it doesn't miss the first emit.
+    @MainActor
+    func progress() -> AsyncStream<TTSProgress> {
+        tts.progress()
+    }
+
     @MainActor
     func stop() {
         tts.stop()

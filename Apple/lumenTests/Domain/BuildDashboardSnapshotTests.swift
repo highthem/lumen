@@ -37,7 +37,7 @@ final class BuildDashboardSnapshotTests: XCTestCase {
             answers: [
                 QuestionnaireAnswer(ritualId: ritualId, payload: .mood(level: 7, tag: "posé")),
                 QuestionnaireAnswer(ritualId: ritualId, payload: .energy(level: .charged)),
-                QuestionnaireAnswer(ritualId: ritualId, payload: .priority(category: .energy, note: "Bloquer 90 min")),
+                QuestionnaireAnswer(ritualId: ritualId, payload: .priority(text: "Bloquer 90 min pour le brief.")),
                 QuestionnaireAnswer(ritualId: ritualId, payload: .gratitude(text: "Le silence."))
             ],
             presence: .completed
@@ -51,8 +51,7 @@ final class BuildDashboardSnapshotTests: XCTestCase {
         XCTAssertEqual(snapshot.mood?.level, 7)
         XCTAssertEqual(snapshot.mood?.tag, "posé")
         XCTAssertEqual(snapshot.energy, .charged)
-        XCTAssertEqual(snapshot.priority?.category, .energy)
-        XCTAssertEqual(snapshot.priority?.note, "Bloquer 90 min")
+        XCTAssertEqual(snapshot.priority?.text, "Bloquer 90 min pour le brief.")
         XCTAssertEqual(snapshot.gratitude, "Le silence.")
         XCTAssertEqual(snapshot.presence, .completed)
     }

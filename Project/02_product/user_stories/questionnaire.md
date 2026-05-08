@@ -5,12 +5,12 @@ En tant qu'utilisateur, je veux répondre à 4 questions courtes pour cadrer ma 
 
 ## Les 4 étapes
 
-1. **Humeur** : "Aujourd'hui je me sens…" — échelle chromatique 5 niveaux + tag (enfoui / fragile / posé / vif / rayonnant)
+1. **Humeur** : "Aujourd'hui je me sens…" — `ChromaticSlider` plein écran, drag vertical continu (0→1, 5 paliers : enfoui / fragile / posé / vif / rayonnant)
 2. **Énergie** : "Quelle énergie ce matin ?" — 5 chips (À plat / Faiblard / Moyen / Bien chargé / Au top)
-3. **Priorité** : "Sur quoi tu veux poser l'attention ?" — 1 catégorie parmi 5 (Énergie / Travail / Relations / Corps / Gratitude) + note libre optionnelle
-4. **Gratitude** : "Une gratitude ?" — **vocal par défaut** + fallback typing (≤ 140 caractères)
+3. **Priorité** : "Sur quoi tu veux poser l'attention ?" — **vocal par défaut** (4 états : default / listening / transcribed / editing) + fallback typing libre
+4. **Gratitude** : "Une gratitude ?" — **vocal par défaut** (mêmes 4 états) + fallback typing (≤ 140 caractères)
 
-Rationale : Q1 + Q2 = 1 tap chacun (zéro friction au réveil). Q3 = 1 tap chip + note vocale optionnelle. Q4 = dictation vocale on-device, typing en fallback. Complétion en < 90 secondes sans clavier prolongé. Le bouton final passe à "Voir ma synthèse" sur Q4.
+Rationale : Q1 = drag continu (zéro tap). Q2 = 1 tap chip. Q3 + Q4 = dictation vocale on-device, typing en fallback. Complétion en < 90 secondes sans clavier prolongé. Le bouton final passe à "Voir ma synthèse" sur Q4.
 
 Voir `Project/04_tech/adr/ADR-007-voice-integration.md` pour le détail technique (Speech framework + TTS).
 
@@ -68,17 +68,18 @@ Voir `Project/04_tech/adr/ADR-007-voice-integration.md` pour le détail techniqu
 - Si l'utilisateur ne revient pas dans la journée : les réponses partielles sont persistées avec un flag `isPartial: true`.
 - La synthèse IA n'est générée que si Q1 + Q4 sont remplis minimum.
 
-## US-Q6 — Input vocal pour Q4 Gratitude (voir ADR-007)
+## US-Q6 — Input vocal pour Q3 Priorité + Q4 Gratitude (voir ADR-007)
 **En tant qu'** utilisateur qui vient d'ouvrir les yeux
-**Je veux** dicter ma gratitude au lieu de taper
+**Je veux** dicter ma priorité et ma gratitude au lieu de taper
 **Afin de** ne pas avoir à manipuler le clavier au réveil
 
-**Critères d'acceptation :**
-- Q4 affiche un bouton micro central large (taille pouce) comme input par défaut.
-- Animation pulse subtile pendant l'écoute (cohérent avec cercle respiration timer).
+**Critères d'acceptation (s'appliquent à Q3 et Q4) :**
+- Q3 et Q4 partagent le composant `VoiceCaptureField` — 4 états visibles : default / listening / transcribed / editing.
+- État `default` : bouton micro central large (taille pouce) + invitation textuelle ("Appuie pour parler" ou équivalent).
+- État `listening` : animation pulse subtile pendant l'écoute (cohérent avec cercle respiration timer).
+- État `transcribed` : texte transcrit affiché en typo serif large dans la zone réponse.
+- État `editing` : bouton "Écrire au clavier" discret pour passer en saisie textuelle (id `priority-keyboard-toggle` / `gratitude-keyboard-toggle` pour Maestro).
 - Auto-stop après 2 s de silence détecté.
-- Le texte transcrit s'affiche en typo serif large dans la zone réponse.
-- Bouton "Modifier" discret pour passer au keyboard (correction manuelle ou usage différent).
 - Bouton "Recommencer" si transcription ratée.
 - Reconnaissance vocale en mode `requiresOnDeviceRecognition = true` — l'audio ne quitte jamais le device.
 - Si la langue de l'utilisateur n'est pas supportée on-device, fallback transparent vers typing (jamais cloud Apple).

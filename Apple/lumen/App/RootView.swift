@@ -5,7 +5,11 @@ import SwiftUI
 enum RitualFlowState: Equatable {
     case none
     case timer
-    case questionnaire(UUID)
+    /// Optional hint — non-nil when the presence timer already created today's
+    /// ritual and we want the questionnaire to skip its redundant fetch. The
+    /// QuestionnaireFlowViewModel still calls `startRitual.execute()` as a
+    /// safety net (the use case is idempotent for the day).
+    case questionnaire(UUID?)
     case synthesis(UUID)
 
     var isActive: Bool { self != .none }
@@ -164,7 +168,8 @@ struct RootView: View {
             vm: DashboardHomeViewModel(
                 buildDashboard: composition.buildDashboardSnapshot,
                 alarmRepository: composition.alarmRepository,
-                sleepService: composition.sleepHealthService
+                sleepService: composition.sleepHealthService,
+                quoteProvider: composition.quoteProvider
             ),
             refreshKey: dashboardRefreshKey,
             onStartRitual: { ritualFlow = .timer },
@@ -230,19 +235,22 @@ struct RootView: View {
                     soundProvider: composition.soundProvider,
                     ritualRepository: composition.ritualRepository
                 ),
-                onComplete: {
-                    // Move to questionnaire with a placeholder ritual ID (startRitual will create it)
-                    ritualFlow = .questionnaire(UUID())
+                onComplete: { ritualId in
+                    // Thread the real ritual ID — the timer VM already created
+                    // today's ritual via fetchOrCreateToday, so the questionnaire
+                    // can skip its own redundant fetch.
+                    ritualFlow = .questionnaire(ritualId)
                 }
             )
 
-        case .questionnaire:
+        case .questionnaire(let presetRitualId):
             QuestionnaireFlowView(
                 vm: QuestionnaireFlowViewModel(
                     startRitual: composition.startRitual,
                     saveAnswer: composition.saveQuestionnaireAnswer,
                     dictation: composition.dictateAnswer,
-                    initialStep: questionnaireInitialStep
+                    initialStep: questionnaireInitialStep,
+                    presetRitualId: presetRitualId
                 ),
                 onComplete: { ritualId in
                     ritualFlow = .synthesis(ritualId)
@@ -288,7 +296,7 @@ struct RootView: View {
 
         case .questionnaire(let step):
             questionnaireInitialStep = step
-            ritualFlow = .questionnaire(UUID())
+            ritualFlow = .questionnaire(nil)
 
         case .synthesis(let ritualId):
             ritualFlow = .synthesis(ritualId)

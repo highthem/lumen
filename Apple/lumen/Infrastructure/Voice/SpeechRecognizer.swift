@@ -1,9 +1,6 @@
 import Foundation
 import Speech
 import AVFoundation
-import OSLog
-
-private let log = Logger(subsystem: "com.highthem.lumen", category: "SpeechRecognizer")
 
 @MainActor
 final class SpeechRecognizer: VoiceTranscribing {
@@ -29,8 +26,11 @@ final class SpeechRecognizer: VoiceTranscribing {
             }
 
             continuation.onTermination = { [weak self] _ in
+                // The stream may terminate from any thread (caller cancels its
+                // for-await, or Speech.framework finishes). Hop to MainActor
+                // exactly once, then run the (idempotent) teardown.
                 Task { @MainActor in
-                    await self?.stop()
+                    self?.tearDownAndDeactivateSession()
                 }
             }
 
@@ -40,16 +40,16 @@ final class SpeechRecognizer: VoiceTranscribing {
                     return
                 }
 
-                log.info("startTranscription: requesting permissions")
+                LumenLog.speechRecognition.info("startTranscription: requesting permissions")
                 guard await self.permissions.bothGranted() else {
-                    log.error("startTranscription: permissions denied")
+                    LumenLog.speechRecognition.error("startTranscription: permissions denied")
                     continuation.yield(.error(.permissionDenied))
                     continuation.finish()
                     return
                 }
 
                 guard self.isOnDeviceSupported(locale: locale) else {
-                    log.notice("startTranscription: locale not supported on-device — falling back via unsupportedLocale")
+                    LumenLog.speechRecognition.notice("startTranscription: locale not supported on-device; falling back via unsupportedLocale")
                     continuation.yield(.error(.unsupportedLocale))
                     continuation.finish()
                     return
@@ -57,7 +57,7 @@ final class SpeechRecognizer: VoiceTranscribing {
 
                 let recognizer = self.resolveRecognizer(locale: locale)
                 guard let recognizer, recognizer.isAvailable else {
-                    log.error("startTranscription: recognizer unavailable")
+                    LumenLog.speechRecognition.error("startTranscription: recognizer unavailable")
                     continuation.yield(.error(.unsupportedLocale))
                     continuation.finish()
                     return
@@ -70,9 +70,9 @@ final class SpeechRecognizer: VoiceTranscribing {
                     try session.setCategory(.record, mode: .measurement, options: .duckOthers)
                     try session.setActive(true, options: .notifyOthersOnDeactivation)
                     self.sessionConfigured = true
-                    log.info("startTranscription: audio session configured (.record)")
+                    LumenLog.speechRecognition.info("startTranscription: audio session configured (.record)")
                 } catch {
-                    log.error("startTranscription: audio session error \(String(describing: error))")
+                    LumenLog.speechRecognition.error("startTranscription: audio session error", error: error)
                     continuation.yield(.error(.audioEngineFailed))
                     continuation.finish()
                     return
@@ -104,7 +104,7 @@ final class SpeechRecognizer: VoiceTranscribing {
                         onError:     Self.makeErrorCallback(continuation: continuation)
                     )
                 } catch {
-                    log.error("startTranscription: audio pipeline failed \(String(describing: error))")
+                    LumenLog.speechRecognition.error("startTranscription: audio pipeline failed", error: error)
                     self.audioEngine.inputNode.removeTap(onBus: 0)
                     continuation.yield(.error(.audioEngineFailed))
                     await self.stop()
@@ -113,23 +113,32 @@ final class SpeechRecognizer: VoiceTranscribing {
                 }
 
                 self.recognitionTask = task
-                log.info("startTranscription: pipeline live")
+                LumenLog.speechRecognition.info("startTranscription: pipeline live")
             }
         }
     }
 
     nonisolated func stop() async {
         await MainActor.run {
-            self.teardownActiveSessionPreservingEngine()
-            if self.sessionConfigured {
-                let session = AVAudioSession.sharedInstance()
-                try? session.setActive(false, options: .notifyOthersOnDeactivation)
-                // Restore `.playback` so the next non-recording audio (TTS,
-                // alarm fade-in) finds a sane category. `.record` left over
-                // from dictation produces silent playback.
-                try? session.setCategory(.playback, options: [.duckOthers])
-                self.sessionConfigured = false
-            }
+            self.tearDownAndDeactivateSession()
+        }
+    }
+
+    /// Idempotent teardown — safe to call from anywhere on MainActor (direct,
+    /// from `stop()`, or from the AsyncStream's `onTermination` hop). The
+    /// underlying mutators (`recognitionTask?.cancel()`, `removeTap`, etc.)
+    /// all tolerate being invoked on already-cleaned state.
+    @MainActor
+    private func tearDownAndDeactivateSession() {
+        teardownActiveSessionPreservingEngine()
+        if sessionConfigured {
+            let session = AVAudioSession.sharedInstance()
+            try? session.setActive(false, options: .notifyOthersOnDeactivation)
+            // Restore `.playback` so the next non-recording audio (TTS,
+            // alarm fade-in) finds a sane category. `.record` left over
+            // from dictation produces silent playback.
+            try? session.setCategory(.playback, options: [.duckOthers])
+            sessionConfigured = false
         }
     }
 
@@ -182,7 +191,7 @@ final class SpeechRecognizer: VoiceTranscribing {
         let format = inputNode.outputFormat(forBus: 0)
 
         guard format.sampleRate > 0, format.channelCount > 0 else {
-            log.error("installAudioPipeline: invalid input format \(String(describing: format))")
+            LumenLog.speechRecognition.error("installAudioPipeline: invalid input format \(String(describing: format))")
             throw VoiceTranscribingError.audioEngineFailed
         }
 
@@ -197,7 +206,7 @@ final class SpeechRecognizer: VoiceTranscribing {
             try engine.start()
         } catch {
             inputNode.removeTap(onBus: 0)
-            log.error("installAudioPipeline: engine.start failed \(String(describing: error))")
+            LumenLog.speechRecognition.error("installAudioPipeline: engine.start failed", error: error)
             throw VoiceTranscribingError.audioEngineFailed
         }
 

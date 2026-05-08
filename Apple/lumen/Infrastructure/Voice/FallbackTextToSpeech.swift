@@ -1,5 +1,4 @@
 import Foundation
-import os.log
 
 /// TTS decorator: tries the primary synthesizer; on throw, transparently falls back.
 /// The fallback is resolved at *each call*, not init-time — so a transient ElevenLabs
@@ -11,7 +10,6 @@ final class FallbackTextToSpeech: TextToSpeeching {
     private let session: AudioSessionManager
     private let ethicalLogger: EthicalLogger?
     private let isPrimaryEnabled: @Sendable () -> Bool
-    private let osLog = Logger(subsystem: "com.highthem.lumen", category: "tts.fallback")
 
     private var activeProvider: ActiveProvider = .none
 
@@ -43,6 +41,31 @@ final class FallbackTextToSpeech: TextToSpeeching {
         primary.availableVoices()
     }
 
+    /// The synthesis screen subscribes BEFORE calling `speak(...)`, so we
+    /// don't yet know whether primary or fallback will end up active. We
+    /// merge both child streams into a single one — only one of them will
+    /// actually emit during a given session, and the inactive one finishes
+    /// quickly when its `speak()` isn't called.
+    func progress() -> AsyncStream<TTSProgress> {
+        AsyncStream(TTSProgress.self, bufferingPolicy: .bufferingNewest(1)) { cont in
+            let primaryStream = primary.progress()
+            let fallbackStream = fallback.progress()
+            Task { @MainActor in
+                for await p in primaryStream {
+                    cont.yield(p)
+                }
+            }
+            Task { @MainActor in
+                for await p in fallbackStream {
+                    cont.yield(p)
+                }
+            }
+            // Caller cancellation finishes the stream (the child Tasks above
+            // exit naturally when their child streams complete or the parent
+            // continuation is gone).
+        }
+    }
+
     func speak(_ text: String, voiceId: String?, rate: Double) async throws {
         // Configure the audio session for `.playback` before delegating. The
         // dictation pipeline leaves the session at `.record` + inactive, and
@@ -63,7 +86,7 @@ final class FallbackTextToSpeech: TextToSpeeching {
             try await primary.speak(text, voiceId: voiceId, rate: rate)
             await logTTS(provider: "elevenlabs", success: true, fallbackReason: nil)
         } catch {
-            osLog.warning("Primary TTS failed: \(String(describing: error)) — falling back")
+            LumenLog.textToSpeech.warning("Primary TTS failed; falling back", error: error)
             activeProvider = .fallback
             try await fallback.speak(text, voiceId: nil, rate: rate)
             await logTTS(provider: "apple-on-device", success: true, fallbackReason: "\(error)")

@@ -138,22 +138,24 @@ env:
     id: "mood-3"   # 3rd dot = posé
 - tapOn: "Suivant"
 
-# Q2 Priority — sélectionner Énergie
-- assertVisible: "Qu'est-ce qui compte"
-- tapOn: "Énergie"
+# Q2 Énergie — slider chips (default level "Moyen", just advance)
+- assertVisible:
+    id: "energy-orb"
 - tapOn: "Suivant"
 
-# Q3 Gratitude — fallback typing (Maestro can't mic)
-- assertVisible: "Une gratitude"
-- tapOn: "Écrire au clavier"
-- inputText: "Le silence avant que les enfants se lèvent."
+# Q3 Priorité — voice-first, fallback typing (Maestro can't mic)
+- assertVisible: "Sur quoi tu veux poser l'attention"
+- tapOn:
+    id: "priority-keyboard-toggle"
+- inputText: "Bloquer 90 minutes pour le brief."
 - hideKeyboard
 - tapOn: "Suivant"
 
-# Q4 Intention — typing fallback
-- assertVisible: "Ton intention"
-- tapOn: "Écrire au clavier"
-- inputText: "présence"
+# Q4 Gratitude — voice-first, fallback typing
+- assertVisible: "Une gratitude"
+- tapOn:
+    id: "gratitude-keyboard-toggle"
+- inputText: "Le silence avant que les enfants se lèvent."
 - hideKeyboard
 - tapOn: "Voir ma synthèse"
 

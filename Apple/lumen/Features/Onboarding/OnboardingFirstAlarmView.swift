@@ -5,7 +5,7 @@ struct OnboardingFirstAlarmView: View {
     let onComplete: () -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
+        VStack(alignment: .leading, spacing: LumenSpacing.xl) {
             HStack {
                 Button(action: { vm.goBack() }) {
                     Image(systemName: "chevron.left")
@@ -18,43 +18,41 @@ struct OnboardingFirstAlarmView: View {
             }
             .padding(.top, LumenSpacing.xl)
 
-            Spacer().frame(height: LumenSpacing.xl)
+            VStack(alignment: .leading, spacing: LumenSpacing.m) {
+                Text("04 / 04")
+                    .lumenFont(.caption)
+                    .textCase(.uppercase)
+                    .foregroundStyle(LumenColor.textSecondary)
 
-            Text("04 / 04")
-                .lumenFont(.caption)
-                .textCase(.uppercase)
-                .foregroundStyle(LumenColor.textSecondary)
-
-            Spacer().frame(height: LumenSpacing.m)
-
-            Text("À quelle heure veux-tu commencer ?")
-                .lumenFont(.title1)
-                .foregroundStyle(LumenColor.textPrimary)
-                .fixedSize(horizontal: false, vertical: true)
-
-            Spacer().frame(height: LumenSpacing.xl)
+                Text("À quelle heure veux-tu commencer ?")
+                    .lumenFont(.title1)
+                    .foregroundStyle(LumenColor.textPrimary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
 
             WheelTimePicker(selection: $vm.firstAlarmTime)
                 .frame(maxWidth: .infinity)
                 .accessibilityIdentifier("alarm-time-picker")
-
-            Spacer().frame(height: LumenSpacing.m)
 
             Text("Tu pourras changer plus tard.")
                 .lumenFont(.callout)
                 .foregroundStyle(LumenColor.textSecondary)
                 .frame(maxWidth: .infinity, alignment: .center)
 
-            Spacer()
-
+            Spacer(minLength: 0)
+        }
+        .padding(.horizontal, LumenSpacing.l)
+        .safeAreaInset(edge: .bottom) {
             PrimaryCTA("Programmer") {
                 Task {
                     try? await vm.scheduleFirstAlarm()
                     onComplete()
                 }
             }
+            .accessibilityIdentifier("first-alarm-cta")
+            .padding(.horizontal, LumenSpacing.l)
+            .padding(.bottom, LumenSpacing.l)
+            .background(LumenColor.bgPrimary)
         }
-        .padding(.horizontal, LumenSpacing.l)
-        .padding(.bottom, LumenSpacing.xl)
     }
 }

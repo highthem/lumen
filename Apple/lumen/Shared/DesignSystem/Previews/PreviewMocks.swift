@@ -28,7 +28,7 @@ extension Ritual {
             answers: [
                 QuestionnaireAnswer(ritualId: UUID(), payload: .mood(level: 7, tag: "posé")),
                 QuestionnaireAnswer(ritualId: UUID(), payload: .energy(level: .charged)),
-                QuestionnaireAnswer(ritualId: UUID(), payload: .priority(category: .energy, note: "Énergie")),
+                QuestionnaireAnswer(ritualId: UUID(), payload: .priority(text: "Bloquer 90 minutes pour le brief.")),
                 QuestionnaireAnswer(ritualId: UUID(), payload: .gratitude(text: "Le silence avant que les enfants se lèvent."))
             ]
         )
@@ -54,7 +54,7 @@ extension DashboardSnapshot {
             date: Date(),
             mood: MoodSummary(level: 7, tag: "posé"),
             energy: .charged,
-            priority: PrioritySummary(category: .energy, note: "Bloquer 90 min sur le brief"),
+            priority: PrioritySummary(text: "Bloquer 90 min sur le brief."),
             gratitude: "Le silence avant que les enfants se lèvent.",
             presence: .completed,
             sleep: SleepSummary(

@@ -13,7 +13,20 @@ final class PresenceTimerViewModel {
     private let soundProvider: any SoundProviding
     private let ritualRepository: (any RitualRepository)?
     private var countdownTask: Task<Void, Never>?
-    private var ritualId: UUID?
+    /// The ID of today's ritual once we've fetched-or-created it. Exposed so
+    /// the View can hand it to the next stage (questionnaire / synthesis)
+    /// instead of generating a placeholder UUID at the cover boundary.
+    private(set) var ritualId: UUID?
+
+    /// Cancel the countdown and tear down audio. Called by the view in
+    /// `.onDisappear` so we don't keep a 60-second timer alive after the
+    /// cover dismisses. (Can't go in `deinit` under Swift 6 strict
+    /// concurrency — nonisolated deinit can't touch MainActor state.)
+    func stop() {
+        countdownTask?.cancel()
+        countdownTask = nil
+        audioPlayer.stop()
+    }
 
     init(
         quoteProvider: any QuoteProviding,
@@ -43,17 +56,20 @@ final class PresenceTimerViewModel {
             ?? soundProvider.defaultSound(for: .breathing)?.id
             ?? "breath-aube"
         try? await audioPlayer.configureSession()
-        Task { try? await audioPlayer.play(soundId: soundId, fadeIn: true) }
+        Task { @MainActor [audioPlayer] in
+            try? await audioPlayer.play(soundId: soundId, fadeIn: true)
+        }
 
         countdownTask?.cancel()
-        countdownTask = Task {
-            while remaining > 0 {
+        countdownTask = Task { @MainActor [weak self] in
+            guard let self else { return }
+            while self.remaining > 0 {
                 guard !Task.isCancelled else { return }
                 try? await Task.sleep(for: LumenDelay.oneSecond)
                 if Task.isCancelled { return }
-                remaining = max(0, remaining - 1)
+                self.remaining = max(0, self.remaining - 1)
             }
-            isComplete = true
+            self.isComplete = true
         }
         await countdownTask?.value
         audioPlayer.stop()

@@ -2,7 +2,10 @@ import SwiftUI
 
 struct PresenceTimerView: View {
     @State var vm: PresenceTimerViewModel
-    let onComplete: () -> Void
+    /// Carries today's actual ritual ID to the next stage. The VM has already
+    /// fetched-or-created the ritual by the time this fires, so the
+    /// questionnaire downstream can skip its own redundant fetch.
+    let onComplete: (UUID?) -> Void
 
     var body: some View {
         ZStack {
@@ -54,10 +57,11 @@ struct PresenceTimerView: View {
         .task {
             await vm.start()
         }
+        .onDisappear { vm.stop() }
         .onChange(of: vm.isComplete) { _, completed in
             if completed {
                 LumenHaptic.timerEnd()
-                onComplete()
+                onComplete(vm.ritualId)
             }
         }
         .accessibilityIdentifier("presence-timer-screen")
@@ -66,7 +70,7 @@ struct PresenceTimerView: View {
 
 #if DEBUG
 #Preview {
-    PresenceTimerView(vm: .preview, onComplete: {})
+    PresenceTimerView(vm: .preview, onComplete: { _ in })
         .preferredColorScheme(.dark)
 }
 #endif

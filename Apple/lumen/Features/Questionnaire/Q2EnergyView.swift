@@ -1,9 +1,22 @@
 import SwiftUI
 
+/// Q2 — Énergie. Breathing orb that scales with the chosen level (80→200pt)
+/// over a horizontal slider. Replaces the V8-V10 chip stack: design comment
+/// in `screens-flow.jsx:84-256` is explicit — Q2's differentiator from Q1
+/// is *form* (contained orb + horizontal gesture), not chromatic background.
 struct Q2EnergyView: View {
     @Bindable var vm: QuestionnaireFlowViewModel
     let onNext: () -> Void
     let onBack: () -> Void
+
+    private static let labels = ["à plat", "faiblard", "moyen", "bien chargé", "au top"]
+    private static let subs = [
+        "le corps demande lenteur",
+        "tout est un peu loin",
+        "présent, pas encore lancé",
+        "le moteur est prêt",
+        "on peut bouger des montagnes"
+    ]
 
     var body: some View {
         VStack(alignment: .leading, spacing: LumenSpacing.l) {
@@ -17,17 +30,22 @@ struct Q2EnergyView: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
 
-            Spacer(minLength: LumenSpacing.s)
+            VStack(spacing: LumenSpacing.xl) {
+                Spacer(minLength: 0)
+                EnergyOrb(level: vm.energyLevel)
+                    .accessibilityIdentifier("energy-orb")
+                wordSubtitle
+                Spacer(minLength: 0)
+            }
+            .frame(maxWidth: .infinity)
 
-            chipsStack
-                .frame(maxWidth: .infinity)
-
-            Spacer(minLength: LumenSpacing.s)
+            EnergySlider(level: $vm.energyLevel)
+                .accessibilityIdentifier("energy-slider")
 
             FooterRow(
                 backTitle: "Retour",
                 nextTitle: "Suivant",
-                isNextEnabled: vm.energyLevel != nil,
+                isNextEnabled: true,
                 onBack: onBack,
                 onNext: onNext
             )
@@ -37,61 +55,21 @@ struct Q2EnergyView: View {
         .padding(.bottom, LumenSpacing.l)
     }
 
-    @ViewBuilder
-    private var chipsStack: some View {
-        VStack(spacing: LumenSpacing.sm2) {
-            ForEach(Array(EnergyLevel.allCases.enumerated()), id: \.element) { index, level in
-                chip(for: level, identifier: index + 1)
-            }
+    private var wordSubtitle: some View {
+        VStack(spacing: 4) {
+            Text(Self.labels[vm.energyLevel])
+                .lumenFont(.title2)
+                .italic()
+                .foregroundStyle(LumenColor.textPrimary)
+                .id("energy-label-\(vm.energyLevel)")
+                .transition(.opacity)
+            Text(Self.subs[vm.energyLevel])
+                .lumenFont(.footnoteSerif)
+                .italic()
+                .foregroundStyle(LumenColor.textSecondary)
         }
-    }
-
-    private func chip(for level: EnergyLevel, identifier: Int) -> some View {
-        let isSelected = vm.energyLevel == level
-        return Button {
-            vm.energyLevel = (vm.energyLevel == level) ? nil : level
-        } label: {
-            HStack(alignment: .center, spacing: LumenSpacing.m) {
-                VStack(alignment: .leading, spacing: LumenSpacing.xxs) {
-                    Text(level.displayName)
-                        .lumenFont(.body)
-                        .fontWeight(.medium)
-                        .foregroundStyle(isSelected ? LumenColor.accent : LumenColor.textPrimary)
-                    Text(level.subtitle)
-                        .lumenFont(.footnoteSerif)
-                        .italic()
-                        .foregroundStyle(LumenColor.textSecondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-
-                Spacer(minLength: 0)
-
-                if isSelected {
-                    Circle()
-                        .fill(LumenColor.accent)
-                        .frame(width: LumenSize.dotLg + 1, height: LumenSize.dotLg + 1)
-                        .transition(.scale.combined(with: .opacity))
-                }
-            }
-            .padding(.horizontal, LumenSpacing.l)
-            .padding(.vertical, LumenSpacing.sm3)
-            .frame(minHeight: LumenSize.buttonSm + 12)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(
-                RoundedRectangle(cornerRadius: LumenRadius.l, style: .continuous)
-                    .fill(isSelected
-                          ? LumenColor.accent.opacity(LumenOpacity.surfaceFill)
-                          : LumenColor.bgSecondary)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: LumenRadius.l, style: .continuous)
-                            .stroke(isSelected ? LumenColor.accent : Color.clear,
-                                    lineWidth: LumenSize.strokeMd)
-                    )
-            )
-            .animation(LumenAnimation.quick, value: isSelected)
-        }
-        .buttonStyle(.plain)
-        .accessibilityIdentifier("energy-\(identifier)")
+        .multilineTextAlignment(.center)
+        .animation(.easeOut(duration: 0.35), value: vm.energyLevel)
     }
 }
 

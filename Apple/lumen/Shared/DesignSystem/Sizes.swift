@@ -42,6 +42,13 @@ enum LumenSize {
     static let mic: CGFloat = 96
     static let micLg: CGFloat = 120
     static let breathCircle: CGFloat = 240
+    static let heroIcon: CGFloat = 48
+    static let energyOrbFrame: CGFloat = 240
+    static let energyOrbMin: CGFloat = 80
+    static let energyOrbStep: CGFloat = 30   // orbSize = min + level * step
+    static let energySliderThumb: CGFloat = 28
+    static let energySliderTrack: CGFloat = 4
+    static let heroQuoteMax: CGFloat = 480
 
     // Strokes
     static let hairline: CGFloat = 1

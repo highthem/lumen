@@ -10,7 +10,7 @@ enum QuestionnaireStep: String, Sendable, Codable, Hashable {
 nonisolated enum AnswerPayload: Sendable, Codable, Hashable {
     case mood(level: Int, tag: String?)
     case energy(level: EnergyLevel)
-    case priority(category: PriorityCategory, note: String?)
+    case priority(text: String)        // V11+ — was: category + note (legacy decoded below)
     case gratitude(text: String)
 
     nonisolated var step: QuestionnaireStep {
@@ -27,7 +27,7 @@ nonisolated enum AnswerPayload: Sendable, Codable, Hashable {
     private enum CodingKeys: String, CodingKey {
         case type
         case level, tag
-        case category, note
+        case category, note   // legacy keys for V8-V10 priority payloads
         case text
     }
 
@@ -41,10 +41,9 @@ nonisolated enum AnswerPayload: Sendable, Codable, Hashable {
         case .energy(let level):
             try container.encode("energy", forKey: .type)
             try container.encode(level, forKey: .level)
-        case .priority(let category, let note):
+        case .priority(let text):
             try container.encode("priority", forKey: .type)
-            try container.encode(category, forKey: .category)
-            try container.encodeIfPresent(note, forKey: .note)
+            try container.encode(text, forKey: .text)
         case .gratitude(let text):
             try container.encode("gratitude", forKey: .type)
             try container.encode(text, forKey: .text)
@@ -63,16 +62,46 @@ nonisolated enum AnswerPayload: Sendable, Codable, Hashable {
             let level = try container.decode(EnergyLevel.self, forKey: .level)
             self = .energy(level: level)
         case "priority":
-            let category = try container.decode(PriorityCategory.self, forKey: .category)
-            let note = try container.decodeIfPresent(String.self, forKey: .note)
-            self = .priority(category: category, note: note)
+            // V11 shape: { type:"priority", text:"..." }
+            if let text = try container.decodeIfPresent(String.self, forKey: .text) {
+                self = .priority(text: text)
+            } else {
+                // Legacy V8-V10 shape: { type:"priority", category:"work", note:"..." }
+                // Surface the category name (+ note if present) as free text so
+                // existing rituals still display sensibly post-rewrite.
+                let categoryRaw = try container.decode(String.self, forKey: .category)
+                let note = try container.decodeIfPresent(String.self, forKey: .note)
+                let displayed = legacyPriorityDisplay(category: categoryRaw, note: note)
+                self = .priority(text: displayed)
+            }
         case "gratitude":
             let text = try container.decode(String.self, forKey: .text)
             self = .gratitude(text: text)
         default:
-            throw DecodingError.dataCorrupted(.init(codingPath: decoder.codingPath, debugDescription: "Unknown AnswerPayload type: \(type)"))
+            throw DecodingError.dataCorrupted(.init(
+                codingPath: decoder.codingPath,
+                debugDescription: "Unknown AnswerPayload type: \(type)"
+            ))
         }
     }
+}
+
+/// Maps a pre-V11 priority `{category, note}` payload to a single free-text
+/// representation. Standalone helper so the Codable init stays readable.
+private nonisolated func legacyPriorityDisplay(category: String, note: String?) -> String {
+    let label: String
+    switch category {
+    case "energy":    label = "Énergie"
+    case "work":      label = "Travail"
+    case "relations": label = "Relations"
+    case "body":      label = "Corps"
+    case "gratitude": label = "Gratitude"
+    default:          label = category.capitalized
+    }
+    if let note, !note.isEmpty {
+        return "\(label). \(note)"
+    }
+    return label
 }
 
 nonisolated struct QuestionnaireAnswer: Identifiable, Sendable, Codable, Hashable {

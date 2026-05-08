@@ -25,6 +25,14 @@ enum TTSVoiceQuality: String, Sendable, Comparable, Hashable {
     }
 }
 
+/// Progress emitted by a TextToSpeeching impl while speech is in flight.
+/// Subscribers (the synthesis view's listen-player) read this to drive the
+/// progress bar + elapsed / remaining countdown labels.
+struct TTSProgress: Sendable, Equatable {
+    let elapsedSeconds: Double
+    let totalSeconds: Double
+}
+
 // `@MainActor` because every conforming impl wraps a UIKit / AVFoundation
 // API (`AVSpeechSynthesizer`, `AVAudioPlayer`) that requires main-thread
 // invocation on iOS 17+. Conformers can stay simple `@MainActor final class`
@@ -32,7 +40,14 @@ enum TTSVoiceQuality: String, Sendable, Comparable, Hashable {
 @MainActor
 protocol TextToSpeeching: Sendable {
     func availableVoices() -> [TTSVoice]
+    /// Starts and awaits the full narration. Throws on start failure (the
+    /// FallbackTextToSpeech decorator catches and falls through to fallback).
     func speak(_ text: String, voiceId: String?, rate: Double) async throws
+    /// AsyncStream of progress updates emitted while speech is in flight.
+    /// Yields once per word boundary (AVSpeech) or ~10Hz (ElevenLabs / audio
+    /// player). Stream finishes on speech completion or `stop()`.
+    /// Subscribers must subscribe BEFORE calling `speak(...)`.
+    func progress() -> AsyncStream<TTSProgress>
     func pause()
     func resume()
     func stop()

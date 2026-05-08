@@ -22,9 +22,22 @@
 		C313155B2F9D685500CA6678 /* lumen/Config/Secrets.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = lumen/Config/Secrets.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		C38821372FAE5EFE0031D7CE /* Exceptions for "lumen" folder in "lumen" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = C306593A2F9BEB75009D5785 /* lumen */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		C306593D2F9BEB75009D5785 /* lumen */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				C38821372FAE5EFE0031D7CE /* Exceptions for "lumen" folder in "lumen" target */,
+			);
 			path = lumen;
 			sourceTree = "<group>";
 		};
@@ -361,6 +374,7 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = lumen/Info.plist;
 				INFOPLIST_KEY_ANTHROPIC_API_KEY = "$(ANTHROPIC_API_KEY)";
 				INFOPLIST_KEY_ELEVENLABS_API_KEY = "$(ELEVENLABS_API_KEY)";
 				INFOPLIST_KEY_NSHealthClinicalHealthRecordsShareUsageDescription = "Lumen lit tes données de sommeil pour enrichir ta synthèse matinale. Aucune donnée n'est transmise.";
@@ -408,6 +422,7 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = lumen/Info.plist;
 				INFOPLIST_KEY_ANTHROPIC_API_KEY = "$(ANTHROPIC_API_KEY)";
 				INFOPLIST_KEY_ELEVENLABS_API_KEY = "$(ELEVENLABS_API_KEY)";
 				INFOPLIST_KEY_NSHealthClinicalHealthRecordsShareUsageDescription = "Lumen lit tes données de sommeil pour enrichir ta synthèse matinale. Aucune donnée n'est transmise.";

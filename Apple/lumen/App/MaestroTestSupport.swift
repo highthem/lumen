@@ -70,9 +70,17 @@ enum MaestroTestSupport {
             return .timer
 
         case ("ritual", "/q2"):
+            // Legacy route — pre-V11, "Q2" was Priority. Kept for any
+            // older Maestro flows still pointing here.
             OnboardingFlag.markCompleted()
             _ = try? await seedRitual(upTo: .mood, composition: composition)
             return .questionnaire(step: .priority)
+
+        case ("ritual", "/q2-energy"):
+            // V11 route — opens the new breathing-orb + slider directly.
+            OnboardingFlag.markCompleted()
+            _ = try? await seedRitual(upTo: .mood, composition: composition)
+            return .questionnaire(step: .energy)
 
         case ("ritual", "/q3"):
             OnboardingFlag.markCompleted()
@@ -167,7 +175,7 @@ enum MaestroTestSupport {
         let all: [(QuestionnaireStep, AnswerPayload)] = [
             (.mood, .mood(level: 2, tag: "posé")),
             (.energy, .energy(level: .medium)),
-            (.priority, .priority(category: .energy, note: "Énergie")),
+            (.priority, .priority(text: "Bloquer 90 minutes pour le brief.")),
             (.gratitude, .gratitude(text: "Le silence avant que les enfants se lèvent."))
         ]
         guard let index = all.firstIndex(where: { $0.0 == step }) else { return [] }
@@ -211,6 +219,14 @@ final class MaestroTextToSpeech: TextToSpeeching {
         isSpeaking = true
         try? await Task.sleep(for: .milliseconds(250))
         isSpeaking = false
+    }
+    func progress() -> AsyncStream<TTSProgress> {
+        AsyncStream { cont in
+            // Maestro TTS is fire-and-forget — emit a single full-duration
+            // tick so the listen-player UI doesn't sit at 0% during tests.
+            cont.yield(TTSProgress(elapsedSeconds: 0, totalSeconds: 1))
+            cont.finish()
+        }
     }
     func pause() { isSpeaking = false }
     func resume() { isSpeaking = true }

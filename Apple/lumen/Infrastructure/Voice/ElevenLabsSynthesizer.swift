@@ -1,6 +1,5 @@
 import Foundation
 import AVFoundation
-import os.log
 
 enum ElevenLabsError: Error {
     case http(Int)
@@ -17,8 +16,21 @@ final class ElevenLabsSynthesizer: TextToSpeeching {
     private var _isSpeaking = false
     private var player: AVAudioPlayer?
     private var currentPlayerDelegate: PlayerDelegate?
+    private var progressContinuation: AsyncStream<TTSProgress>.Continuation?
+    private var progressTimer: Task<Void, Never>?
 
     var isSpeaking: Bool { _isSpeaking }
+
+    func progress() -> AsyncStream<TTSProgress> {
+        AsyncStream(TTSProgress.self, bufferingPolicy: .bufferingNewest(1)) { [weak self] cont in
+            guard let self else { cont.finish(); return }
+            self.progressContinuation?.finish()
+            self.progressContinuation = cont
+            cont.onTermination = { [weak self] _ in
+                Task { @MainActor in self?.progressContinuation = nil }
+            }
+        }
+    }
 
     init(apiKey: String, session: URLSession? = nil) {
         self.apiKey = apiKey
@@ -43,14 +55,28 @@ final class ElevenLabsSynthesizer: TextToSpeeching {
     func speak(_ text: String, voiceId: String?, rate: Double) async throws {
         let voice = voiceId ?? "XB0fDUnXU5powFXDhCwa"
         _isSpeaking = true
-        defer { _isSpeaking = false }
+        defer {
+            _isSpeaking = false
+            progressTimer?.cancel()
+            progressTimer = nil
+            progressContinuation?.finish()
+            progressContinuation = nil
+        }
         let audioData = try await fetchAudio(text: text, voiceId: voice, speed: rate)
         try await playAudio(audioData)
     }
 
     func pause()  { player?.pause() }
     func resume() { player?.play() }
-    func stop()   { player?.stop(); _isSpeaking = false; currentPlayerDelegate = nil }
+    func stop() {
+        player?.stop()
+        _isSpeaking = false
+        currentPlayerDelegate = nil
+        progressTimer?.cancel()
+        progressTimer = nil
+        progressContinuation?.finish()
+        progressContinuation = nil
+    }
 
     // MARK: - Private
 
@@ -125,6 +151,29 @@ final class ElevenLabsSynthesizer: TextToSpeeching {
             self.currentPlayerDelegate = d
             newPlayer.delegate = d
             newPlayer.play()
+            startProgressTimer(player: newPlayer)
+        }
+    }
+
+    /// Polls the AVAudioPlayer at ~10Hz for currentTime / duration and yields
+    /// to the progress AsyncStream. Cleanly cancelled in `stop()` / `defer`.
+    private func startProgressTimer(player: AVAudioPlayer) {
+        let total = player.duration
+        progressTimer?.cancel()
+        progressTimer = Task { @MainActor [weak self, weak player] in
+            while !Task.isCancelled, let player, player.isPlaying {
+                let elapsed = player.currentTime
+                self?.progressContinuation?.yield(
+                    TTSProgress(elapsedSeconds: elapsed, totalSeconds: total)
+                )
+                try? await Task.sleep(for: .milliseconds(100))
+            }
+            // Final emit so the bar lands at 100% even if player stopped between polls.
+            if let total = player?.duration, total > 0 {
+                self?.progressContinuation?.yield(
+                    TTSProgress(elapsedSeconds: total, totalSeconds: total)
+                )
+            }
         }
     }
 }
@@ -144,5 +193,3 @@ private final class PlayerDelegate: NSObject, AVAudioPlayerDelegate, Sendable {
         onFinish()
     }
 }
-
-private let elevenLabsLogger = Logger(subsystem: "lumen.voice", category: "ElevenLabs")

@@ -41,15 +41,13 @@ struct DashboardHomeView: View {
                     if !vm.hasAnyAlarm {
                         emptyState
                     } else if !vm.hasRitualToday {
-                        idleHeader
-                        idleBanner
-                        cardGrid(opacity: LumenOpacity.ring)
+                        // V11 idle: minimal hero — greeting + breathing circle
+                        // + "Commencer" CTA. No banner, no dimmed cards (the
+                        // 6-card grid is reserved for post-ritual recall).
+                        idleHero
                     } else {
                         postHeader
-                        if let intention = vm.snapshot?.aiIntention {
-                            heroIntentionCard(word: intention)
-                        }
-                        cardGrid(opacity: 1.0)
+                        postRitualBody
                     }
                 }
                 .padding(.horizontal, LumenSpacing.l)
@@ -57,7 +55,10 @@ struct DashboardHomeView: View {
                 .padding(.bottom, LumenSpacing.huge)
             }
 
-            if vm.hasRitualToday || vm.hasAnyRitual {
+            // Per handoff `screens.html:42-55` — Ask Lumen FAB only appears
+            // on post-ritual ("ne s'affiche que sur .post"). Idle and empty
+            // states stay clean to keep the morning glance uncluttered.
+            if vm.hasRitualToday {
                 askLumenFAB
             }
         }
@@ -126,120 +127,110 @@ struct DashboardHomeView: View {
         }
     }
 
-    // MARK: - Idle banner
+    // MARK: - Idle hero (alarm scheduled, no ritual today)
 
-    private var idleBanner: some View {
-        VStack(alignment: .leading, spacing: LumenSpacing.s) {
-            Text("Tu n'as pas encore\nfait ton rituel.")
-                .lumenFont(.title2)
-                .fontWeight(.medium)
-                .foregroundStyle(LumenColor.textPrimary)
-                .fixedSize(horizontal: false, vertical: true)
-
-            Text("5 minutes pour démarrer.")
-                .lumenFont(.chipLabel)
-                .fontWeight(.regular)
-                .foregroundStyle(LumenColor.textPrimary.opacity(LumenOpacity.p70))
-
-            PrimaryCTA("Démarrer") {
-                onStartRitual()
-            }
-            .accessibilityIdentifier("ritual-cta")
-            .padding(.top, LumenSpacing.s)
-        }
-        .padding(LumenSpacing.l)
-        .background(
-            RoundedRectangle(cornerRadius: LumenRadius.xl, style: .continuous)
-                .fill(
-                    LinearGradient(
-                        colors: [LumenColor.accent.opacity(LumenOpacity.surfaceFill), LumenColor.accent.opacity(LumenOpacity.p04)],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: LumenRadius.xl, style: .continuous)
-                        .stroke(LumenColor.divider, lineWidth: LumenSize.hairline)
-                )
-        )
-    }
-
-    // MARK: - Hero Intention card (post-ritual)
-
-    private func heroIntentionCard(word: String) -> some View {
-        VStack(alignment: .leading, spacing: LumenSpacing.sm2) {
-            Eyebrow("Intention")
-            Text(word)
-                .lumenFont(.synthesisHero)
-                .italic()
-                .foregroundStyle(LumenColor.accent)
+    /// V12 idle layout per `~/Downloads/lumen/project/03-mockups.html`
+    /// "Dashboard · 3 états" → "Idle". Composed of the date+greeting header,
+    /// the hero card (sun glyph + CTA), then (in subsequent iterations) the
+    /// 7-day streak block and the "Ce matin tu vas explorer" category list.
+    private var idleHero: some View {
+        VStack(alignment: .leading, spacing: LumenSpacing.l) {
+            idleHeader
+            IdleHeroCard(onStart: onStartRitual)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(LumenSpacing.l)
-        .background(
-            RoundedRectangle(cornerRadius: LumenRadius.xl, style: .continuous)
-                .fill(LumenColor.bgSecondary)
-        )
     }
 
-    // MARK: - Card grid (2 × 3 V2)
+    // MARK: - Post-ritual body (V11 mixed layout, NOT 6-card grid)
 
-    private func cardGrid(opacity: Double) -> some View {
-        let snapshot = vm.snapshot
-        let canNavigate = vm.hasRitualToday
-        return LazyVGrid(
-            columns: [
-                GridItem(.flexible(), spacing: LumenSpacing.sm2),
-                GridItem(.flexible(), spacing: LumenSpacing.sm2)
-            ],
-            spacing: LumenSpacing.sm2
-        ) {
-            DashboardCard(
-                eyebrow: DashboardCategory.mood.displayName,
-                value: snapshot?.mood?.tag.map { $0.capitalized },
-                footnote: nil
-            ) { if canNavigate { selectedCategory = .mood } }
-                .opacity(opacity)
-                .accessibilityIdentifier("dashboard-card-mood")
+    /// V11 post-ritual layout per `~/Downloads/.../NSIRD_a5XOh5/Screenshot 2026-05-08 at 18.52.28.png`:
+    /// PRIORITÉ section (eyebrow + accent italic) → 2-card row (HUMEUR/ÉNERGIE)
+    /// → GRATITUDE section (eyebrow + body italic) → 2-card row (PRÉSENCE/SOMMEIL).
+    @ViewBuilder
+    private var postRitualBody: some View {
+        let s = vm.snapshot
 
-            DashboardCard(
-                eyebrow: DashboardCategory.energy.displayName,
-                value: snapshot?.energy?.displayName,
-                footnote: nil
-            ) { if canNavigate { selectedCategory = .energy } }
-                .opacity(opacity)
-                .accessibilityIdentifier("dashboard-card-energy")
+        if let priority = s?.priority?.text, !priority.isEmpty {
+            prioritySection(text: priority)
+        }
 
-            DashboardCard(
-                eyebrow: DashboardCategory.priority.displayName,
-                value: snapshot?.priority?.category.displayName,
-                footnote: snapshot?.priority?.note
-            ) { if canNavigate { selectedCategory = .priority } }
-                .opacity(opacity)
-                .accessibilityIdentifier("dashboard-card-priority")
+        HStack(spacing: LumenSpacing.sm2) {
+            moodCard(snapshot: s).frame(maxWidth: .infinity)
+            energyCard(snapshot: s).frame(maxWidth: .infinity)
+        }
 
-            DashboardCard(
-                eyebrow: DashboardCategory.gratitude.displayName,
-                value: snapshot?.gratitude,
-                footnote: nil
-            ) { if canNavigate { selectedCategory = .gratitude } }
-                .opacity(opacity)
-                .accessibilityIdentifier("dashboard-card-gratitude")
+        if let gratitude = s?.gratitude, !gratitude.isEmpty {
+            gratitudeSection(text: gratitude)
+        }
 
-            PresenceCard(state: snapshot?.presence ?? .notStarted) {
-                if canNavigate { selectedCategory = .presence }
+        HStack(spacing: LumenSpacing.sm2) {
+            presenceCard(snapshot: s).frame(maxWidth: .infinity)
+            sleepCard(snapshot: s).frame(maxWidth: .infinity)
+        }
+    }
+
+    private func prioritySection(text: String) -> some View {
+        VStack(alignment: .leading, spacing: LumenSpacing.s) {
+            Eyebrow("Ta priorité")
+            Text(text)
+                .lumenFont(.bodySerifLg)
+                .italic()
+                .foregroundStyle(LumenColor.accent)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .accessibilityIdentifier("dashboard-priority-text")
+        .contentShape(Rectangle())
+        .onTapGesture { selectedCategory = .priority }
+    }
+
+    private func gratitudeSection(text: String) -> some View {
+        VStack(alignment: .leading, spacing: LumenSpacing.s) {
+            Eyebrow("Gratitude")
+            Text(text)
+                .lumenFont(.bodySerif)
+                .italic()
+                .foregroundStyle(LumenColor.textPrimary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .accessibilityIdentifier("dashboard-gratitude-text")
+        .contentShape(Rectangle())
+        .onTapGesture { selectedCategory = .gratitude }
+    }
+
+    private func moodCard(snapshot: DashboardSnapshot?) -> some View {
+        DashboardCard(
+            eyebrow: DashboardCategory.mood.displayName,
+            value: snapshot?.mood?.tag.map { $0.capitalized },
+            footnote: nil
+        ) { if vm.hasRitualToday { selectedCategory = .mood } }
+            .accessibilityIdentifier("dashboard-card-mood")
+    }
+
+    private func energyCard(snapshot: DashboardSnapshot?) -> some View {
+        DashboardCard(
+            eyebrow: DashboardCategory.energy.displayName,
+            value: snapshot?.energy?.displayName,
+            footnote: nil
+        ) { if vm.hasRitualToday { selectedCategory = .energy } }
+            .accessibilityIdentifier("dashboard-card-energy")
+    }
+
+    private func presenceCard(snapshot: DashboardSnapshot?) -> some View {
+        PresenceCard(state: snapshot?.presence ?? .notStarted) {
+            if vm.hasRitualToday { selectedCategory = .presence }
+        }
+        .accessibilityIdentifier("dashboard-card-presence")
+    }
+
+    private func sleepCard(snapshot: DashboardSnapshot?) -> some View {
+        SleepCard(summary: snapshot?.sleep) {
+            if snapshot?.sleep == nil {
+                showSleepSheet = true
+            } else if vm.hasRitualToday {
+                selectedCategory = .sleep
             }
-            .opacity(opacity)
-            .accessibilityIdentifier("dashboard-card-presence")
-
-            SleepCard(summary: snapshot?.sleep) {
-                if snapshot?.sleep == nil {
-                    showSleepSheet = true
-                } else if canNavigate {
-                    selectedCategory = .sleep
-                }
-            }
-            .opacity(opacity)
         }
     }
 

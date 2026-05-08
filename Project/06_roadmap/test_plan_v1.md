@@ -224,25 +224,25 @@ The user runs **all `device-only` and `manual` tests** on a real iPhone before s
 - **Steps:** Land on Q1.
 - **Expected:** Eyebrow "01 / 04 · Ressenti". Serif title "Comment tu te sens ?". 5 SunGlyph buttons (level 0 enfoui → level 4 rayonnant), italic serif tags below. Tapping a glyph: scale 1.10, halo, tag accent-colored. Primary "Suivant" enabled.
 
-### S2.Q2.01 — Q2 Priority, 6 chips
+### S2.Q2.01 — Q2 Énergie, 5 chips
 - **Scope:** sprint-2
 - **Channel:** simulator
 - **Status:** not-built
 - **Steps:** Tap Suivant from Q1.
-- **Expected:** "Qu'est-ce qui compte aujourd'hui ?" 6 chips (Énergie, Intention, Corps, Relations, Travail, Gratitude). Optional 3-line textarea. Suivant enabled when ≥1 chip selected.
+- **Expected:** "Quelle énergie ce matin ?" 5 chips (À plat, Faiblard, Moyen, Bien chargé, Au top). Suivant enabled with default "Moyen" (level 2).
 
-### S2.Q3.01 — Q3 Gratitude, voice default
+### S2.Q3.01 — Q3 Priorité, voice default
 - **Scope:** sprint-2
 - **Channel:** simulator (mic permission denied → typing fallback)
 - **Status:** not-built
 - **Steps:** Tap Suivant from Q2.
-- **Expected:** MicrophoneButton centered (96pt, idle state with serif `"` glyph). "Modifier" + "Recommencer" ghost buttons. Italic serif placeholder "Parle, je t'écoute…". Tap mic → permission dialog appears (simulator).
+- **Expected:** VoiceCaptureField centered, default state with serif `"` glyph. "Écrire au clavier" + "Recommencer" ghost buttons. Italic serif placeholder "Parle, je t'écoute…". Tap mic → permission dialog appears (simulator).
 
 ### S2.Q3.02 — Q3 Voice listening (Sunrise Echo)
 - **Scope:** sprint-2
 - **Channel:** device-only (simulator can't accept mic input cleanly)
 - **Status:** not-built
-- **Steps:** On device, tap mic, speak "le silence avant que les arbres bougent".
+- **Steps:** On device, tap mic, speak "bloquer 90 minutes pour le brief".
 - **Expected:** Listening state: radial accent gradient, 4s breath, single tracing arc 0°→360° per cycle. LiveTranscript serif 38pt reveals char-by-char (80ms/char). Auto-stop ~2s after silence.
 
 ### S2.Q3.03 — Q3 fallback to typing when on-device unsupported
@@ -252,12 +252,12 @@ The user runs **all `device-only` and `manual` tests** on a real iPhone before s
 - **Steps:** Force `supportsOnDeviceRecognition=false` via debug toggle (TBD).
 - **Expected:** Mic button disabled, keyboard input visible. Friendly explanation text: "Reconnaissance non disponible pour ta langue. Tu peux écrire."
 
-### S2.Q4.01 — Q4 Intention, voice default, single word
+### S2.Q4.01 — Q4 Gratitude, voice default
 - **Scope:** sprint-2
 - **Channel:** device-only
 - **Status:** not-built
 - **Steps:** Tap Suivant from Q3.
-- **Expected:** Same Sunrise Echo pattern, LiveTranscript 64pt italic accent, faster char reveal (120ms).
+- **Expected:** Same Sunrise Echo voice-capture pattern as Q3, LiveTranscript serif 38pt, char reveal 80ms. Auto-stop ~2s after silence. Final CTA changes from "Suivant" to "Voir ma synthèse".
 
 ## Section 5 — AI synthesis (Sprint 2)
 

@@ -12,9 +12,9 @@ struct AlarmRingingView: View {
     @State private var copyVariant: Int = 1
 
     private static let copyVariants: [String] = [
-        "Le matin a commencé sans toi.",
-        "Bonjour.",
-        "L'aube t'a attendue.",
+        String(localized: "alarm.greeting.morning_started", defaultValue: "Le matin a commencé sans toi."),
+        String(localized: "alarm.greeting.bonjour", defaultValue: "Bonjour."),
+        String(localized: "alarm.greeting.dawn_waited", defaultValue: "L'aube t'a attendue."),
     ]
 
     private static func frenchDate(now: Date) -> String {
