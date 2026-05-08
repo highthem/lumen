@@ -1,5 +1,7 @@
 import SwiftUI
 
+/// Bento Présence card — eyebrow + (icon + 14pt value text). 110-min-height,
+/// 16pt padding, 20pt radius. JSX reference: `screens-shell.jsx:485–498`.
 struct PresenceCard: View {
     let state: PresenceState
     let onTap: () -> Void
@@ -11,33 +13,37 @@ struct PresenceCard: View {
 
     var body: some View {
         Button(action: onTap) {
-            VStack(alignment: .leading, spacing: LumenSpacing.s) {
+            VStack(alignment: .leading, spacing: 0) {
                 Eyebrow("Présence")
-
+                Spacer(minLength: 0)
                 HStack(alignment: .center, spacing: LumenSpacing.s) {
-                    circleIcon
+                    icon
                     Text(label)
-                        .lumenFont(state == .skipped || state == .notStarted ? .calloutSerif : .body)
-                        .italic(state == .skipped || state == .notStarted)
+                        .font(.system(size: 14, weight: .medium))
+                        .tracking(-0.005 * 14)
                         .foregroundStyle(textColor)
                         .fixedSize(horizontal: false, vertical: true)
+                        .italic(state == .skipped || state == .notStarted)
                 }
-
-                Spacer(minLength: 0)
             }
-            .frame(maxWidth: .infinity, alignment: .topLeading)
-            .padding(LumenSpacing.l)
+            .padding(LumenSpacing.m)
+            .frame(maxWidth: .infinity, minHeight: 110, alignment: .topLeading)
             .background(LumenColor.bgSecondary)
-            .clipShape(RoundedRectangle(cornerRadius: LumenRadius.l, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                    .stroke(LumenColor.divider, lineWidth: 1)
+            )
         }
         .buttonStyle(.plain)
+        .accessibilityIdentifier("dashboard-card-presence")
     }
 
     private var label: String {
         switch state {
-        case .completed:  return "60 secondes prises"
-        case .partial:    return "Quelques secondes"
-        case .skipped:    return "Pas de présence ce matin"
+        case .completed:  return "60 sec"
+        case .partial:    return "Quelques sec"
+        case .skipped:    return "Pas ce matin"
         case .notStarted: return "Pas encore"
         }
     }
@@ -50,8 +56,8 @@ struct PresenceCard: View {
     }
 
     @ViewBuilder
-    private var circleIcon: some View {
-        let diameter: CGFloat = 22
+    private var icon: some View {
+        let diameter: CGFloat = 18
         switch state {
         case .completed:
             Circle()
@@ -59,11 +65,10 @@ struct PresenceCard: View {
                 .frame(width: diameter, height: diameter)
         case .partial:
             ZStack {
-                Circle()
-                    .stroke(LumenColor.accent.opacity(LumenOpacity.p60), lineWidth: 1.5)
+                Circle().stroke(LumenColor.accent.opacity(0.6), lineWidth: 1.5)
                 Circle()
                     .trim(from: 0, to: 0.5)
-                    .fill(LumenColor.accent.opacity(LumenOpacity.p60))
+                    .fill(LumenColor.accent.opacity(0.6))
                     .rotationEffect(.degrees(-90))
             }
             .frame(width: diameter, height: diameter)
@@ -77,11 +82,9 @@ struct PresenceCard: View {
 
 #if DEBUG
 #Preview {
-    VStack(spacing: LumenSpacing.m) {
+    HStack(spacing: 10) {
         PresenceCard(state: .completed)
         PresenceCard(state: .partial)
-        PresenceCard(state: .skipped)
-        PresenceCard(state: .notStarted)
     }
     .padding(LumenSpacing.l)
     .background(LumenColor.bgPrimary)

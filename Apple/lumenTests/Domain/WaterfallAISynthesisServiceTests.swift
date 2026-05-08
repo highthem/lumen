@@ -98,6 +98,7 @@ actor MockRitualRepository: RitualRepository {
     func fetchOrCreateToday() async throws -> Ritual { ritual }
     func fetch(id: UUID) async throws -> Ritual? { ritual.id == id ? ritual : nil }
     func fetchByDate(_ date: Date) async throws -> Ritual? { nil }
+    func fetchSince(_ date: Date) async throws -> [Ritual] { [] }
     func appendAnswer(_ answer: QuestionnaireAnswer, ritualId: UUID) async throws {}
     func updatePresence(ritualId: UUID, state: PresenceState) async throws {
         ritual.presence = state
@@ -106,6 +107,7 @@ actor MockRitualRepository: RitualRepository {
         attachedSyntheses.append(response)
     }
     func update(_ ritual: Ritual) async throws {}
+    func deleteAll() async throws {}
 }
 
 // MARK: - Test helper

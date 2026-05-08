@@ -1,6 +1,12 @@
 import Foundation
 import Observation
 
+enum DashboardState: Sendable {
+    case empty       // no alarm scheduled — first-launch hero
+    case idle        // alarm scheduled, ritual not done today
+    case postRitual  // ritual completed today
+}
+
 @MainActor
 @Observable
 final class DashboardHomeViewModel {
@@ -8,25 +14,36 @@ final class DashboardHomeViewModel {
     var hasRitualToday: Bool = false
     var hasAnyRitual: Bool = false
     var hasAnyAlarm: Bool = false
-    /// Earliest active alarm's time-of-day, formatted "HH:mm". Powers the
-    /// idle-state tagline ("Ta première alarme à 07:00"). Nil = no active alarm.
+    /// Earliest active alarm's time-of-day, formatted "HH:mm".
     var nextAlarmLabel: String?
-    /// "Quote du jour" displayed on the idle dashboard per `handoff/sections/screens.html`.
-    /// Refreshed once per dashboard load; stable for the user's morning glance.
+    /// Quote of the day — refreshed once per dashboard load, stable for the
+    /// morning glance (kept for compatibility with downstream surfaces).
     var quote: Quote?
+    /// 7-day completion window powering the streak strip + footer.
+    var weekHistory: WeekHistory = .empty
+
+    /// Mutually-exclusive state used by the View's outer switch.
+    var displayState: DashboardState {
+        if hasRitualToday { return .postRitual }
+        if hasAnyAlarm { return .idle }
+        return .empty
+    }
 
     let sleepService: any SleepHealthProviding
     private let buildDashboard: BuildDashboardSnapshot
+    private let fetchHistory: FetchRitualHistory
     private let alarmRepository: any AlarmRepository
     private let quoteProvider: any QuoteProviding
 
     init(
         buildDashboard: BuildDashboardSnapshot,
+        fetchHistory: FetchRitualHistory,
         alarmRepository: any AlarmRepository,
         sleepService: any SleepHealthProviding,
         quoteProvider: any QuoteProviding
     ) {
         self.buildDashboard = buildDashboard
+        self.fetchHistory = fetchHistory
         self.alarmRepository = alarmRepository
         self.sleepService = sleepService
         self.quoteProvider = quoteProvider
@@ -48,23 +65,16 @@ final class DashboardHomeViewModel {
                 || loaded.priority != nil
                 || loaded.gratitude != nil
                 || loaded.presence != .notStarted
-            if hasContent {
-                snapshot = loaded
-                hasRitualToday = true
-            } else {
-                snapshot = loaded
-                hasRitualToday = false
-            }
+            snapshot = loaded
+            hasRitualToday = hasContent
         } catch {
             snapshot = nil
             hasRitualToday = false
         }
+        weekHistory = (try? await fetchHistory.execute()) ?? .empty
     }
 
-    /// Picks the earliest active alarm by time-of-day (sorted hour, minute).
-    /// Returns nil if no alarm is active. We don't currently project to the
-    /// next concrete fire date — the dashboard tagline only shows the wall
-    /// time, not the day, so HH:mm of the soonest enabled alarm is sufficient.
+    /// Earliest active alarm by time-of-day. Returns nil if none.
     private static func computeNextAlarmLabel(from alarms: [Alarm]) -> String? {
         let active = alarms.filter(\.isActive)
         guard !active.isEmpty else { return nil }

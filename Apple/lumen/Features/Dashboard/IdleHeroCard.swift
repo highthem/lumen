@@ -1,105 +1,68 @@
 import SwiftUI
 
-/// Idle-state hero per `~/Downloads/lumen/project/03-mockups.html` § "Dashboard
-/// · 3 états" → "Idle". A single rounded card holding the sun glyph, the
-/// "Ton matin t'attend." invitation, the 4q/5min subtitle, and the gold CTA.
-///
-/// The sun glyph reuses the canonical sun palette (`LumenColor.Sunrise.*`)
-/// defined for the alarm ringing screen — same morning visual language
-/// across both surfaces. The disc fades fully to `.clear` at the rim so the
-/// edge blends into the card background rather than leaving a brown halo.
+/// Idle-state hero per `Design/designs/screens/screens-shell.jsx:208–263`:
+/// a 28pt-radius card with a radial gradient at top center, the rising-sun
+/// `BreathingOrb` (hero size), the "Ton matin t'attend." invitation, the
+/// 4q/5min subtitle, and the gold full-width CTA.
 struct IdleHeroCard: View {
     let onStart: () -> Void
 
     var body: some View {
-        VStack(spacing: LumenSpacing.l) {
-            sunGlyph
-                .padding(.top, LumenSpacing.m)
-                .padding(.bottom, LumenSpacing.s)
+        VStack(spacing: 0) {
+            BreathingOrb(size: .hero)
+                .padding(.bottom, 18)
 
-            VStack(spacing: LumenSpacing.s) {
+            VStack(spacing: 6) {
                 Text("Ton matin t'attend.")
-                    .lumenFont(.title2)
+                    .font(.system(size: 24, weight: .medium, design: .serif))
+                    .italic()
+                    .tracking(-0.015 * 24)
                     .foregroundStyle(LumenColor.textPrimary)
                     .multilineTextAlignment(.center)
 
                 Text("4 questions · 5 minutes · une intention pour la journée")
-                    .lumenFont(.footnote)
+                    .font(.system(size: 13))
+                    .italic()
                     .foregroundStyle(LumenColor.textTertiary)
                     .multilineTextAlignment(.center)
                     .fixedSize(horizontal: false, vertical: true)
             }
-            .padding(.horizontal, LumenSpacing.m)
+            .frame(maxWidth: .infinity)
+            .padding(.horizontal, LumenSpacing.l)
 
             PrimaryCTA("Commencer le rituel", action: onStart)
                 .accessibilityIdentifier("ritual-cta")
+                .padding(.top, 22)
         }
-        .frame(maxWidth: .infinity)
-        .padding(.horizontal, LumenSpacing.l)
-        .padding(.top, LumenSpacing.l)
-        .padding(.bottom, LumenSpacing.l)
-        .background(LumenColor.bgSecondary)
-        .clipShape(RoundedRectangle(cornerRadius: LumenRadius.xl, style: .continuous))
+        .padding(.top, 32)
+        .padding(.horizontal, 24)
+        .padding(.bottom, 24)
+        .background(
+            RadialGradient(
+                colors: [
+                    LumenColor.accent.opacity(0.18),
+                    LumenColor.accent.opacity(0.04),
+                    Color.clear
+                ],
+                center: UnitPoint(x: 0.5, y: 0.0),
+                startRadius: 0,
+                endRadius: 320
+            )
+        )
+        .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 28, style: .continuous)
+                .stroke(LumenColor.divider, lineWidth: 1)
+        )
         .accessibilityIdentifier("dashboard-idle-hero")
-    }
-
-    /// Rising-sun glyph: a half-cut disc whose halo bleeds upward into the
-    /// card's title area. The disc is positioned so its bottom is clipped
-    /// at the band edge (= horizon line). The halo is offset up so its
-    /// bright center aligns with the disc center, and its outer glow
-    /// radiates above the disc into the empty space at the top of the card.
-    private var sunGlyph: some View {
-        ZStack(alignment: .top) {
-            Circle()
-                .fill(
-                    RadialGradient(
-                        colors: [
-                            LumenColor.Sunrise.sun.opacity(0.42),
-                            LumenColor.Sunrise.sun.opacity(0.14),
-                            LumenColor.Sunrise.sun.opacity(0.04),
-                            .clear
-                        ],
-                        center: .center,
-                        startRadius: 24,
-                        endRadius: 140
-                    )
-                )
-                .frame(width: 280, height: 280)
-                .blur(radius: 14)
-                .offset(y: -55)
-
-            Circle()
-                .fill(
-                    RadialGradient(
-                        colors: [
-                            LumenColor.Sunrise.halo,
-                            LumenColor.Sunrise.sun,
-                            LumenColor.Sunrise.sun.opacity(0.45),
-                            .clear
-                        ],
-                        center: .center,
-                        startRadius: 0,
-                        endRadius: 75
-                    )
-                )
-                .frame(width: 140, height: 140)
-                .offset(y: 15)
-        }
-        .frame(maxWidth: .infinity)
-        .frame(height: 110)
-        .clipped()
-        .accessibilityHidden(true)
     }
 }
 
 #if DEBUG
 #Preview {
-    VStack {
-        IdleHeroCard(onStart: {})
-            .padding(LumenSpacing.l)
-        Spacer()
-    }
-    .frame(maxWidth: .infinity, maxHeight: .infinity)
-    .background(LumenColor.bgPrimary)
+    IdleHeroCard(onStart: {})
+        .padding(LumenSpacing.l)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(LumenColor.bgPrimary)
 }
 #endif

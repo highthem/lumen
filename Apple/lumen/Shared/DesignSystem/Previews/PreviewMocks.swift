@@ -106,6 +106,9 @@ actor PreviewRitualRepository: RitualRepository {
     func fetchOrCreateToday() async throws -> Ritual { ritual }
     func fetch(id: UUID) async throws -> Ritual? { id == ritual.id ? ritual : nil }
     func fetchByDate(_ date: Date) async throws -> Ritual? { ritual }
+    func fetchSince(_ date: Date) async throws -> [Ritual] {
+        ritual.date >= date ? [ritual] : []
+    }
     func appendAnswer(_ answer: QuestionnaireAnswer, ritualId: UUID) async throws {
         ritual.answers.append(answer)
     }
@@ -116,6 +119,9 @@ actor PreviewRitualRepository: RitualRepository {
         ritual.synthesisId = response.id
     }
     func update(_ ritual: Ritual) async throws { self.ritual = ritual }
+    func deleteAll() async throws {
+        ritual = Ritual(date: Calendar.current.startOfDay(for: Date()))
+    }
 }
 
 actor PreviewEthicalLogRepository: EthicalLogRepository {

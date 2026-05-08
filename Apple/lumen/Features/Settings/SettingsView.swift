@@ -4,6 +4,7 @@ struct SettingsView: View {
     @State var vm: SettingsViewModel
     @State private var exportItem: ExportItem?
     @State private var showEraseAlert = false
+    @State private var showEraseRitualsAlert = false
     @State private var eraseError: String?
     @State private var exportError: String?
 
@@ -66,6 +67,20 @@ struct SettingsView: View {
         } message: {
             Text("Toutes tes données de monitoring éthique seront supprimées définitivement.")
         }
+        .alert("Effacer ton historique ?", isPresented: $showEraseRitualsAlert) {
+            Button("Effacer", role: .destructive) {
+                Task {
+                    do {
+                        try await vm.eraseAllRituals()
+                    } catch {
+                        eraseError = error.localizedDescription
+                    }
+                }
+            }
+            Button("Annuler", role: .cancel) {}
+        } message: {
+            Text("Toutes les réponses de tes rituels passés seront supprimées définitivement. Cette action est irréversible.")
+        }
         .alert("Export impossible", isPresented: Binding(
             get: { exportError != nil },
             set: { if !$0 { exportError = nil } }
@@ -86,6 +101,11 @@ struct SettingsView: View {
                 Text("60 s")
                     .foregroundStyle(LumenColor.textSecondary)
             }
+
+            Button("Effacer mon historique de rituels", role: .destructive) {
+                showEraseRitualsAlert = true
+            }
+            .accessibilityIdentifier("settings-erase-rituals-button")
         }
     }
 

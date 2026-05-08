@@ -19,6 +19,7 @@ struct AlarmEditView: View {
                 ScrollView {
                     VStack(alignment: .leading, spacing: LumenSpacing.xl) {
                         WheelTimePicker(selection: $vm.time)
+                            .frame(maxWidth: .infinity)
                             .padding(.top, LumenSpacing.m)
                             .accessibilityIdentifier("alarm-time-picker")
 

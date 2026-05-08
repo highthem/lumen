@@ -167,6 +167,7 @@ struct RootView: View {
         DashboardHomeView(
             vm: DashboardHomeViewModel(
                 buildDashboard: composition.buildDashboardSnapshot,
+                fetchHistory: composition.fetchRitualHistory,
                 alarmRepository: composition.alarmRepository,
                 sleepService: composition.sleepHealthService,
                 quoteProvider: composition.quoteProvider
@@ -204,6 +205,7 @@ struct RootView: View {
                 tts: composition.speechSynthesizer,
                 exportLogs: composition.exportEthicalLogs,
                 eraseLogs: composition.eraseEthicalLogs,
+                eraseRituals: composition.eraseAllRituals,
                 soundProvider: composition.soundProvider,
                 audioPlayer: composition.audioPlayer
             ),

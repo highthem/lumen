@@ -107,6 +107,13 @@ private actor InMemoryRitualRepository: RitualRepository {
 
     func fetchByDate(_ date: Date) async throws -> Ritual? { ritual }
 
+    func fetchSince(_ date: Date) async throws -> [Ritual] {
+        guard let ritual, ritual.date >= date else { return [] }
+        return [ritual]
+    }
+
+    func deleteAll() async throws { ritual = nil }
+
     func appendAnswer(_ answer: QuestionnaireAnswer, ritualId: UUID) async throws {
         guard var current = ritual, current.id == ritualId else { return }
         current.answers.append(answer)

@@ -43,6 +43,8 @@ final class CompositionRoot {
     let saveQuestionnaireAnswer: SaveQuestionnaireAnswer
     let generateMorningSynthesis: GenerateMorningSynthesis
     let buildDashboardSnapshot: BuildDashboardSnapshot
+    let fetchRitualHistory: FetchRitualHistory
+    let eraseAllRituals: EraseAllRituals
     let exportEthicalLogs: ExportEthicalLogs
     let eraseEthicalLogs: EraseEthicalLogs
     let dictateAnswer: DictateAnswer
@@ -256,6 +258,8 @@ final class CompositionRoot {
         self.saveQuestionnaireAnswer = SaveQuestionnaireAnswer(ritualRepository: ritualRepo)
         self.generateMorningSynthesis = GenerateMorningSynthesis(ritualRepository: ritualRepo, aiService: synthesisService, sleepService: sleep)
         self.buildDashboardSnapshot = BuildDashboardSnapshot(ritualRepository: ritualRepo, sleepService: sleep)
+        self.fetchRitualHistory = FetchRitualHistory(repository: ritualRepo)
+        self.eraseAllRituals = EraseAllRituals(repository: ritualRepo)
         self.exportEthicalLogs = ExportEthicalLogs(logRepository: logRepo)
         self.eraseEthicalLogs = EraseEthicalLogs(logRepository: logRepo)
         #if DEBUG

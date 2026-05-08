@@ -80,6 +80,7 @@ final class SettingsViewModel {
     private let tts: any TextToSpeeching
     private let exportLogs: ExportEthicalLogs
     private let eraseLogs: EraseEthicalLogs
+    private let eraseRituals: EraseAllRituals
     private let soundProvider: any SoundProviding
     private let audioPlayer: any AudioPlaying
     private let voiceIdKey = "lumen.settings.voiceId"
@@ -89,12 +90,14 @@ final class SettingsViewModel {
         tts: any TextToSpeeching,
         exportLogs: ExportEthicalLogs,
         eraseLogs: EraseEthicalLogs,
+        eraseRituals: EraseAllRituals,
         soundProvider: any SoundProviding,
         audioPlayer: any AudioPlaying
     ) {
         self.tts = tts
         self.exportLogs = exportLogs
         self.eraseLogs = eraseLogs
+        self.eraseRituals = eraseRituals
         self.soundProvider = soundProvider
         self.audioPlayer = audioPlayer
 
@@ -155,5 +158,9 @@ final class SettingsViewModel {
 
     func eraseAllLogs() async throws {
         try await eraseLogs.execute()
+    }
+
+    func eraseAllRituals() async throws {
+        try await eraseRituals.execute()
     }
 }

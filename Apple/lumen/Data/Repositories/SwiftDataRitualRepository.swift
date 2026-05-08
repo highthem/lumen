@@ -24,6 +24,15 @@ actor SwiftDataRitualRepository: RitualRepository {
         return try fetchEntity(forDay: day)?.toDomain()
     }
 
+    func fetchSince(_ date: Date) async throws -> [Ritual] {
+        let start = Calendar.current.startOfDay(for: date)
+        let descriptor = FetchDescriptor<RitualEntity>(
+            predicate: #Predicate { $0.date >= start },
+            sortBy: [SortDescriptor(\.date, order: .forward)]
+        )
+        return try modelContext.fetch(descriptor).map { $0.toDomain() }
+    }
+
     func appendAnswer(_ answer: QuestionnaireAnswer, ritualId: UUID) async throws {
         guard let entity = try fetchEntity(id: ritualId) else { throw RitualError.notFound }
 
@@ -59,6 +68,11 @@ actor SwiftDataRitualRepository: RitualRepository {
         entity.presence = ritual.presence
         entity.synthesisId = ritual.synthesisId
         entity.completedAt = ritual.completedAt
+        try modelContext.save()
+    }
+
+    func deleteAll() async throws {
+        try modelContext.delete(model: RitualEntity.self)
         try modelContext.save()
     }
 

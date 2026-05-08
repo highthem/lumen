@@ -1,5 +1,10 @@
 import SwiftUI
 
+/// Dashboard home — three mutually-exclusive states (empty / idle / post-rituel)
+/// rendered to match `Design/designs/screens/screens-shell.jsx:151–553`.
+/// All numeric values (paddings, radii, font sizes, colors) mirror the JSX
+/// verbatim and are intentionally NOT routed through the design-system
+/// spacing/typography enums where the JSX uses one-off values.
 struct DashboardHomeView: View {
     @State var vm: DashboardHomeViewModel
     let refreshKey: Int
@@ -22,43 +27,24 @@ struct DashboardHomeView: View {
     private var content: some View {
         ZStack(alignment: .bottomTrailing) {
             LumenColor.bgPrimary.ignoresSafeArea()
-
-            // Subtle top glow
-            VStack(spacing: 0) {
-                LinearGradient(
-                    colors: [LumenColor.accent.opacity(LumenOpacity.p08), .clear],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-                .frame(height: LumenSize.cardForm)
-                Spacer()
-            }
-            .ignoresSafeArea()
-            .allowsHitTesting(false)
+            glowTopBackground
 
             ScrollView {
-                VStack(alignment: .leading, spacing: LumenSpacing.l) {
-                    if !vm.hasAnyAlarm {
-                        emptyState
-                    } else if !vm.hasRitualToday {
-                        // V11 idle: minimal hero — greeting + breathing circle
-                        // + "Commencer" CTA. No banner, no dimmed cards (the
-                        // 6-card grid is reserved for post-ritual recall).
-                        idleHero
-                    } else {
-                        postHeader
-                        postRitualBody
+                Group {
+                    switch vm.displayState {
+                    case .empty:      emptyContent
+                    case .idle:       idleContent
+                    case .postRitual: postRitualContent
                     }
                 }
                 .padding(.horizontal, LumenSpacing.l)
-                .padding(.top, LumenSpacing.l)
-                .padding(.bottom, LumenSpacing.huge)
+                .padding(.top, LumenSpacing.m)
+                .padding(.bottom, vm.displayState == .postRitual ? 90 : LumenSpacing.huge)
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
+            .scrollIndicators(.hidden)
 
-            // Per handoff `screens.html:42-55` — Ask Lumen FAB only appears
-            // on post-ritual ("ne s'affiche que sur .post"). Idle and empty
-            // states stay clean to keep the morning glance uncluttered.
-            if vm.hasRitualToday {
+            if vm.displayState == .postRitual {
                 askLumenFAB
             }
         }
@@ -75,179 +61,215 @@ struct DashboardHomeView: View {
         .accessibilityIdentifier("dashboard-screen")
     }
 
+    // MARK: - Glow-top background gradient
+
+    private var glowTopBackground: some View {
+        VStack(spacing: 0) {
+            RadialGradient(
+                colors: [LumenColor.accent.opacity(0.10), Color.clear],
+                center: UnitPoint(x: 0.5, y: -0.10),
+                startRadius: 0,
+                endRadius: 320
+            )
+            .frame(height: 280)
+            Spacer()
+        }
+        .ignoresSafeArea()
+        .allowsHitTesting(false)
+    }
+
     // MARK: - Headers
 
     private var idleHeader: some View {
-        VStack(alignment: .leading, spacing: LumenSpacing.s) {
-            Eyebrow(formattedDate)
+        VStack(alignment: .leading, spacing: 6) {
+            Eyebrow(formattedHeaderDate)
             Text("Bonjour.")
-                .lumenFont(.title1)
+                .font(.system(size: 36, weight: .medium, design: .serif))
+                .italic()
+                .tracking(-0.012 * 36)
                 .foregroundStyle(LumenColor.textPrimary)
         }
     }
 
     private var postHeader: some View {
-        VStack(alignment: .leading, spacing: LumenSpacing.s) {
-            Eyebrow(formattedDate)
+        VStack(alignment: .leading, spacing: 6) {
+            Eyebrow(formattedHeaderDate)
             Text("Aujourd'hui.")
-                .lumenFont(.title1)
+                .font(.system(size: 32, weight: .medium, design: .serif))
+                .italic()
+                .tracking(-0.01 * 32)
                 .foregroundStyle(LumenColor.textPrimary)
         }
     }
 
-    private var formattedDate: String {
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "fr_FR")
-        formatter.dateFormat = "EEEE d MMMM"
-        return formatter.string(from: Date()).capitalized
+    /// "Vendredi 8 mai · 6 h 47" — uppercase first letter, lowercase month,
+    /// "H h mm" with French spacing.
+    private var formattedHeaderDate: String {
+        let day = DateFormatter()
+        day.locale = Locale(identifier: "fr_FR")
+        day.dateFormat = "EEEE d MMMM"
+        let dayString = day.string(from: Date()).capitalized
+
+        let time = DateFormatter()
+        time.locale = Locale(identifier: "fr_FR")
+        time.dateFormat = "H 'h' mm"
+        return "\(dayString) · \(time.string(from: Date()))"
     }
 
-    // MARK: - Empty state (no alarm scheduled yet)
+    // MARK: - Empty state
 
-    private var emptyState: some View {
+    private var emptyContent: some View {
         VStack(alignment: .leading, spacing: LumenSpacing.m) {
-            Spacer(minLength: LumenSize.blockMd)
-
             Eyebrow("Lumen")
 
+            Spacer().frame(height: 0)
+
             Text("Ton premier matin\nt'attend.")
-                .lumenFont(.synthesisHero)
+                .font(.system(size: 40, weight: .medium, design: .serif))
+                .italic()
+                .tracking(-0.015 * 40)
+                .lineSpacing(40 * 0.10)
                 .foregroundStyle(LumenColor.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
+                .padding(.top, 28)
 
             Text("Programme une alarme.\nOn s'occupe du reste.")
-                .lumenFont(.body)
+                .font(.system(size: 15))
                 .foregroundStyle(LumenColor.textSecondary)
+                .padding(.top, 4)
                 .padding(.bottom, LumenSpacing.xl)
+
+            Spacer(minLength: LumenSpacing.huge)
 
             PrimaryCTA("Programmer mon réveil") {
                 onNavigateToAlarms()
             }
             .accessibilityIdentifier("ritual-cta")
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
-    // MARK: - Idle hero (alarm scheduled, no ritual today)
+    // MARK: - Idle state
 
-    /// V12 idle layout per `~/Downloads/lumen/project/03-mockups.html`
-    /// "Dashboard · 3 états" → "Idle". Composed of the date+greeting header,
-    /// the hero card (sun glyph + CTA), then (in subsequent iterations) the
-    /// 7-day streak block and the "Ce matin tu vas explorer" category list.
-    private var idleHero: some View {
-        VStack(alignment: .leading, spacing: LumenSpacing.l) {
+    private var idleContent: some View {
+        VStack(alignment: .leading, spacing: 22) {
             idleHeader
             IdleHeroCard(onStart: onStartRitual)
+            StreakStrip(history: vm.weekHistory)
+            previewChipsRow
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
-    // MARK: - Post-ritual body (V11 mixed layout, NOT 6-card grid)
+    private var previewChipsRow: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Ce matin tu vas explorer")
+                .font(.system(size: 11))
+                .tracking(0.08 * 11)
+                .textCase(.uppercase)
+                .foregroundStyle(LumenColor.textTertiary)
+                .padding(.leading, 4)
 
-    /// V11 post-ritual layout per `~/Downloads/.../NSIRD_a5XOh5/Screenshot 2026-05-08 at 18.52.28.png`:
-    /// PRIORITÉ section (eyebrow + accent italic) → 2-card row (HUMEUR/ÉNERGIE)
-    /// → GRATITUDE section (eyebrow + body italic) → 2-card row (PRÉSENCE/SOMMEIL).
-    @ViewBuilder
-    private var postRitualBody: some View {
-        let s = vm.snapshot
-
-        if let priority = s?.priority?.text, !priority.isEmpty {
-            prioritySection(text: priority)
-        }
-
-        HStack(spacing: LumenSpacing.sm2) {
-            moodCard(snapshot: s).frame(maxWidth: .infinity)
-            energyCard(snapshot: s).frame(maxWidth: .infinity)
-        }
-
-        if let gratitude = s?.gratitude, !gratitude.isEmpty {
-            gratitudeSection(text: gratitude)
-        }
-
-        HStack(spacing: LumenSpacing.sm2) {
-            presenceCard(snapshot: s).frame(maxWidth: .infinity)
-            sleepCard(snapshot: s).frame(maxWidth: .infinity)
-        }
-    }
-
-    private func prioritySection(text: String) -> some View {
-        VStack(alignment: .leading, spacing: LumenSpacing.s) {
-            Eyebrow("Ta priorité")
-            Text(text)
-                .lumenFont(.bodySerifLg)
-                .italic()
-                .foregroundStyle(LumenColor.accent)
-                .fixedSize(horizontal: false, vertical: true)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .accessibilityIdentifier("dashboard-priority-text")
-        .contentShape(Rectangle())
-        .onTapGesture { selectedCategory = .priority }
-    }
-
-    private func gratitudeSection(text: String) -> some View {
-        VStack(alignment: .leading, spacing: LumenSpacing.s) {
-            Eyebrow("Gratitude")
-            Text(text)
-                .lumenFont(.bodySerif)
-                .italic()
-                .foregroundStyle(LumenColor.textPrimary)
-                .fixedSize(horizontal: false, vertical: true)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .accessibilityIdentifier("dashboard-gratitude-text")
-        .contentShape(Rectangle())
-        .onTapGesture { selectedCategory = .gratitude }
-    }
-
-    private func moodCard(snapshot: DashboardSnapshot?) -> some View {
-        DashboardCard(
-            eyebrow: DashboardCategory.mood.displayName,
-            value: snapshot?.mood?.tag.map { $0.capitalized },
-            footnote: nil
-        ) { if vm.hasRitualToday { selectedCategory = .mood } }
-            .accessibilityIdentifier("dashboard-card-mood")
-    }
-
-    private func energyCard(snapshot: DashboardSnapshot?) -> some View {
-        DashboardCard(
-            eyebrow: DashboardCategory.energy.displayName,
-            value: snapshot?.energy?.displayName,
-            footnote: nil
-        ) { if vm.hasRitualToday { selectedCategory = .energy } }
-            .accessibilityIdentifier("dashboard-card-energy")
-    }
-
-    private func presenceCard(snapshot: DashboardSnapshot?) -> some View {
-        PresenceCard(state: snapshot?.presence ?? .notStarted) {
-            if vm.hasRitualToday { selectedCategory = .presence }
-        }
-        .accessibilityIdentifier("dashboard-card-presence")
-    }
-
-    private func sleepCard(snapshot: DashboardSnapshot?) -> some View {
-        SleepCard(summary: snapshot?.sleep) {
-            if snapshot?.sleep == nil {
-                showSleepSheet = true
-            } else if vm.hasRitualToday {
-                selectedCategory = .sleep
+            // Wrap-friendly horizontal flow: SwiftUI's HStack wraps via
+            // FlexibleHStack-style layout; but the 4 chips fit on one line
+            // on iPhone 16 width — we keep it as HStack with .lineLimit
+            // and rely on the layout to grow; if needed switch to a two-row
+            // VStack for narrow screens.
+            HStack(spacing: 8) {
+                PreviewChip(index: 1, label: "Humeur")
+                PreviewChip(index: 2, label: "Énergie")
+                PreviewChip(index: 3, label: "Priorité")
+                PreviewChip(index: 4, label: "Gratitude")
             }
         }
     }
 
-    // MARK: - Ask Lumen FAB
+    // MARK: - Post-rituel bento
+
+    @ViewBuilder
+    private var postRitualContent: some View {
+        let s = vm.snapshot
+        VStack(alignment: .leading, spacing: 14) {
+            postHeader
+
+            if let priority = s?.priority?.text, !priority.isEmpty {
+                PriorityHeroCard(text: priority) {
+                    selectedCategory = .priority
+                }
+            }
+
+            HStack(spacing: 10) {
+                MoodCard(mood: s?.mood) {
+                    if vm.hasRitualToday { selectedCategory = .mood }
+                }
+                EnergyCard(energy: s?.energy) {
+                    if vm.hasRitualToday { selectedCategory = .energy }
+                }
+            }
+
+            if let gratitude = s?.gratitude, !gratitude.isEmpty {
+                GratitudeQuoteCard(text: gratitude) {
+                    selectedCategory = .gratitude
+                }
+            }
+
+            HStack(spacing: 10) {
+                PresenceCard(state: s?.presence ?? .notStarted) {
+                    if vm.hasRitualToday { selectedCategory = .presence }
+                }
+                SleepCard(summary: s?.sleep) {
+                    if s?.sleep == nil {
+                        showSleepSheet = true
+                    } else if vm.hasRitualToday {
+                        selectedCategory = .sleep
+                    }
+                }
+            }
+
+            StreakFooter(
+                consecutiveStreak: vm.weekHistory.consecutiveStreak,
+                nextAlarmLabel: vm.nextAlarmLabel
+            )
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    // MARK: - FAB
 
     private var askLumenFAB: some View {
         AskLumenFAB(action: onAskLumen)
-            .padding(.trailing, LumenSpacing.l)
-            .padding(.bottom, LumenSpacing.l)
+            .padding(.trailing, LumenSpacing.m)
+            .padding(.bottom, 30)
             .accessibilityIdentifier("ask-lumen-fab")
     }
 }
 
 #if DEBUG
-#Preview {
+#Preview("Post-rituel") {
     DashboardHomeView(
         vm: .preview,
+        refreshKey: 0,
+        onStartRitual: {},
+        onNavigateToAlarms: {},
+        onAskLumen: {}
+    )
+    .preferredColorScheme(.dark)
+}
+
+#Preview("Idle") {
+    DashboardHomeView(
+        vm: .previewIdle,
+        refreshKey: 0,
+        onStartRitual: {},
+        onNavigateToAlarms: {},
+        onAskLumen: {}
+    )
+    .preferredColorScheme(.dark)
+}
+
+#Preview("Empty") {
+    DashboardHomeView(
+        vm: .previewEmpty,
         refreshKey: 0,
         onStartRitual: {},
         onNavigateToAlarms: {},
