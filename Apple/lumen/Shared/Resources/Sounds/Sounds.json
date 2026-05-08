@@ -64,7 +64,7 @@
       "id": "alarm-marée",
       "displayKey": "sound.alarm.maree",
       "kind": "alarm",
-      "filename": "alarm-marée.caf",
+      "filename": "alarm-maree.caf",
       "durationSeconds": 30,
       "lufsTarget": -16,
       "isDefault": false,

@@ -2,53 +2,50 @@ import Foundation
 
 struct BuildDashboardSnapshot: Sendable {
     private let ritualRepository: any RitualRepository
+    private let sleepService: any SleepHealthProviding
 
-    init(ritualRepository: any RitualRepository) {
+    init(ritualRepository: any RitualRepository, sleepService: any SleepHealthProviding) {
         self.ritualRepository = ritualRepository
+        self.sleepService = sleepService
     }
 
     func execute(date: Date) async throws -> DashboardSnapshot {
-        guard let ritual = try await ritualRepository.fetchByDate(date) else {
-            return DashboardSnapshot(date: date)
+        let ritual = try await ritualRepository.fetchByDate(date)
+
+        // Sleep is fetched best-effort; failure or missing data → nil card.
+        let sleep = await sleepService.fetchLastNight()
+
+        guard let ritual else {
+            return DashboardSnapshot(date: date, presence: .notStarted, sleep: sleep)
         }
 
-        var snapshot = DashboardSnapshot(date: date)
+        var mood: MoodSummary?
+        var energy: EnergyLevel?
+        var priority: PrioritySummary?
+        var gratitude: String?
 
         for answer in ritual.answers {
             switch answer.payload {
-            case .mood(let level, _):
-                snapshot.energy = moodLabel(for: level)
+            case .mood(let level, let tag):
+                mood = MoodSummary(level: level, tag: tag)
+            case .energy(let level):
+                energy = level
             case .priority(let category, let note):
-                switch category {
-                case .energy:
-                    if snapshot.energy == nil { snapshot.energy = note }
-                case .intention:
-                    snapshot.intention = note
-                case .body:
-                    snapshot.bodyCheckin = BodyCheckin(hydrationNote: note)
-                case .relations:
-                    snapshot.relations = note
-                case .work:
-                    snapshot.work = note
-                case .gratitude:
-                    snapshot.gratitude = note
-                }
+                priority = PrioritySummary(category: category, note: note)
             case .gratitude(let text):
-                snapshot.gratitude = text
-            case .intention(let word):
-                snapshot.intention = word
+                gratitude = text
             }
         }
 
-        return snapshot
-    }
-
-    private func moodLabel(for level: Int) -> String {
-        switch level {
-        case ..<3:  return "Faible"
-        case 3..<6: return "Moyen"
-        case 6..<8: return "Bien"
-        default:    return "Excellent"
-        }
+        return DashboardSnapshot(
+            date: date,
+            mood: mood,
+            energy: energy,
+            priority: priority,
+            gratitude: gratitude,
+            presence: ritual.presence,
+            sleep: sleep,
+            aiIntention: nil
+        )
     }
 }

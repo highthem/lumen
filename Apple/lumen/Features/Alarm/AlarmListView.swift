@@ -114,3 +114,13 @@ struct AlarmListView: View {
         }
     }
 }
+
+#if DEBUG
+#Preview {
+    AlarmListView(
+        vm: .preview,
+        makeEditVM: { _ in .preview }
+    )
+    .preferredColorScheme(.dark)
+}
+#endif

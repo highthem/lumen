@@ -20,7 +20,7 @@ actor MockOnboardingScheduler: AlarmScheduling {
 
     func cancel(id: UUID) async throws {}
     func cancelAll() async throws {}
-    func snooze(id: UUID, minutes: Int) async throws {}
+    func snooze(_ alarm: Alarm, minutes: Int) async throws {}
 }
 
 @Suite("OnboardingViewModel")

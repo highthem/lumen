@@ -9,12 +9,18 @@ final class DashboardHomeViewModel {
     var hasAnyRitual: Bool = false
     var hasAnyAlarm: Bool = false
 
+    let sleepService: any SleepHealthProviding
     private let buildDashboard: BuildDashboardSnapshot
     private let alarmRepository: any AlarmRepository
 
-    init(buildDashboard: BuildDashboardSnapshot, alarmRepository: any AlarmRepository) {
+    init(
+        buildDashboard: BuildDashboardSnapshot,
+        alarmRepository: any AlarmRepository,
+        sleepService: any SleepHealthProviding
+    ) {
         self.buildDashboard = buildDashboard
         self.alarmRepository = alarmRepository
+        self.sleepService = sleepService
         self.hasAnyRitual = UserDefaults.standard.bool(forKey: "lumen.hasAnyRitual")
     }
 
@@ -24,16 +30,16 @@ final class DashboardHomeViewModel {
         hasAnyAlarm = !alarms.isEmpty
         do {
             let loaded = try await buildDashboard.execute(date: Date())
-            let hasContent = loaded.energy != nil
-                || loaded.intention != nil
+            let hasContent = loaded.mood != nil
+                || loaded.energy != nil
+                || loaded.priority != nil
                 || loaded.gratitude != nil
-                || loaded.work != nil
-                || loaded.relations != nil
+                || loaded.presence != .notStarted
             if hasContent {
                 snapshot = loaded
                 hasRitualToday = true
             } else {
-                snapshot = nil
+                snapshot = loaded
                 hasRitualToday = false
             }
         } catch {

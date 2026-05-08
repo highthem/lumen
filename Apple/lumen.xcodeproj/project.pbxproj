@@ -354,6 +354,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = lumen/lumen.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_TEAM = 2PBSCWRZ37;
@@ -362,6 +363,8 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_ANTHROPIC_API_KEY = "$(ANTHROPIC_API_KEY)";
 				INFOPLIST_KEY_ELEVENLABS_API_KEY = "$(ELEVENLABS_API_KEY)";
+				INFOPLIST_KEY_NSHealthClinicalHealthRecordsShareUsageDescription = "Lumen lit tes données de sommeil pour enrichir ta synthèse matinale. Aucune donnée n'est transmise.";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "Lumen lit tes données de sommeil pour enrichir ta synthèse matinale. Aucune donnée n'est transmise.";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Lumen utilise le micro pour transcrire ta réponse au questionnaire matinal. L'audio reste sur ton téléphone.";
 				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "La reconnaissance vocale fonctionne directement sur ton téléphone. Aucun audio n'est envoyé à Apple.";
 				INFOPLIST_KEY_OPENAI_API_KEY = "$(OPENAI_API_KEY)";
@@ -398,6 +401,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = lumen/lumen.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_TEAM = 2PBSCWRZ37;
@@ -406,6 +410,8 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_ANTHROPIC_API_KEY = "$(ANTHROPIC_API_KEY)";
 				INFOPLIST_KEY_ELEVENLABS_API_KEY = "$(ELEVENLABS_API_KEY)";
+				INFOPLIST_KEY_NSHealthClinicalHealthRecordsShareUsageDescription = "Lumen lit tes données de sommeil pour enrichir ta synthèse matinale. Aucune donnée n'est transmise.";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "Lumen lit tes données de sommeil pour enrichir ta synthèse matinale. Aucune donnée n'est transmise.";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Lumen utilise le micro pour transcrire ta réponse au questionnaire matinal. L'audio reste sur ton téléphone.";
 				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "La reconnaissance vocale fonctionne directement sur ton téléphone. Aucun audio n'est envoyé à Apple.";
 				INFOPLIST_KEY_OPENAI_API_KEY = "$(OPENAI_API_KEY)";

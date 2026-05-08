@@ -29,7 +29,13 @@ tags:
     id: "alarm-time-picker"
 - tapOn: "Programmer"
 
-# Land on Dashboard
-- assertVisible: "Bonjour"
+# Land on Dashboard — use id-based selectors (text matching with French
+# diacritics is unreliable in Maestro 2.5.1)
+- waitForAnimationToEnd:
+    timeout: 3000
+- extendedWaitUntil:
+    visible:
+      id: "dashboard-screen"
+    timeout: 8000
 - assertVisible:
     id: "ritual-cta"

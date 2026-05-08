@@ -2,23 +2,23 @@ import Foundation
 
 enum QuestionnaireStep: String, Sendable, Codable, Hashable {
     case mood
+    case energy
     case priority
     case gratitude
-    case intention
 }
 
 nonisolated enum AnswerPayload: Sendable, Codable, Hashable {
     case mood(level: Int, tag: String?)
-    case priority(category: DashboardCategory, note: String?)
+    case energy(level: EnergyLevel)
+    case priority(category: PriorityCategory, note: String?)
     case gratitude(text: String)
-    case intention(word: String)
 
     nonisolated var step: QuestionnaireStep {
         switch self {
         case .mood:      return .mood
+        case .energy:    return .energy
         case .priority:  return .priority
         case .gratitude: return .gratitude
-        case .intention: return .intention
         }
     }
 
@@ -29,7 +29,6 @@ nonisolated enum AnswerPayload: Sendable, Codable, Hashable {
         case level, tag
         case category, note
         case text
-        case word
     }
 
     func encode(to encoder: Encoder) throws {
@@ -39,6 +38,9 @@ nonisolated enum AnswerPayload: Sendable, Codable, Hashable {
             try container.encode("mood", forKey: .type)
             try container.encode(level, forKey: .level)
             try container.encodeIfPresent(tag, forKey: .tag)
+        case .energy(let level):
+            try container.encode("energy", forKey: .type)
+            try container.encode(level, forKey: .level)
         case .priority(let category, let note):
             try container.encode("priority", forKey: .type)
             try container.encode(category, forKey: .category)
@@ -46,9 +48,6 @@ nonisolated enum AnswerPayload: Sendable, Codable, Hashable {
         case .gratitude(let text):
             try container.encode("gratitude", forKey: .type)
             try container.encode(text, forKey: .text)
-        case .intention(let word):
-            try container.encode("intention", forKey: .type)
-            try container.encode(word, forKey: .word)
         }
     }
 
@@ -60,16 +59,16 @@ nonisolated enum AnswerPayload: Sendable, Codable, Hashable {
             let level = try container.decode(Int.self, forKey: .level)
             let tag = try container.decodeIfPresent(String.self, forKey: .tag)
             self = .mood(level: level, tag: tag)
+        case "energy":
+            let level = try container.decode(EnergyLevel.self, forKey: .level)
+            self = .energy(level: level)
         case "priority":
-            let category = try container.decode(DashboardCategory.self, forKey: .category)
+            let category = try container.decode(PriorityCategory.self, forKey: .category)
             let note = try container.decodeIfPresent(String.self, forKey: .note)
             self = .priority(category: category, note: note)
         case "gratitude":
             let text = try container.decode(String.self, forKey: .text)
             self = .gratitude(text: text)
-        case "intention":
-            let word = try container.decode(String.self, forKey: .word)
-            self = .intention(word: word)
         default:
             throw DecodingError.dataCorrupted(.init(codingPath: decoder.codingPath, debugDescription: "Unknown AnswerPayload type: \(type)"))
         }

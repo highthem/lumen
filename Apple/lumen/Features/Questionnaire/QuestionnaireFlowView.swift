@@ -36,20 +36,20 @@ struct QuestionnaireFlowView: View {
                 onNext: { Task { try? await vm.advance() } },
                 onBack: { vm.goBack() }
             )
+        case .energy:
+            Q2EnergyView(
+                vm: vm,
+                onNext: { Task { try? await vm.advance() } },
+                onBack: { vm.goBack() }
+            )
         case .priority:
-            Q2PriorityView(
+            Q3PriorityView(
                 vm: vm,
                 onNext: { Task { try? await vm.advance() } },
                 onBack: { vm.goBack() }
             )
         case .gratitude:
-            Q3GratitudeView(
-                vm: vm,
-                onNext: { Task { try? await vm.advance() } },
-                onBack: { vm.goBack() }
-            )
-        case .intention:
-            Q4IntentionView(
+            Q4GratitudeView(
                 vm: vm,
                 onNext: {
                     Task {
@@ -65,3 +65,10 @@ struct QuestionnaireFlowView: View {
         }
     }
 }
+
+#if DEBUG
+#Preview {
+    QuestionnaireFlowView(vm: .preview, onComplete: { _ in })
+        .preferredColorScheme(.dark)
+}
+#endif

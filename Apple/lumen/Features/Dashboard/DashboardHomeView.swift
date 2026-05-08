@@ -7,11 +7,23 @@ struct DashboardHomeView: View {
     let onNavigateToAlarms: () -> Void
     let onAskLumen: () -> Void
 
+    @State private var showSleepSheet: Bool = false
+    @State private var selectedCategory: DashboardCategory?
+
     var body: some View {
+        NavigationStack {
+            content
+                .navigationDestination(item: $selectedCategory) { category in
+                    CategoryDetailView(category: category, onAskLumen: onAskLumen)
+                }
+        }
+    }
+
+    private var content: some View {
         ZStack(alignment: .bottomTrailing) {
             LumenColor.bgPrimary.ignoresSafeArea()
 
-            // Subtle top glow (matches `.glow-top` from the design system).
+            // Subtle top glow
             VStack(spacing: 0) {
                 LinearGradient(
                     colors: [LumenColor.accent.opacity(LumenOpacity.p08), .clear],
@@ -31,13 +43,13 @@ struct DashboardHomeView: View {
                     } else if !vm.hasRitualToday {
                         idleHeader
                         idleBanner
-                        cardGrid(snapshot: nil, opacity: LumenOpacity.ring)
+                        cardGrid(opacity: LumenOpacity.ring)
                     } else {
                         postHeader
-                        if let intention = vm.snapshot?.intention {
+                        if let intention = vm.snapshot?.aiIntention {
                             heroIntentionCard(word: intention)
                         }
-                        cardGrid(snapshot: vm.snapshot, opacity: 1.0)
+                        cardGrid(opacity: 1.0)
                     }
                 }
                 .padding(.horizontal, LumenSpacing.l)
@@ -50,6 +62,15 @@ struct DashboardHomeView: View {
             }
         }
         .task(id: refreshKey) { await vm.load() }
+        .sheet(isPresented: $showSleepSheet) {
+            SleepPermissionSheet(
+                sleepService: vm.sleepService,
+                onAuthorized: {
+                    Task { await vm.load() }
+                },
+                isPresented: $showSleepSheet
+            )
+        }
         .accessibilityIdentifier("dashboard-screen")
     }
 
@@ -152,13 +173,6 @@ struct DashboardHomeView: View {
                 .lumenFont(.synthesisHero)
                 .italic()
                 .foregroundStyle(LumenColor.accent)
-            if let focus = vm.snapshot?.work ?? vm.snapshot?.relations {
-                Text(focus)
-                    .lumenFont(.chipLabel)
-                    .fontWeight(.regular)
-                    .lineSpacing(LumenLineSpacing.m)
-                    .foregroundStyle(LumenColor.textPrimary.opacity(LumenOpacity.arc))
-            }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(LumenSpacing.l)
@@ -168,55 +182,63 @@ struct DashboardHomeView: View {
         )
     }
 
-    // MARK: - Card grid (5-cell with gratitude spanning two columns)
+    // MARK: - Card grid (2 × 3 V2)
 
-    private func cardGrid(snapshot: DashboardSnapshot?, opacity: Double) -> some View {
-        VStack(spacing: LumenSpacing.sm2) {
-            LazyVGrid(
-                columns: [GridItem(.flexible(), spacing: LumenSpacing.sm2), GridItem(.flexible(), spacing: LumenSpacing.sm2)],
-                spacing: LumenSpacing.sm2
-            ) {
-                DashboardCard(
-                    eyebrow: DashboardCategory.energy.displayName,
-                    value: snapshot?.energy,
-                    footnote: nil
-                ) {}.opacity(opacity)
+    private func cardGrid(opacity: Double) -> some View {
+        let snapshot = vm.snapshot
+        let canNavigate = vm.hasRitualToday
+        return LazyVGrid(
+            columns: [
+                GridItem(.flexible(), spacing: LumenSpacing.sm2),
+                GridItem(.flexible(), spacing: LumenSpacing.sm2)
+            ],
+            spacing: LumenSpacing.sm2
+        ) {
+            DashboardCard(
+                eyebrow: DashboardCategory.mood.displayName,
+                value: snapshot?.mood?.tag.map { $0.capitalized },
+                footnote: nil
+            ) { if canNavigate { selectedCategory = .mood } }
+                .opacity(opacity)
+                .accessibilityIdentifier("dashboard-card-mood")
 
-                DashboardCard(
-                    eyebrow: DashboardCategory.body.displayName,
-                    value: snapshot?.bodyCheckin.hydrationNote,
-                    footnote: nil
-                ) {}.opacity(opacity)
+            DashboardCard(
+                eyebrow: DashboardCategory.energy.displayName,
+                value: snapshot?.energy?.displayName,
+                footnote: nil
+            ) { if canNavigate { selectedCategory = .energy } }
+                .opacity(opacity)
+                .accessibilityIdentifier("dashboard-card-energy")
 
-                DashboardCard(
-                    eyebrow: DashboardCategory.relations.displayName,
-                    value: snapshot?.relations,
-                    footnote: nil
-                ) {}.opacity(opacity)
+            DashboardCard(
+                eyebrow: DashboardCategory.priority.displayName,
+                value: snapshot?.priority?.category.displayName,
+                footnote: snapshot?.priority?.note
+            ) { if canNavigate { selectedCategory = .priority } }
+                .opacity(opacity)
+                .accessibilityIdentifier("dashboard-card-priority")
 
-                DashboardCard(
-                    eyebrow: DashboardCategory.work.displayName,
-                    value: snapshot?.work,
-                    footnote: nil
-                ) {}.opacity(opacity)
+            DashboardCard(
+                eyebrow: DashboardCategory.gratitude.displayName,
+                value: snapshot?.gratitude,
+                footnote: nil
+            ) { if canNavigate { selectedCategory = .gratitude } }
+                .opacity(opacity)
+                .accessibilityIdentifier("dashboard-card-gratitude")
+
+            PresenceCard(state: snapshot?.presence ?? .notStarted) {
+                if canNavigate { selectedCategory = .presence }
             }
+            .opacity(opacity)
+            .accessibilityIdentifier("dashboard-card-presence")
 
-            // Gratitude — full width, italic serif
-            VStack(alignment: .leading, spacing: LumenSpacing.s) {
-                Eyebrow(DashboardCategory.gratitude.displayName)
-                Text(snapshot?.gratitude ?? "—")
-                    .lumenFont(.title2)
-                    .fontWeight(.regular)
-                    .italic()
-                    .foregroundStyle(LumenColor.textPrimary)
-                    .fixedSize(horizontal: false, vertical: true)
+            SleepCard(summary: snapshot?.sleep) {
+                if snapshot?.sleep == nil {
+                    showSleepSheet = true
+                } else if canNavigate {
+                    selectedCategory = .sleep
+                }
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(LumenSpacing.l)
-            .background(
-                RoundedRectangle(cornerRadius: LumenRadius.l, style: .continuous)
-                    .fill(LumenColor.bgSecondary)
-            )
             .opacity(opacity)
         }
     }
@@ -227,5 +249,19 @@ struct DashboardHomeView: View {
         AskLumenFAB(action: onAskLumen)
             .padding(.trailing, LumenSpacing.l)
             .padding(.bottom, LumenSpacing.l)
+            .accessibilityIdentifier("ask-lumen-fab")
     }
 }
+
+#if DEBUG
+#Preview {
+    DashboardHomeView(
+        vm: .preview,
+        refreshKey: 0,
+        onStartRitual: {},
+        onNavigateToAlarms: {},
+        onAskLumen: {}
+    )
+    .preferredColorScheme(.dark)
+}
+#endif

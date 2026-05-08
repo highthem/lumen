@@ -15,7 +15,7 @@ struct SnoozeAlarm: Sendable {
         alarm.snoozeCount += 1
         alarm.updatedAt = Date()
         try await repository.update(alarm)
-        try await scheduler.snooze(id: alarmId, minutes: 5)
+        try await scheduler.snooze(alarm, minutes: 5)
         return alarm.snoozeCount
     }
 }

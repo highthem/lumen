@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct Q4IntentionView: View {
+struct Q4GratitudeView: View {
     @Bindable var vm: QuestionnaireFlowViewModel
     let onNext: () -> Void
     let onBack: () -> Void
@@ -8,9 +8,9 @@ struct Q4IntentionView: View {
     private enum LocalState { case `default`, listening, transcribed, editing }
 
     private var state: LocalState {
-        if vm.intentionEditingByKeyboard { return .editing }
-        if vm.intentionMicState == .listening { return .listening }
-        if !vm.intentionWord.isEmpty { return .transcribed }
+        if vm.editingByKeyboard { return .editing }
+        if vm.micState == .listening { return .listening }
+        if !vm.gratitudeText.isEmpty { return .transcribed }
         return .default
     }
 
@@ -19,11 +19,10 @@ struct Q4IntentionView: View {
             ProgressDots4(current: 3)
 
             VStack(alignment: .leading, spacing: LumenSpacing.s) {
-                Eyebrow("04 / 04 · Intention")
-                Text("Ton intention\nen un mot.")
+                Eyebrow("04 / 04 · Gratitude")
+                Text("Une gratitude ?")
                     .lumenFont(.title1)
                     .foregroundStyle(LumenColor.textPrimary)
-                    .fixedSize(horizontal: false, vertical: true)
             }
 
             VStack(spacing: LumenSpacing.xl2) {
@@ -42,7 +41,7 @@ struct Q4IntentionView: View {
             FooterRow(
                 backTitle: "Retour",
                 nextTitle: "Voir ma synthèse",
-                isNextEnabled: !vm.intentionWord.isEmpty && state != .listening,
+                isNextEnabled: !vm.gratitudeText.isEmpty && state != .listening,
                 onBack: onBack,
                 onNext: onNext
             )
@@ -52,32 +51,34 @@ struct Q4IntentionView: View {
         .padding(.bottom, LumenSpacing.l)
     }
 
+    // MARK: - Reveal area (above mic)
+
     @ViewBuilder
     private var revealArea: some View {
         ZStack {
             switch state {
             case .default:
-                // Default — empty reveal area; mic + labels carry the CTA.
+                // Default — leave the reveal area empty; the mic + labels below
+                // carry the call-to-action.
                 Color.clear
 
             case .listening:
                 LiveTranscript(
-                    text: vm.intentionWord,
-                    font: .questionnaireHero,
+                    text: vm.gratitudeText.isEmpty ? "" : vm.gratitudeText,
+                    font: .questionnaireQM,
                     color: LumenColor.accent,
-                    isItalic: true,
-                    charDelay: LumenDelay.pulse
+                    isItalic: false,
+                    charDelay: LumenDelay.charStagger
                 )
-                .lineLimit(1)
-                .minimumScaleFactor(0.4)
+                .multilineTextAlignment(.center)
+                .frame(maxWidth: LumenSize.cardField)
 
             case .transcribed:
-                Text(vm.intentionWord)
-                    .lumenFont(.heroDisplay)
-                    .italic()
-                    .foregroundStyle(LumenColor.accent)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.4)
+                Text(vm.gratitudeText)
+                    .lumenFont(.questionnaireQM)
+                    .foregroundStyle(LumenColor.textPrimary)
+                    .multilineTextAlignment(.center)
+                    .frame(maxWidth: LumenSize.cardField)
 
             case .editing:
                 editingPanel
@@ -86,13 +87,15 @@ struct Q4IntentionView: View {
         .frame(minHeight: LumenSize.blockReveal)
     }
 
+    // MARK: - Mic area
+
     @ViewBuilder
     private var micArea: some View {
         VStack(spacing: LumenSpacing.sm3) {
             MicCTA(
                 isListening: state == .listening,
-                onPressDown: { vm.startDictation(for: .intention) },
-                onPressUp: { Task { await vm.stopDictation(for: .intention) } },
+                onPressDown: { vm.startDictation(for: .gratitude) },
+                onPressUp: { Task { await vm.stopDictation(for: .gratitude) } },
                 accessibilityID: "mic-button"
             )
 
@@ -104,7 +107,7 @@ struct Q4IntentionView: View {
                         .fontWeight(.medium)
                         .foregroundStyle(LumenColor.textPrimary.opacity(LumenOpacity.waveform))
                     Button {
-                        vm.intentionEditingByKeyboard = true
+                        vm.editingByKeyboard = true
                     } label: {
                         Text("ou écrire au clavier")
                             .lumenFont(.footnoteSerif)
@@ -112,7 +115,7 @@ struct Q4IntentionView: View {
                             .foregroundStyle(LumenColor.textSecondary)
                     }
                     .buttonStyle(.plain)
-                    .accessibilityIdentifier("intention-keyboard-toggle")
+                    .accessibilityIdentifier("gratitude-keyboard-toggle")
                 }
 
             case .listening:
@@ -132,6 +135,8 @@ struct Q4IntentionView: View {
         }
     }
 
+    // MARK: - Ghost action row
+
     @ViewBuilder
     private var ghostActionsRow: some View {
         HStack(spacing: LumenSpacing.l) {
@@ -143,20 +148,20 @@ struct Q4IntentionView: View {
             case .listening:
                 Spacer()
                 Button {
-                    Task { await vm.stopDictation(for: .intention) }
+                    Task { await vm.stopDictation(for: .gratitude) }
                 } label: {
                     Text("Annuler")
                         .lumenFont(.footnote)
                         .foregroundStyle(LumenColor.textSecondary)
                 }
                 .buttonStyle(.plain)
-                .accessibilityIdentifier("intention-keyboard-toggle")
+                .accessibilityIdentifier("gratitude-keyboard-toggle")
                 Spacer()
 
             case .transcribed:
                 Spacer()
                 Button {
-                    vm.resetIntention()
+                    vm.resetGratitude()
                 } label: {
                     Text("↺ Recommencer")
                         .lumenFont(.footnote)
@@ -164,7 +169,7 @@ struct Q4IntentionView: View {
                 }
                 .buttonStyle(.plain)
                 Button {
-                    vm.intentionEditingByKeyboard = true
+                    vm.editingByKeyboard = true
                 } label: {
                     HStack(spacing: LumenSpacing.xs2) {
                         Image(systemName: "keyboard")
@@ -180,7 +185,7 @@ struct Q4IntentionView: View {
             case .editing:
                 Spacer()
                 Button {
-                    vm.intentionEditingByKeyboard = false
+                    vm.editingByKeyboard = false
                 } label: {
                     Text("← Tu peux aussi reparler")
                         .lumenFont(.footnoteSerif)
@@ -193,14 +198,15 @@ struct Q4IntentionView: View {
         }
     }
 
+    // MARK: - Editing panel
+
     private var editingPanel: some View {
         SerifUnderlineField(
-            text: $vm.intentionWord,
-            placeholder: "présence",
-            font: .questionnaireHero,
-            color: LumenColor.accent,
-            maxWidth: LumenSize.cardForm,
-            accessibilityID: "intention-textfield"
+            text: $vm.gratitudeText,
+            placeholder: "Le silence avant que les enfants se lèvent.",
+            font: .inputSerifLg,
+            lineLimit: 4,
+            accessibilityID: "gratitude-textarea"
         )
     }
 }

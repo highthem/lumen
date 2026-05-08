@@ -1,6 +1,18 @@
 import Foundation
 import CryptoKit
 
+/// Optional context surfaced alongside questionnaire answers when building the
+/// LLM prompt. Defaults make the type opt-in for callers that don't care.
+struct RitualContext: Sendable, Hashable {
+    var presence: PresenceState
+    var sleep: SleepSummary?
+
+    init(presence: PresenceState = .notStarted, sleep: SleepSummary? = nil) {
+        self.presence = presence
+        self.sleep = sleep
+    }
+}
+
 enum PromptBuilder {
 
     nonisolated static let systemPrompt: String = """
@@ -13,7 +25,10 @@ enum PromptBuilder {
     Utilise la langue de l'utilisateur. Sois chaleureux, encourageant et pragmatique.
     """
 
-    nonisolated static func build(answers: [QuestionnaireAnswer]) -> (system: String, user: String) {
+    nonisolated static func build(
+        answers: [QuestionnaireAnswer],
+        context: RitualContext = RitualContext()
+    ) -> (system: String, user: String) {
         var lines: [String] = []
         for answer in answers {
             switch answer.payload {
@@ -21,16 +36,34 @@ enum PromptBuilder {
                 var line = "Humeur : \(level)/10"
                 if let tag { line += " (\(tag))" }
                 lines.append(line)
+            case .energy(let level):
+                lines.append("Énergie : \(level.displayName)")
             case .priority(let category, let note):
                 var line = "Priorité (\(category.displayName))"
                 if let note { line += " : \(note)" }
                 lines.append(line)
             case .gratitude(let text):
                 lines.append("Gratitude : \(text)")
-            case .intention(let word):
-                lines.append("Intention : \(word)")
             }
         }
+
+        switch context.presence {
+        case .completed:
+            lines.append("Présence : 60 secondes — souligne brièvement, sans flatterie.")
+        case .partial:
+            lines.append("Présence : quelques secondes — reconnais l'effort, sans pression.")
+        case .skipped:
+            lines.append("Présence : sautée — invite doucement à essayer 30 secondes demain.")
+        case .notStarted:
+            break
+        }
+
+        if let sleep = context.sleep {
+            let hours = Int(sleep.totalAsleep) / 3600
+            let minutes = (Int(sleep.totalAsleep) % 3600) / 60
+            lines.append("Sommeil : \(hours)h\(minutes)m, \(sleep.quality.displayName).")
+        }
+
         let user = lines.joined(separator: "\n")
         return (systemPrompt, user)
     }

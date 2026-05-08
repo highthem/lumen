@@ -1,7 +1,7 @@
 appId: com.highthem.lumen
 name: Ritual Happy Path
-tags: 
-  - smoke 
+tags:
+  - smoke
   - ritual
 env:
   RITUAL_DEEPLINK: "lumen://ritual/start"
@@ -21,29 +21,48 @@ env:
     id: "presence-timer-screen"
 - tapOn: "Passer →"
 
-# Q1 Mood — sélectionner "posé"
-- assertVisible: "posé"
-- tapOn: "posé"
+# Q1 Mood — tap centre to advance.
+# Q1 uses ChromaticSlider with `.accessibilityRepresentation { Slider(...) }`,
+# which replaces the entire accessibility tree with a single Slider node,
+# making text/dots invisible to Maestro queries. Tap-to-advance works because
+# the parent has a simultaneousGesture { onNext() } covering the whole screen.
+- waitForAnimationToEnd:
+    timeout: 3000
+- tapOn:
+    point: "50%, 50%"
 
-# Q2 Priority — sélectionner Énergie
-- assertVisible: "Qu'est-ce qui compte"
+# Q2 Energy — sélectionner Moyen
+- waitForAnimationToEnd:
+    timeout: 3000
+- extendedWaitUntil:
+    visible:
+      id: "energy-3"
+    timeout: 8000
+- tapOn:
+    id: "energy-3"
+- tapOn: "Suivant"
+
+# Q3 Priority — sélectionner Énergie
+- waitForAnimationToEnd:
+    timeout: 3000
+- extendedWaitUntil:
+    visible:
+      id: "priority-energy"
+    timeout: 8000
 - tapOn:
     id: "priority-energy"
 - tapOn: "Suivant"
 
-# Q3 Gratitude — fallback typing (Maestro can't mic)
-- assertVisible: "Une gratitude"
+# Q4 Gratitude — fallback typing (Maestro can't mic)
+- waitForAnimationToEnd:
+    timeout: 3000
+- extendedWaitUntil:
+    visible:
+      id: "gratitude-keyboard-toggle"
+    timeout: 8000
 - tapOn:
     id: "gratitude-keyboard-toggle"
 - inputText: "Le silence avant que les enfants se lèvent."
-- hideKeyboard
-- tapOn: "Suivant"
-
-# Q4 Intention — typing fallback
-- assertVisible: "Ton intention"
-- tapOn:
-    id: "intention-keyboard-toggle"
-- inputText: "présence"
 - hideKeyboard
 - tapOn: "Voir ma synthèse"
 
@@ -56,6 +75,23 @@ env:
 - tapOn:
     id: "synthesis-continue-button"
 
-# Dashboard post-rituel
-- assertVisible: "Aujourd'hui"
-- assertVisible: "Intention"
+# Dashboard post-rituel — id-based assertions (text matching is unreliable
+# with French diacritics + custom fonts in Maestro 2.5.1)
+- waitForAnimationToEnd:
+    timeout: 3000
+- extendedWaitUntil:
+    visible:
+      id: "dashboard-screen"
+    timeout: 8000
+- assertVisible:
+    id: "dashboard-card-mood"
+- assertVisible:
+    id: "dashboard-card-energy"
+- assertVisible:
+    id: "dashboard-card-priority"
+- assertVisible:
+    id: "dashboard-card-gratitude"
+- assertVisible:
+    id: "dashboard-card-presence"
+- assertVisible:
+    id: "dashboard-card-sleep"

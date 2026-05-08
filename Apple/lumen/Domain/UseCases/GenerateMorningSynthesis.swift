@@ -3,10 +3,16 @@ import Foundation
 struct GenerateMorningSynthesis: Sendable {
     private let ritualRepository: any RitualRepository
     private let aiService: any AISynthesisService
+    private let sleepService: (any SleepHealthProviding)?
 
-    init(ritualRepository: any RitualRepository, aiService: any AISynthesisService) {
+    init(
+        ritualRepository: any RitualRepository,
+        aiService: any AISynthesisService,
+        sleepService: (any SleepHealthProviding)? = nil
+    ) {
         self.ritualRepository = ritualRepository
         self.aiService = aiService
+        self.sleepService = sleepService
     }
 
     func execute(ritualId: UUID, mode: AIResponseMode) async throws -> AIResponseResult {
@@ -15,12 +21,20 @@ struct GenerateMorningSynthesis: Sendable {
         }
 
         let hasMood      = ritual.answers.contains { $0.step == .mood }
-        let hasIntention = ritual.answers.contains { $0.step == .intention }
-        guard hasMood && hasIntention else {
+        let hasGratitude = ritual.answers.contains { $0.step == .gratitude }
+        guard hasMood && hasGratitude else {
             throw AIError.providerFailed("missing answers")
         }
 
-        let result = try await aiService.synthesize(answers: ritual.answers, ritualId: ritualId, mode: mode)
+        let sleep = await sleepService?.fetchLastNight()
+        let context = RitualContext(presence: ritual.presence, sleep: sleep)
+
+        let result = try await aiService.synthesize(
+            answers: ritual.answers,
+            ritualId: ritualId,
+            mode: mode,
+            context: context
+        )
 
         if case .ready(let response) = result {
             try await ritualRepository.attachSynthesis(response, ritualId: ritualId)

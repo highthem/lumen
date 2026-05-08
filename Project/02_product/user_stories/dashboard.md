@@ -3,16 +3,16 @@
 ## Epic
 En tant qu'utilisateur, je veux un dashboard qui reflète mon identité du jour et me permet d'y revenir tout au long de la journée.
 
-## Les 6 catégories (décision candidat D5)
+## Les 6 catégories
 
-1. **Énergie** — niveau perçu, évolution journalière
-2. **Intention** — intention du jour (issue Q4)
-3. **Corps** — check-in physique (hydratation, mouvement, sommeil ressenti)
-4. **Relations** — une personne à qui penser/contacter aujourd'hui
-5. **Travail** — priorité n°1 (tirée de Q2 si `travail` taggé)
-6. **Gratitude** — gratitude du jour (issue Q3)
+1. **Humeur** — humeur du matin (issue Q1)
+2. **Énergie** — niveau d'énergie ressenti (issue Q2)
+3. **Priorité** — priorité du jour (issue Q3)
+4. **Gratitude** — gratitude du jour (issue Q4)
+5. **Présence** — état du timer 60s avant le rituel (completed / partial / skipped)
+6. **Sommeil** — durée + qualité de la nuit (HealthKit, lecture seule)
 
-Rationale : miroir d'identité, pas métriques cliniques. Différenciation vs Rise (chiffres) et Fabulous (tâches).
+Rationale : chaque card est alimentée — 4 par les questions, 1 par le timer, 1 par HealthKit. Plus de placeholders vides. Miroir d'identité, pas métriques cliniques.
 
 ## US-D1 — Vue d'ensemble
 **En tant qu'** utilisateur
@@ -27,16 +27,16 @@ Rationale : miroir d'identité, pas métriques cliniques. Différenciation vs Ri
 
 ## US-D2 — Alimentation automatique post-rituel
 **En tant qu'** utilisateur
-**Je veux** que le dashboard soit rempli automatiquement après mon rituel
-**Afin de** ne pas avoir à re-saisir des infos
+**Je veux** que les 6 cards soient remplies automatiquement
+**Afin de** ne pas re-saisir des infos et ne pas voir de placeholder vide
 
 **Critères d'acceptation :**
-- Énergie : dérivée du Ressenti (Q1) via mapping humeur → énergie.
-- Intention : directement issue de Q4.
-- Corps : hydratation/sommeil laissés en placeholder utilisateur, check-in manuel.
-- Relations : placeholder "Qui veux-tu soutenir aujourd'hui ?" avec 1 tap pour remplir.
-- Travail : issue de Q2 si pertinent, sinon placeholder.
-- Gratitude : directement issue de Q3.
+- Humeur : tag de Q1 (ex. "posé", "vif").
+- Énergie : niveau de Q2 (À plat / Faiblard / Moyen / Bien chargé / Au top).
+- Priorité : catégorie de Q3 (Énergie / Travail / Relations / Corps / Gratitude).
+- Gratitude : texte de Q4.
+- Présence : état persisté par le timer 60s (completed → "60 secondes prises" / partial → "Quelques secondes" / skipped → "Pas de présence ce matin").
+- Sommeil : durée + qualité depuis HealthKit. Si non autorisé / pas de données : CTA "Active Apple Santé pour voir ta nuit", tap → half-sheet permission.
 
 ## US-D3 — Détail par catégorie
 **En tant qu'** utilisateur

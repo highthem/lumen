@@ -36,6 +36,7 @@ final class CompositionRoot {
     let userAPIKeyStore: UserAPIKeyStore
     let openAIClient: OpenAIClient
     let anthropicClient: AnthropicClient
+    let sleepHealthService: any SleepHealthProviding
 
     // Use cases
     let startRitual: StartRitual
@@ -85,10 +86,11 @@ final class CompositionRoot {
         let repo = SwiftDataAlarmRepository(modelContainer: container)
         self.alarmRepository = repo
 
+        let soundInstaller = NotificationSoundInstaller(soundProvider: sounds)
         #if DEBUG
-        let scheduler: any AlarmScheduling = testMode.isMaestro ? MaestroAlarmScheduler() : NotificationScheduler(soundProvider: sounds)
+        let scheduler: any AlarmScheduling = testMode.isMaestro ? MaestroAlarmScheduler() : NotificationScheduler(soundProvider: sounds, soundInstaller: soundInstaller)
         #else
-        let scheduler: any AlarmScheduling = NotificationScheduler(soundProvider: sounds)
+        let scheduler: any AlarmScheduling = NotificationScheduler(soundProvider: sounds, soundInstaller: soundInstaller)
         #endif
         self.alarmScheduler = scheduler
 
@@ -235,11 +237,25 @@ final class CompositionRoot {
         // Quote provider
         self.quoteProvider = JSONQuoteProvider()
 
+        // Sleep service (HealthKit). Maestro UI tests use the always-empty stub
+        // so a real Health framework dialog never blocks the flow.
+        let sleep: any SleepHealthProviding
+        #if DEBUG
+        if testMode.isMaestro {
+            sleep = NullSleepHealthService()
+        } else {
+            sleep = SleepHealthService()
+        }
+        #else
+        sleep = SleepHealthService()
+        #endif
+        self.sleepHealthService = sleep
+
         // Use cases
         self.startRitual = StartRitual(ritualRepository: ritualRepo)
         self.saveQuestionnaireAnswer = SaveQuestionnaireAnswer(ritualRepository: ritualRepo)
-        self.generateMorningSynthesis = GenerateMorningSynthesis(ritualRepository: ritualRepo, aiService: synthesisService)
-        self.buildDashboardSnapshot = BuildDashboardSnapshot(ritualRepository: ritualRepo)
+        self.generateMorningSynthesis = GenerateMorningSynthesis(ritualRepository: ritualRepo, aiService: synthesisService, sleepService: sleep)
+        self.buildDashboardSnapshot = BuildDashboardSnapshot(ritualRepository: ritualRepo, sleepService: sleep)
         self.exportEthicalLogs = ExportEthicalLogs(logRepository: logRepo)
         self.eraseEthicalLogs = EraseEthicalLogs(logRepository: logRepo)
         #if DEBUG

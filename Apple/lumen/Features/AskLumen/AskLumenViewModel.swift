@@ -98,7 +98,7 @@ final class AskLumenViewModel {
 
         let placeholderAnswer = QuestionnaireAnswer(
             ritualId: UUID(),
-            payload: .intention(word: question),
+            payload: .gratitude(text: question),
             createdAt: Date()
         )
 

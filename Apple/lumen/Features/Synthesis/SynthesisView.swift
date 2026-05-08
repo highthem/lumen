@@ -312,3 +312,10 @@ struct SynthesisView: View {
         .frame(maxWidth: .infinity)
     }
 }
+
+#if DEBUG
+#Preview {
+    SynthesisView(vm: .preview, onComplete: {})
+        .preferredColorScheme(.dark)
+}
+#endif

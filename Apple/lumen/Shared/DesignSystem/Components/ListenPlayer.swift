@@ -16,8 +16,6 @@ struct ListenPlayer: View {
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
-    private static let progressBarHeight: CGFloat = 2
-    private static let progressBarRadius: CGFloat = 1
     private static let glyphDiscSize: CGFloat = 36
     private static let pauseBarWidth: CGFloat = 3
     private static let pauseBarHeight: CGFloat = 12
@@ -28,19 +26,17 @@ struct ListenPlayer: View {
 
     var body: some View {
         Button(action: onTap) {
-            ZStack(alignment: .bottomLeading) {
-                content
+            ZStack(alignment: .leading) {
                 progressBar
+                content
             }
             .frame(maxWidth: .infinity)
             .frame(height: LumenSize.listenPlayer)
-            .background(
+            .background(LumenColor.bgSecondary)
+            .clipShape(RoundedRectangle(cornerRadius: LumenRadius.m, style: .continuous))
+            .overlay(
                 RoundedRectangle(cornerRadius: LumenRadius.m, style: .continuous)
-                    .fill(LumenColor.bgSecondary)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: LumenRadius.m, style: .continuous)
-                            .stroke(LumenColor.accent.opacity(LumenOpacity.p35), lineWidth: LumenSize.hairline)
-                    )
+                    .stroke(LumenColor.accent.opacity(LumenOpacity.p35), lineWidth: LumenSize.hairline)
             )
         }
         .buttonStyle(.plain)
@@ -118,16 +114,12 @@ struct ListenPlayer: View {
 
     private var progressBar: some View {
         GeometryReader { geo in
-            HStack(spacing: 0) {
-                Rectangle()
-                    .fill(LumenColor.accent)
-                    .frame(width: geo.size.width * CGFloat(max(0, min(1, progress))))
-                Spacer(minLength: 0)
-            }
-            .animation(reduceMotion ? nil : LumenAnimation.standard, value: progress)
+            Rectangle()
+                .fill(LumenColor.accent.opacity(LumenOpacity.surfaceFill))
+                .frame(width: geo.size.width * CGFloat(max(0, min(1, progress))))
+                .animation(reduceMotion ? nil : LumenAnimation.standard, value: progress)
         }
-        .frame(height: Self.progressBarHeight)
-        .clipShape(RoundedRectangle(cornerRadius: Self.progressBarRadius, style: .continuous))
+        .allowsHitTesting(false)
         .accessibilityIdentifier("synthesis-progress-bar")
     }
 }
@@ -183,7 +175,12 @@ private struct MiniWave: View {
     @Previewable @State var playing = false
     @Previewable @State var progress: Double = 0.4
     VStack(spacing: LumenSpacing.l) {
-        ListenPlayer(isPlaying: playing, progress: progress, durationLabel: "38 s", elapsedLabel: "0:14") {
+        ListenPlayer(
+            isPlaying: playing,
+            progress: progress,
+            durationLabel: "38 s",
+            elapsedLabel: "0:14"
+        ) {
             playing.toggle()
         }
         Slider(value: $progress, in: 0...1)

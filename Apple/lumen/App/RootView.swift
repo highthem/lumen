@@ -163,7 +163,8 @@ struct RootView: View {
         DashboardHomeView(
             vm: DashboardHomeViewModel(
                 buildDashboard: composition.buildDashboardSnapshot,
-                alarmRepository: composition.alarmRepository
+                alarmRepository: composition.alarmRepository,
+                sleepService: composition.sleepHealthService
             ),
             refreshKey: dashboardRefreshKey,
             onStartRitual: { ritualFlow = .timer },
@@ -226,7 +227,8 @@ struct RootView: View {
                 vm: PresenceTimerViewModel(
                     quoteProvider: composition.quoteProvider,
                     audioPlayer: composition.audioPlayer,
-                    soundProvider: composition.soundProvider
+                    soundProvider: composition.soundProvider,
+                    ritualRepository: composition.ritualRepository
                 ),
                 onComplete: {
                     // Move to questionnaire with a placeholder ritual ID (startRitual will create it)

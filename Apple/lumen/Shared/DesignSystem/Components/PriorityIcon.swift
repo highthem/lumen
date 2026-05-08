@@ -2,7 +2,7 @@ import SwiftUI
 
 /// V5 priority-card icons: 22×22 line glyphs (drawn from the V5 design SVG paths).
 struct PriorityIcon: View {
-    let category: DashboardCategory
+    let category: PriorityCategory
     var size: CGFloat = 22
 
     var body: some View {
@@ -33,19 +33,6 @@ struct PriorityIcon: View {
                     var p = Path(); p.move(to: a); p.addLine(to: b)
                     ctx.stroke(p, with: stroke, style: StrokeStyle(lineWidth: strokeWidth, lineCap: .round))
                 }
-
-            case .intention:
-                let center = CGPoint(x: 12 * s, y: 12 * s)
-                for r in [9.0, 4.5] {
-                    let rs = r * s
-                    let p = Path(ellipseIn: CGRect(x: center.x - rs, y: center.y - rs, width: rs * 2, height: rs * 2))
-                    ctx.stroke(p, with: stroke, lineWidth: strokeWidth)
-                }
-                let inner = 1.5 * s
-                ctx.fill(
-                    Path(ellipseIn: CGRect(x: center.x - inner, y: center.y - inner, width: inner * 2, height: inner * 2)),
-                    with: stroke
-                )
 
             case .body:
                 // Heart silhouette filled at low opacity, with subtle outline
@@ -137,7 +124,7 @@ struct PriorityIcon: View {
 #if DEBUG
 #Preview {
     HStack(spacing: LumenSpacing.l) {
-        ForEach(DashboardCategory.allCases, id: \.self) { c in
+        ForEach(PriorityCategory.allCases, id: \.self) { c in
             VStack(spacing: 4) {
                 PriorityIcon(category: c, size: 28)
                     .foregroundStyle(LumenColor.accent)

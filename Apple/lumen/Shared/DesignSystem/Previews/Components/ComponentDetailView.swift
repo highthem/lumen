@@ -224,9 +224,9 @@ private struct DashboardCardVariants: View {
 
 private struct CardDeckVariants: View {
     @State private var current = 0
-    @State private var selected: DashboardCategory? = nil
+    @State private var selected: PriorityCategory? = nil
     var body: some View {
-        CardDeck(items: DashboardCategory.allCases, current: $current, selected: $selected) { item, isSel in
+        CardDeck(items: PriorityCategory.allCases, current: $current, selected: $selected) { item, isSel in
             VStack(spacing: LumenSpacing.m) {
                 PriorityIcon(category: item, size: 32)
                     .foregroundStyle(LumenColor.accent)
@@ -274,7 +274,7 @@ private struct WaterfallStatusListVariants: View {
 private struct PriorityIconVariants: View {
     var body: some View {
         HStack(spacing: LumenSpacing.l) {
-            ForEach(DashboardCategory.allCases, id: \.self) { c in
+            ForEach(PriorityCategory.allCases, id: \.self) { c in
                 VStack(spacing: 4) {
                     PriorityIcon(category: c, size: 28)
                         .foregroundStyle(LumenColor.accent)

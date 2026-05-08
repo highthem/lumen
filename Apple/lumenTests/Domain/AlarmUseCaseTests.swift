@@ -24,7 +24,7 @@ actor MockAlarmRepository: AlarmRepository {
 actor MockAlarmScheduler: AlarmScheduling {
     private(set) var scheduledIds: [UUID] = []
     private(set) var cancelledIds: [UUID] = []
-    private(set) var snoozedIds: [UUID] = []
+    private(set) var snoozedAlarms: [Alarm] = []
     private(set) var authRequested = false
 
     var shouldThrowOnCancel = false
@@ -50,8 +50,8 @@ actor MockAlarmScheduler: AlarmScheduling {
         scheduledIds.removeAll()
     }
 
-    func snooze(id: UUID, minutes: Int) async throws {
-        snoozedIds.append(id)
+    func snooze(_ alarm: Alarm, minutes: Int) async throws {
+        snoozedAlarms.append(alarm)
     }
 }
 
@@ -87,7 +87,7 @@ struct SnoozeAlarmTests {
         let useCase = SnoozeAlarm(repository: repo, scheduler: scheduler)
         let count = try await useCase.execute(alarmId: alarm.id)
 
-        let snoozedIds = await scheduler.snoozedIds
+        let snoozedIds = await scheduler.snoozedAlarms.map(\.id)
         #expect(count == 1)
         #expect(snoozedIds.contains(alarm.id))
     }

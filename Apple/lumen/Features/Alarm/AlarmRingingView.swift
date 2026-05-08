@@ -130,3 +130,14 @@ struct AlarmRingingView: View {
         }
     }
 }
+
+#if DEBUG
+#Preview {
+    AlarmRingingView(
+        alarmId: Alarm.preview.id,
+        alarmRepository: PreviewAlarmRepository(seed: [.preview]),
+        audioPlayer: MaestroAudioPlayer()
+    )
+    .preferredColorScheme(.dark)
+}
+#endif

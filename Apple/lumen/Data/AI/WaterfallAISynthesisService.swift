@@ -34,7 +34,12 @@ nonisolated final class WaterfallAISynthesisService: AISynthesisService {
         self.reachability = reachability
     }
 
-    func synthesize(answers: [QuestionnaireAnswer], ritualId: UUID, mode: AIResponseMode) async throws -> AIResponseResult {
+    func synthesize(
+        answers: [QuestionnaireAnswer],
+        ritualId: UUID,
+        mode: AIResponseMode,
+        context: RitualContext
+    ) async throws -> AIResponseResult {
         let action = aiAction(for: mode)
 
         // Rate limit check
@@ -46,14 +51,14 @@ nonisolated final class WaterfallAISynthesisService: AISynthesisService {
         let fullText = answers.compactMap { answer -> String? in
             switch answer.payload {
             case .mood(_, let tag): return tag
+            case .energy: return nil
             case .priority(_, let note): return note
             case .gratitude(let text): return text
-            case .intention(let word): return word
             }
         }.joined(separator: " ")
 
         let flags = contentSafety.detect(in: fullText)
-        let prompt = PromptBuilder.build(answers: answers)
+        let prompt = PromptBuilder.build(answers: answers, context: context)
         let promptHash = PromptBuilder.hash(system: prompt.system, user: prompt.user)
 
         if flags.contains(.selfHarmCue) {

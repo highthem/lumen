@@ -28,7 +28,6 @@ struct OnboardingWelcomeView: View {
 
             VStack(spacing: LumenSpacing.s) {
                 PrimaryCTA("Commencer") { vm.advance() }
-                GhostCTA(title: "J'ai déjà un compte") { vm.advance() }
             }
         }
         .padding(.horizontal, LumenSpacing.l)

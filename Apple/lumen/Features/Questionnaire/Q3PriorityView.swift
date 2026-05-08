@@ -1,27 +1,18 @@
 import SwiftUI
 
-struct Q2PriorityView: View {
+struct Q3PriorityView: View {
     @Bindable var vm: QuestionnaireFlowViewModel
     let onNext: () -> Void
     let onBack: () -> Void
 
     @State private var current: Int = 0
 
-    private static let prompts: [DashboardCategory: String] = [
-        .energy:    "Une priorité d'énergie aujourd'hui ?",
-        .intention: "Une intention pour ce matin ?",
-        .body:      "Quelque chose pour ton corps ?",
-        .relations: "Une relation à soigner ?",
-        .work:      "Une priorité de travail ?",
-        .gratitude: "Quelque chose te tient à cœur ?"
-    ]
-
     var body: some View {
         VStack(alignment: .leading, spacing: LumenSpacing.l) {
-            ProgressDots4(current: 1)
+            ProgressDots4(current: 2)
 
             VStack(alignment: .leading, spacing: LumenSpacing.s) {
-                Eyebrow("02 / 04 · Priorité")
+                Eyebrow("03 / 04 · Priorité")
                 Text("Sur quoi tu veux\nposer l'attention ?")
                     .lumenFont(.title1)
                     .foregroundStyle(LumenColor.textPrimary)
@@ -29,7 +20,7 @@ struct Q2PriorityView: View {
             }
 
             CardDeck(
-                items: DashboardCategory.allCases,
+                items: PriorityCategory.allCases,
                 current: $current,
                 selected: Binding(
                     get: { vm.priorityCategory },
@@ -58,13 +49,13 @@ struct Q2PriorityView: View {
         .onAppear {
             // Sync `current` to the persisted selection if the user navigates back.
             if let cat = vm.priorityCategory,
-               let idx = DashboardCategory.allCases.firstIndex(of: cat) {
+               let idx = PriorityCategory.allCases.firstIndex(of: cat) {
                 current = idx
             }
         }
     }
 
-    private func priorityCard(category: DashboardCategory, selected: Bool) -> some View {
+    private func priorityCard(category: PriorityCategory, selected: Bool) -> some View {
         Button {
             vm.priorityCategory = (vm.priorityCategory == category) ? nil : category
         } label: {
@@ -88,7 +79,7 @@ struct Q2PriorityView: View {
                         .foregroundStyle(selected ? LumenColor.accent : LumenColor.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
 
-                    Text(Self.prompts[category] ?? "")
+                    Text(category.prompt)
                         .lumenFont(.bodySerifSm)
                         .italic()
                         .foregroundStyle(LumenColor.textPrimary.opacity(LumenOpacity.p78))

@@ -5,12 +5,12 @@ En tant qu'utilisateur, je veux répondre à 4 questions courtes pour cadrer ma 
 
 ## Les 4 étapes
 
-1. **Ressenti** : "Comment tu te sens ce matin ?" — échelle 5 emojis + tag émotionnel optionnel
-2. **Priorité** : "Qu'est-ce qui compte vraiment aujourd'hui ?" — 1 tag choisi parmi les 6 catégories + texte libre (optionnel, **vocal par défaut**)
-3. **Gratitude** : "Une chose pour laquelle tu es reconnaissant ?" — **vocal par défaut** + fallback typing (≤ 140 caractères)
-4. **Intention** : "En un mot, ton intention pour la journée ?" — **vocal par défaut** + fallback typing (≤ 30 caractères)
+1. **Humeur** : "Aujourd'hui je me sens…" — échelle chromatique 5 niveaux + tag (enfoui / fragile / posé / vif / rayonnant)
+2. **Énergie** : "Quelle énergie ce matin ?" — 5 chips (À plat / Faiblard / Moyen / Bien chargé / Au top)
+3. **Priorité** : "Sur quoi tu veux poser l'attention ?" — 1 catégorie parmi 5 (Énergie / Travail / Relations / Corps / Gratitude) + note libre optionnelle
+4. **Gratitude** : "Une gratitude ?" — **vocal par défaut** + fallback typing (≤ 140 caractères)
 
-Rationale : Q1 = 1 tap emoji (zéro friction au réveil). Q2 = 1 tap chip + note vocale optionnelle. Q3, Q4 = dictation vocale on-device par défaut, typing en fallback. Fit avec une complétion en < 90 secondes sans contact prolongé avec le clavier.
+Rationale : Q1 + Q2 = 1 tap chacun (zéro friction au réveil). Q3 = 1 tap chip + note vocale optionnelle. Q4 = dictation vocale on-device, typing en fallback. Complétion en < 90 secondes sans clavier prolongé. Le bouton final passe à "Voir ma synthèse" sur Q4.
 
 Voir `Project/04_tech/adr/ADR-007-voice-integration.md` pour le détail technique (Speech framework + TTS).
 
@@ -68,13 +68,13 @@ Voir `Project/04_tech/adr/ADR-007-voice-integration.md` pour le détail techniqu
 - Si l'utilisateur ne revient pas dans la journée : les réponses partielles sont persistées avec un flag `isPartial: true`.
 - La synthèse IA n'est générée que si Q1 + Q4 sont remplis minimum.
 
-## US-Q6 — Input vocal pour Q3 et Q4 (NOUVEAU, voir ADR-007)
+## US-Q6 — Input vocal pour Q4 Gratitude (voir ADR-007)
 **En tant qu'** utilisateur qui vient d'ouvrir les yeux
-**Je veux** dicter ma gratitude et mon intention au lieu de taper
+**Je veux** dicter ma gratitude au lieu de taper
 **Afin de** ne pas avoir à manipuler le clavier au réveil
 
 **Critères d'acceptation :**
-- Q3 et Q4 affichent un bouton micro central large (taille pouce) comme input par défaut.
+- Q4 affiche un bouton micro central large (taille pouce) comme input par défaut.
 - Animation pulse subtile pendant l'écoute (cohérent avec cercle respiration timer).
 - Auto-stop après 2 s de silence détecté.
 - Le texte transcrit s'affiche en typo serif large dans la zone réponse.

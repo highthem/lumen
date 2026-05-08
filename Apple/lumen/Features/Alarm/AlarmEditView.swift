@@ -147,3 +147,10 @@ struct AlarmEditView: View {
         }
     }
 }
+
+#if DEBUG
+#Preview {
+    AlarmEditView(vm: .preview)
+        .preferredColorScheme(.dark)
+}
+#endif

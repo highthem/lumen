@@ -155,8 +155,8 @@ struct CardDeck<Item: Hashable, Card: View>: View {
 #if DEBUG
 #Preview {
     @Previewable @State var current = 0
-    @Previewable @State var selected: DashboardCategory? = nil
-    CardDeck(items: DashboardCategory.allCases, current: $current, selected: $selected) { item, isSel in
+    @Previewable @State var selected: PriorityCategory? = nil
+    CardDeck(items: PriorityCategory.allCases, current: $current, selected: $selected) { item, isSel in
         VStack(spacing: LumenSpacing.m) {
             PriorityIcon(category: item, size: 32)
                 .foregroundStyle(LumenColor.accent)

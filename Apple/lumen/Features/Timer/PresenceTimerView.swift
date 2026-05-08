@@ -63,3 +63,10 @@ struct PresenceTimerView: View {
         .accessibilityIdentifier("presence-timer-screen")
     }
 }
+
+#if DEBUG
+#Preview {
+    PresenceTimerView(vm: .preview, onComplete: {})
+        .preferredColorScheme(.dark)
+}
+#endif

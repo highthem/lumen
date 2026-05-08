@@ -31,11 +31,17 @@ actor SwiftDataRitualRepository: RitualRepository {
         answers.append(answer)
         entity.answers = answers
 
-        let isCompleted = answers.contains { $0.step == .intention }
+        let isCompleted = answers.contains { $0.step == .gratitude }
         entity.state = isCompleted ? .completed : .partial
         if isCompleted && entity.completedAt == nil {
             entity.completedAt = Date()
         }
+        try modelContext.save()
+    }
+
+    func updatePresence(ritualId: UUID, state: PresenceState) async throws {
+        guard let entity = try fetchEntity(id: ritualId) else { throw RitualError.notFound }
+        entity.presence = state
         try modelContext.save()
     }
 
@@ -50,6 +56,7 @@ actor SwiftDataRitualRepository: RitualRepository {
         entity.date = ritual.date
         entity.state = ritual.state
         entity.answers = ritual.answers
+        entity.presence = ritual.presence
         entity.synthesisId = ritual.synthesisId
         entity.completedAt = ritual.completedAt
         try modelContext.save()

@@ -140,7 +140,8 @@ Transitions are event-driven and unit-testable.
 ## Synthesis flow (AI generation)
 
 ```
-User completes Q4 → QuestionnaireViewModel
+User completes Q4 Gratitude → QuestionnaireViewModel
+(Ritual flow: Mood → Energy → Priority → Gratitude)
                          ↓
                   SaveQuestionnaireAnswer (use case)
                          ↓

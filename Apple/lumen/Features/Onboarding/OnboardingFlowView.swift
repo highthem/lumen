@@ -38,3 +38,10 @@ struct OnboardingFlowView: View {
         )
     }
 }
+
+#if DEBUG
+#Preview {
+    OnboardingFlowView(vm: .preview, onComplete: {})
+        .preferredColorScheme(.dark)
+}
+#endif

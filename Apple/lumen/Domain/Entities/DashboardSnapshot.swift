@@ -1,45 +1,43 @@
 import Foundation
 
-enum SleepFeeling: String, Sendable, Codable, Hashable {
-    case rested
-    case ok
-    case tired
+struct MoodSummary: Sendable, Codable, Hashable {
+    let level: Int
+    let tag: String?
 }
 
-struct BodyCheckin: Sendable, Codable, Hashable {
-    var sleepFeeling: SleepFeeling?
-    var hydrationNote: String?
-
-    init(sleepFeeling: SleepFeeling? = nil, hydrationNote: String? = nil) {
-        self.sleepFeeling = sleepFeeling
-        self.hydrationNote = hydrationNote
-    }
+struct PrioritySummary: Sendable, Codable, Hashable {
+    let category: PriorityCategory
+    let note: String?
 }
 
 struct DashboardSnapshot: Sendable, Codable, Hashable {
     let date: Date
-    var energy: String?
-    var intention: String?
-    var bodyCheckin: BodyCheckin
-    var relations: String?
-    var work: String?
+    var mood: MoodSummary?
+    var energy: EnergyLevel?
+    var priority: PrioritySummary?
     var gratitude: String?
+    var presence: PresenceState
+    var sleep: SleepSummary?
+    /// Synthesis output displayed in the hero card above the grid.
+    var aiIntention: String?
 
     init(
         date: Date,
-        energy: String? = nil,
-        intention: String? = nil,
-        bodyCheckin: BodyCheckin = BodyCheckin(),
-        relations: String? = nil,
-        work: String? = nil,
-        gratitude: String? = nil
+        mood: MoodSummary? = nil,
+        energy: EnergyLevel? = nil,
+        priority: PrioritySummary? = nil,
+        gratitude: String? = nil,
+        presence: PresenceState = .notStarted,
+        sleep: SleepSummary? = nil,
+        aiIntention: String? = nil
     ) {
         self.date = date
+        self.mood = mood
         self.energy = energy
-        self.intention = intention
-        self.bodyCheckin = bodyCheckin
-        self.relations = relations
-        self.work = work
+        self.priority = priority
         self.gratitude = gratitude
+        self.presence = presence
+        self.sleep = sleep
+        self.aiIntention = aiIntention
     }
 }

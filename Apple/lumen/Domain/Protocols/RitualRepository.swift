@@ -5,6 +5,7 @@ protocol RitualRepository: Sendable {
     func fetch(id: UUID) async throws -> Ritual?
     func fetchByDate(_ date: Date) async throws -> Ritual?
     func appendAnswer(_ answer: QuestionnaireAnswer, ritualId: UUID) async throws
+    func updatePresence(ritualId: UUID, state: PresenceState) async throws
     func attachSynthesis(_ response: AIResponse, ritualId: UUID) async throws
     func update(_ ritual: Ritual) async throws
 }

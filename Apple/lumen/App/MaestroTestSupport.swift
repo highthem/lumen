@@ -60,7 +60,7 @@ enum MaestroTestSupport {
                 _ = try? await seedAlarm(composition: composition)
             }
             if routeState == .ritual {
-                _ = try? await seedRitual(upTo: .intention, composition: composition)
+                _ = try? await seedRitual(upTo: .gratitude, composition: composition)
             }
             return .dashboard(state: routeState)
 
@@ -82,19 +82,19 @@ enum MaestroTestSupport {
 
         case ("ritual", "/q4-direct"):
             OnboardingFlag.markCompleted()
-            _ = try? await seedRitual(upTo: .gratitude, composition: composition)
-            return .questionnaire(step: .intention)
+            _ = try? await seedRitual(upTo: .priority, composition: composition)
+            return .questionnaire(step: .gratitude)
 
         case ("ritual", "/synthesis-mock"):
             OnboardingFlag.markCompleted()
             state.synthesisState = .ready
-            let ritualId = (try? await seedRitual(upTo: .intention, composition: composition)) ?? UUID()
+            let ritualId = (try? await seedRitual(upTo: .gratitude, composition: composition)) ?? UUID()
             return .synthesis(ritualId: ritualId)
 
         case ("test", "/synthesis"):
             OnboardingFlag.markCompleted()
             state.synthesisState = synthesisState(from: queryValue("state", in: url))
-            let ritualId = (try? await seedRitual(upTo: .intention, composition: composition)) ?? UUID()
+            let ritualId = (try? await seedRitual(upTo: .gratitude, composition: composition)) ?? UUID()
             return .synthesis(ritualId: ritualId)
 
         case ("alarm", "/test-ringing"):
@@ -157,7 +157,7 @@ enum MaestroTestSupport {
         for payload in payloads where !existing.contains(payload.step) {
             try await composition.saveQuestionnaireAnswer.execute(ritualId: ritual.id, payload: payload)
         }
-        if step == .intention {
+        if step == .gratitude {
             UserDefaults.standard.set(true, forKey: "lumen.hasAnyRitual")
         }
         return ritual.id
@@ -166,9 +166,9 @@ enum MaestroTestSupport {
     private static func payloads(upTo step: QuestionnaireStep) -> [AnswerPayload] {
         let all: [(QuestionnaireStep, AnswerPayload)] = [
             (.mood, .mood(level: 2, tag: "posé")),
+            (.energy, .energy(level: .medium)),
             (.priority, .priority(category: .energy, note: "Énergie")),
-            (.gratitude, .gratitude(text: "Le silence avant que les enfants se lèvent.")),
-            (.intention, .intention(word: "présence"))
+            (.gratitude, .gratitude(text: "Le silence avant que les enfants se lèvent."))
         ]
         guard let index = all.firstIndex(where: { $0.0 == step }) else { return [] }
         return all.prefix(index + 1).map(\.1)
@@ -190,7 +190,7 @@ struct MaestroAlarmScheduler: AlarmScheduling {
     func schedule(_ alarm: Alarm) async throws {}
     func cancel(id: UUID) async throws {}
     func cancelAll() async throws {}
-    func snooze(id: UUID, minutes: Int) async throws {}
+    func snooze(_ alarm: Alarm, minutes: Int) async throws {}
 }
 
 @MainActor
@@ -237,7 +237,12 @@ final class MaestroAISynthesisService: AISynthesisService {
         self.testState = testState
     }
 
-    nonisolated func synthesize(answers: [QuestionnaireAnswer], ritualId: UUID, mode: AIResponseMode) async throws -> AIResponseResult {
+    nonisolated func synthesize(
+        answers: [QuestionnaireAnswer],
+        ritualId: UUID,
+        mode: AIResponseMode,
+        context: RitualContext
+    ) async throws -> AIResponseResult {
         let route = await self.testState.synthesisState
         switch route {
         case .ready:

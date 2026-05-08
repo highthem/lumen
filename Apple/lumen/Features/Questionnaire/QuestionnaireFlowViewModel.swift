@@ -12,19 +12,17 @@ final class QuestionnaireFlowViewModel {
     var moodLevel: Int = 2
     var moodTag: String?
 
-    // Q2 — Priority
-    var priorityCategory: DashboardCategory?
+    // Q2 — Energy
+    var energyLevel: EnergyLevel?
+
+    // Q3 — Priority
+    var priorityCategory: PriorityCategory?
     var priorityNote: String = ""
 
-    // Q3 — Gratitude
+    // Q4 — Gratitude
     var gratitudeText: String = ""
     var micState: MicState = .idle
     var editingByKeyboard: Bool = false
-
-    // Q4 — Intention
-    var intentionWord: String = ""
-    var intentionMicState: MicState = .idle
-    var intentionEditingByKeyboard: Bool = false
 
     private let startRitual: StartRitual
     private let saveAnswer: SaveQuestionnaireAnswer
@@ -42,7 +40,6 @@ final class QuestionnaireFlowViewModel {
         self.dictation = dictation
         self.step = initialStep
         self.editingByKeyboard = !SettingsViewModel.isVoiceModeEnabled
-        self.intentionEditingByKeyboard = !SettingsViewModel.isVoiceModeEnabled
     }
 
     // MARK: - Lifecycle
@@ -59,29 +56,29 @@ final class QuestionnaireFlowViewModel {
 
     var stepIndex: Int {
         switch step {
-        case .mood:       return 0
-        case .priority:   return 1
-        case .gratitude:  return 2
-        case .intention:  return 3
+        case .mood:      return 0
+        case .energy:    return 1
+        case .priority:  return 2
+        case .gratitude: return 3
         }
     }
 
     func advance() async throws {
         try await saveCurrent()
         switch step {
-        case .mood:      step = .priority
+        case .mood:      step = .energy
+        case .energy:    step = .priority
         case .priority:  step = .gratitude
-        case .gratitude: step = .intention
-        case .intention: break
+        case .gratitude: break
         }
     }
 
     func goBack() {
         switch step {
-        case .mood:       break
-        case .priority:   step = .mood
-        case .gratitude:  step = .priority
-        case .intention:  step = .gratitude
+        case .mood:      break
+        case .energy:    step = .mood
+        case .priority:  step = .energy
+        case .gratitude: step = .priority
         }
     }
 
@@ -94,15 +91,15 @@ final class QuestionnaireFlowViewModel {
         switch step {
         case .mood:
             payload = .mood(level: moodLevel, tag: moodTag)
+        case .energy:
+            guard let level = energyLevel else { return }
+            payload = .energy(level: level)
         case .priority:
             guard let category = priorityCategory else { return }
             payload = .priority(category: category, note: priorityNote.isEmpty ? nil : priorityNote)
         case .gratitude:
             guard !gratitudeText.isEmpty else { return }
             payload = .gratitude(text: gratitudeText)
-        case .intention:
-            guard !intentionWord.isEmpty else { return }
-            payload = .intention(word: intentionWord)
         }
 
         try await saveAnswer.execute(ritualId: ritual.id, payload: payload)
@@ -127,8 +124,6 @@ final class QuestionnaireFlowViewModel {
         switch targetStep {
         case .gratitude:
             if micState == .listening { micState = gratitudeText.isEmpty ? .idle : .transcribed }
-        case .intention:
-            if intentionMicState == .listening { intentionMicState = intentionWord.isEmpty ? .idle : .transcribed }
         default:
             break
         }
@@ -149,19 +144,6 @@ final class QuestionnaireFlowViewModel {
             case .finished:
                 if micState == .listening { micState = gratitudeText.isEmpty ? .idle : .transcribed }
             }
-        case .intention:
-            switch transcriptionState {
-            case .listening:
-                intentionMicState = .listening
-            case .transcribed(let text):
-                intentionWord = text
-                intentionMicState = .transcribed
-            case .error(let err):
-                if err == .unsupportedLocale || err == .permissionDenied { intentionEditingByKeyboard = true }
-                intentionMicState = .idle
-            case .finished:
-                if intentionMicState == .listening { intentionMicState = intentionWord.isEmpty ? .idle : .transcribed }
-            }
         default:
             break
         }
@@ -171,11 +153,5 @@ final class QuestionnaireFlowViewModel {
         dictationTask?.cancel()
         gratitudeText = ""
         micState = .idle
-    }
-
-    func resetIntention() {
-        dictationTask?.cancel()
-        intentionWord = ""
-        intentionMicState = .idle
     }
 }

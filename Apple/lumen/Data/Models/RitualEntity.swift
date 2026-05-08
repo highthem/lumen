@@ -10,6 +10,9 @@ final class RitualEntity {
     /// introspect Codable structs containing enum-with-associated-values
     /// (`AnswerPayload`), so we serialize manually.
     var answersData: Data
+    /// `PresenceState.rawValue` — bridged via the `presence` computed accessor.
+    /// Default value keeps the migration light (no VersionedSchema needed).
+    var presenceRaw: String = PresenceState.notStarted.rawValue
     var synthesisId: UUID?
     var completedAt: Date?
 
@@ -21,6 +24,7 @@ final class RitualEntity {
         self.date = ritual.date
         self.state = ritual.state
         self.answersData = (try? JSONEncoder().encode(ritual.answers)) ?? Data()
+        self.presenceRaw = ritual.presence.rawValue
         self.synthesisId = ritual.synthesisId
         self.completedAt = ritual.completedAt
     }
@@ -30,12 +34,18 @@ final class RitualEntity {
         set { answersData = (try? JSONEncoder().encode(newValue)) ?? Data() }
     }
 
+    var presence: PresenceState {
+        get { PresenceState(rawValue: presenceRaw) ?? .notStarted }
+        set { presenceRaw = newValue.rawValue }
+    }
+
     func toDomain() -> Ritual {
         Ritual(
             id: id,
             date: date,
             state: state,
             answers: answers,
+            presence: presence,
             synthesisId: synthesisId,
             completedAt: completedAt
         )

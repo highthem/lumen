@@ -99,6 +99,9 @@ actor MockRitualRepository: RitualRepository {
     func fetch(id: UUID) async throws -> Ritual? { ritual.id == id ? ritual : nil }
     func fetchByDate(_ date: Date) async throws -> Ritual? { nil }
     func appendAnswer(_ answer: QuestionnaireAnswer, ritualId: UUID) async throws {}
+    func updatePresence(ritualId: UUID, state: PresenceState) async throws {
+        ritual.presence = state
+    }
     func attachSynthesis(_ response: AIResponse, ritualId: UUID) async throws {
         attachedSyntheses.append(response)
     }
@@ -110,8 +113,8 @@ actor MockRitualRepository: RitualRepository {
 private func makeAnswers(ritualId: UUID) -> [QuestionnaireAnswer] {
     [
         QuestionnaireAnswer(ritualId: ritualId, payload: .mood(level: 7, tag: "Bien")),
-        QuestionnaireAnswer(ritualId: ritualId, payload: .gratitude(text: "Ma famille")),
-        QuestionnaireAnswer(ritualId: ritualId, payload: .intention(word: "Focus"))
+        QuestionnaireAnswer(ritualId: ritualId, payload: .energy(level: .charged)),
+        QuestionnaireAnswer(ritualId: ritualId, payload: .gratitude(text: "Ma famille"))
     ]
 }
 
@@ -146,7 +149,7 @@ final class WaterfallAISynthesisServiceTests: XCTestCase {
             reachability: MockNetworkReachability(isReachable: true)
         )
 
-        let answers = [QuestionnaireAnswer(ritualId: ritualId, payload: .intention(word: "kill myself"))]
+        let answers = [QuestionnaireAnswer(ritualId: ritualId, payload: .gratitude(text: "kill myself"))]
         let result = try await sut.synthesize(answers: answers, ritualId: ritualId, mode: .auto)
 
         guard case .ready(let response) = result else {

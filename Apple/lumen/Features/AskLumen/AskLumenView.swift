@@ -220,3 +220,10 @@ private struct AskMicButton: View {
         .accessibilityAddTraits(.isButton)
     }
 }
+
+#if DEBUG
+#Preview {
+    AskLumenView(vm: .preview, isPresented: .constant(true))
+        .preferredColorScheme(.dark)
+}
+#endif

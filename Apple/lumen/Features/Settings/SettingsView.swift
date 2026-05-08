@@ -325,3 +325,23 @@ private struct ShareSheet: UIViewControllerRepresentable {
 
     func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
 }
+
+#if DEBUG
+#Preview {
+    let keyStore = UserAPIKeyStore()
+    let openAI = OpenAIClient()
+    let anthropic = AnthropicClient()
+    return SettingsView(
+        vm: .preview,
+        makeAdvancedVM: {
+            SettingsAdvancedViewModel(
+                keyStore: keyStore,
+                openAIClient: openAI,
+                anthropicClient: anthropic
+            )
+        },
+        keyStore: keyStore
+    )
+    .preferredColorScheme(.dark)
+}
+#endif
