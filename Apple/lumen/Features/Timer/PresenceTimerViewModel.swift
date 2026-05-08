@@ -39,12 +39,12 @@ final class PresenceTimerViewModel {
             isComplete = true
         }
         await countdownTask?.value
-        await audioPlayer.stop()
+        audioPlayer.stop()
     }
 
     func skip() {
         countdownTask?.cancel()
-        Task { await audioPlayer.stop() }
+        Task { audioPlayer.stop() }
         isComplete = true
     }
 }

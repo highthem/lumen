@@ -63,7 +63,7 @@ final class SettingsViewModel {
         didSet {
             UserDefaults.standard.set(breathingSoundId, forKey: breathingSoundKey)
             Task {
-                await audioPlayer.stop()
+                audioPlayer.stop()
                 try? await audioPlayer.play(soundId: breathingSoundId, fadeIn: false)
             }
         }
@@ -122,11 +122,11 @@ final class SettingsViewModel {
     }
 
     func stopPreview() {
-        Task { await audioPlayer.stop() }
+        Task { audioPlayer.stop() }
     }
 
     func load() async {
-        availableVoices = await tts.availableVoices()
+        availableVoices = tts.availableVoices()
         let persisted = UserDefaults.standard.string(forKey: voiceIdKey)
         if let persisted, availableVoices.contains(where: { $0.id == persisted }) {
             selectedVoiceId = persisted

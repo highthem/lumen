@@ -92,28 +92,16 @@ final class SpeechRecognizer: VoiceTranscribing {
                     // invokes them on their own serial queues, Swift's runtime calls
                     // `swift_task_checkIsolated(@MainActor)` → `dispatch_assert_queue
                     // (mainQueue)` → crashes the audio thread. iPhone OS 26 enforces
-                    // this strictly. The fix is to install the pipeline via a
-                    // nonisolated helper so the captured closures inherit no actor
-                    // isolation.
+                    // this strictly. The fix is to construct the closures via
+                    // `nonisolated static` factory helpers so they inherit no actor
+                    // isolation regardless of the caller's lexical scope.
                     task = try Self.installAudioPipeline(
                         engine: self.audioEngine,
                         recognizer: recognizer,
                         request: request,
-                        onListening: {
-                            continuation.yield(.listening)
-                        },
-                        onPartial: { text, isFinal in
-                            continuation.yield(.transcribed(text))
-                            if isFinal {
-                                continuation.finish()
-                            }
-                        },
-                        onError: { isUserStop in
-                            if !isUserStop {
-                                continuation.yield(.error(.recognitionFailed))
-                            }
-                            continuation.finish()
-                        }
+                        onListening: Self.makeListeningCallback(continuation: continuation),
+                        onPartial:   Self.makePartialCallback(continuation: continuation),
+                        onError:     Self.makeErrorCallback(continuation: continuation)
                     )
                 } catch {
                     log.error("startTranscription: audio pipeline failed \(String(describing: error))")
@@ -134,9 +122,43 @@ final class SpeechRecognizer: VoiceTranscribing {
         await MainActor.run {
             self.teardownActiveSessionPreservingEngine()
             if self.sessionConfigured {
-                try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
+                let session = AVAudioSession.sharedInstance()
+                try? session.setActive(false, options: .notifyOthersOnDeactivation)
+                // Restore `.playback` so the next non-recording audio (TTS,
+                // alarm fade-in) finds a sane category. `.record` left over
+                // from dictation produces silent playback.
+                try? session.setCategory(.playback, options: [.duckOthers])
                 self.sessionConfigured = false
             }
+        }
+    }
+
+    // MARK: - Nonisolated callback factories
+
+    /// Constructed in nonisolated static context so the returned closure
+    /// has no inherited actor isolation. Required for callbacks that
+    /// AVFoundation / Speech.framework invoke from their own queues.
+    nonisolated private static func makeListeningCallback(
+        continuation: AsyncStream<VoiceTranscribingState>.Continuation
+    ) -> @Sendable () -> Void {
+        { continuation.yield(.listening) }
+    }
+
+    nonisolated private static func makePartialCallback(
+        continuation: AsyncStream<VoiceTranscribingState>.Continuation
+    ) -> @Sendable (String, Bool) -> Void {
+        { text, isFinal in
+            continuation.yield(.transcribed(text))
+            if isFinal { continuation.finish() }
+        }
+    }
+
+    nonisolated private static func makeErrorCallback(
+        continuation: AsyncStream<VoiceTranscribingState>.Continuation
+    ) -> @Sendable (Bool) -> Void {
+        { isUserStop in
+            if !isUserStop { continuation.yield(.error(.recognitionFailed)) }
+            continuation.finish()
         }
     }
 

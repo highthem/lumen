@@ -96,14 +96,14 @@ struct RootView: View {
                             audioPlayer: composition.audioPlayer,
                             onSnooze: {
                                 Task {
-                                    await composition.audioPlayer.stop()
+                                    composition.audioPlayer.stop()
                                     _ = try? await composition.snoozeAlarm.execute(alarmId: alarmId)
                                     await composition.appStateMachine.send(.alarmSilenced)
                                 }
                             },
                             onSilence: {
                                 Task {
-                                    await composition.audioPlayer.stop()
+                                    composition.audioPlayer.stop()
                                     try? await composition.cancelAlarm.execute(alarmId: alarmId)
                                     await composition.appStateMachine.send(.alarmSilenced)
                                 }

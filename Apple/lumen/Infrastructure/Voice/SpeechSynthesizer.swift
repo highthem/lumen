@@ -17,7 +17,8 @@ private final class SynthesizerDelegate: NSObject, AVSpeechSynthesizerDelegate, 
     }
 }
 
-actor SpeechSynthesizer: TextToSpeeching {
+@MainActor
+final class SpeechSynthesizer: TextToSpeeching {
 
     private let synthesizer = AVSpeechSynthesizer()
     private var delegate: SynthesizerDelegate?
@@ -30,13 +31,11 @@ actor SpeechSynthesizer: TextToSpeeching {
     private func installDelegateIfNeeded() {
         guard delegate == nil else { return }
         let d = SynthesizerDelegate(onFinishOrCancel: { [weak self] in
-            Task { [weak self] in await self?.markStopped() }
+            Task { @MainActor [weak self] in self?._isSpeaking = false }
         })
         self.delegate = d
         synthesizer.delegate = d
     }
-
-    private func markStopped() { _isSpeaking = false }
 
     func availableVoices() -> [TTSVoice] {
         AVSpeechSynthesisVoice.speechVoices()

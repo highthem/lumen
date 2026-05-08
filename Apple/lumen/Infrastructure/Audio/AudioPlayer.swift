@@ -1,7 +1,8 @@
 import Foundation
 import AVFoundation
 
-actor AudioPlayer: AudioPlaying {
+@MainActor
+final class AudioPlayer: AudioPlaying {
     private var player: AVAudioPlayer?
     private let session: AudioSessionManager
     private let soundProvider: any SoundProviding
@@ -34,12 +35,12 @@ actor AudioPlayer: AudioPlaying {
         }
     }
 
-    func stop() async {
+    func stop() {
         player?.stop()
         player = nil
     }
 
-    func setVolume(_ volume: Float, fadeDuration: TimeInterval) async {
+    func setVolume(_ volume: Float, fadeDuration: TimeInterval) {
         player?.setVolume(volume, fadeDuration: fadeDuration)
     }
 }

@@ -193,14 +193,16 @@ struct MaestroAlarmScheduler: AlarmScheduling {
     func snooze(id: UUID, minutes: Int) async throws {}
 }
 
-struct MaestroAudioPlayer: AudioPlaying {
+@MainActor
+final class MaestroAudioPlayer: AudioPlaying {
     func configureSession() async throws {}
     func play(soundId: String, fadeIn: Bool) async throws {}
-    func stop() async {}
-    func setVolume(_ volume: Float, fadeDuration: TimeInterval) async {}
+    func stop() {}
+    func setVolume(_ volume: Float, fadeDuration: TimeInterval) {}
 }
 
-actor MaestroTextToSpeech: TextToSpeeching {
+@MainActor
+final class MaestroTextToSpeech: TextToSpeeching {
     private(set) var isSpeaking: Bool = false
     func availableVoices() -> [TTSVoice] {
         [TTSVoice(id: "maestro-fr", name: "Maestro FR", lang: "fr-FR", quality: .default)]

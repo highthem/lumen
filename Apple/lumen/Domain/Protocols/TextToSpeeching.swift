@@ -25,11 +25,16 @@ enum TTSVoiceQuality: String, Sendable, Comparable, Hashable {
     }
 }
 
+// `@MainActor` because every conforming impl wraps a UIKit / AVFoundation
+// API (`AVSpeechSynthesizer`, `AVAudioPlayer`) that requires main-thread
+// invocation on iOS 17+. Conformers can stay simple `@MainActor final class`
+// types without per-method isolation annotations.
+@MainActor
 protocol TextToSpeeching: Sendable {
-    func availableVoices() async -> [TTSVoice]
+    func availableVoices() -> [TTSVoice]
     func speak(_ text: String, voiceId: String?, rate: Double) async throws
-    func pause() async
-    func resume() async
-    func stop() async
-    var isSpeaking: Bool { get async }
+    func pause()
+    func resume()
+    func stop()
+    var isSpeaking: Bool { get }
 }

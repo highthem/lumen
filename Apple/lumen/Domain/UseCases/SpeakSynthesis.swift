@@ -13,7 +13,8 @@ struct SpeakSynthesis: Sendable {
         try await tts.speak(text, voiceId: voiceId, rate: rate)
     }
 
-    func stop() async {
-        await tts.stop()
+    @MainActor
+    func stop() {
+        tts.stop()
     }
 }

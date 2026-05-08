@@ -4,9 +4,11 @@ import os.log
 /// TTS decorator: tries the primary synthesizer; on throw, transparently falls back.
 /// The fallback is resolved at *each call*, not init-time — so a transient ElevenLabs
 /// outage gracefully degrades to AVSpeech without an app restart.
-actor FallbackTextToSpeech: TextToSpeeching {
+@MainActor
+final class FallbackTextToSpeech: TextToSpeeching {
     private let primary: any TextToSpeeching
     private let fallback: any TextToSpeeching
+    private let session: AudioSessionManager
     private let ethicalLogger: EthicalLogger?
     private let isPrimaryEnabled: @Sendable () -> Bool
     private let osLog = Logger(subsystem: "com.highthem.lumen", category: "tts.fallback")
@@ -18,30 +20,35 @@ actor FallbackTextToSpeech: TextToSpeeching {
     init(
         primary: any TextToSpeeching,
         fallback: any TextToSpeeching,
+        session: AudioSessionManager = AudioSessionManager(),
         logger: EthicalLogger? = nil,
         isPrimaryEnabled: @escaping @Sendable () -> Bool = { true }
     ) {
         self.primary = primary
         self.fallback = fallback
+        self.session = session
         self.ethicalLogger = logger
         self.isPrimaryEnabled = isPrimaryEnabled
     }
 
     var isSpeaking: Bool {
-        get async {
-            switch activeProvider {
-            case .primary:  return await primary.isSpeaking
-            case .fallback: return await fallback.isSpeaking
-            case .none:     return false
-            }
+        switch activeProvider {
+        case .primary:  return primary.isSpeaking
+        case .fallback: return fallback.isSpeaking
+        case .none:     return false
         }
     }
 
-    func availableVoices() async -> [TTSVoice] {
-        await primary.availableVoices()
+    func availableVoices() -> [TTSVoice] {
+        primary.availableVoices()
     }
 
     func speak(_ text: String, voiceId: String?, rate: Double) async throws {
+        // Configure the audio session for `.playback` before delegating. The
+        // dictation pipeline leaves the session at `.record` + inactive, and
+        // a cold-start synthesis call may have no category set at all — both
+        // produce silent playback unless we set this here.
+        try? await session.configureSession()
         defer { activeProvider = .none }
 
         if !isPrimaryEnabled() {
@@ -63,25 +70,25 @@ actor FallbackTextToSpeech: TextToSpeeching {
         }
     }
 
-    func pause() async {
+    func pause() {
         switch activeProvider {
-        case .primary:  await primary.pause()
-        case .fallback: await fallback.pause()
+        case .primary:  primary.pause()
+        case .fallback: fallback.pause()
         case .none:     break
         }
     }
 
-    func resume() async {
+    func resume() {
         switch activeProvider {
-        case .primary:  await primary.resume()
-        case .fallback: await fallback.resume()
+        case .primary:  primary.resume()
+        case .fallback: fallback.resume()
         case .none:     break
         }
     }
 
-    func stop() async {
-        await primary.stop()
-        await fallback.stop()
+    func stop() {
+        primary.stop()
+        fallback.stop()
         activeProvider = .none
     }
 

@@ -66,7 +66,7 @@ struct AlarmRingingView: View {
             try? await audioPlayer.play(soundId: alarm?.soundId ?? "lumen_dawn", fadeIn: true)
         }
         .onDisappear {
-            Task { await audioPlayer.stop() }
+            audioPlayer.stop()
         }
     }
 

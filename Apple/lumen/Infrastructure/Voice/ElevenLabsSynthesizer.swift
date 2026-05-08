@@ -10,7 +10,8 @@ enum ElevenLabsError: Error {
     case timeout
 }
 
-actor ElevenLabsSynthesizer: TextToSpeeching {
+@MainActor
+final class ElevenLabsSynthesizer: TextToSpeeching {
     private let apiKey: String
     private let session: URLSession
     private var _isSpeaking = false
