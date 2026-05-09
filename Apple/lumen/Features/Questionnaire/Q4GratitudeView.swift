@@ -37,7 +37,10 @@ struct Q4GratitudeView: View {
 
             ghostActionsRow
                 .frame(maxWidth: .infinity, minHeight: LumenSize.blockMin)
-
+        }
+        .padding(.horizontal, LumenSpacing.l)
+        .padding(.top, LumenSpacing.xl0)
+        .safeAreaInset(edge: .bottom, spacing: 0) {
             FooterRow(
                 backTitle: "Retour",
                 nextTitle: "Voir ma synthèse",
@@ -45,10 +48,10 @@ struct Q4GratitudeView: View {
                 onBack: onBack,
                 onNext: onNext
             )
+            .padding(.horizontal, LumenSpacing.l)
+            .padding(.bottom, LumenSpacing.l)
+            .background(LumenColor.bgPrimary)
         }
-        .padding(.horizontal, LumenSpacing.l)
-        .padding(.top, LumenSpacing.xl0)
-        .padding(.bottom, LumenSpacing.l)
     }
 
     // MARK: - Reveal area (above mic)
@@ -193,6 +196,7 @@ struct Q4GratitudeView: View {
                         .foregroundStyle(LumenColor.textSecondary)
                 }
                 .buttonStyle(.plain)
+                .accessibilityIdentifier("gratitude-return-to-voice")
                 Spacer()
             }
         }

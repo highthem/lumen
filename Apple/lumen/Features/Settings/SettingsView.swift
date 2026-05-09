@@ -22,7 +22,9 @@ struct SettingsView: View {
                 voiceSection
                 aiSection
                 quotaSection
+                #if DEBUG
                 advancedSection
+                #endif
                 ethicalSection
                 appearanceSection
                 aboutSection
@@ -225,6 +227,7 @@ struct SettingsView: View {
                     Spacer()
                 }
             }
+            .accessibilityIdentifier("settings-advanced-link")
         }
     }
 

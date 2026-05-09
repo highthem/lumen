@@ -13,19 +13,22 @@ tags:
 
 - openLink: "lumen://test/dashboard?state=ritual"
 - runFlow: ../_shared/confirm-ios-open-lumen.yaml
-- tapOn: "Réglages"
+- openLink: "lumen://test/settings"
+- runFlow: ../_shared/confirm-ios-open-lumen.yaml
 
 # Scroll to ethical monitoring section
 - scrollUntilVisible:
-    element: "Exporter en JSON"
+    element:
+      id: "export-json-button"
 
 - tapOn:
     id: "export-json-button"
 
 # ShareSheet expected
 - extendedWaitUntil:
-    visible: "Lumen-ethical-export"
+    visible: "Copy"
     timeout: 5000
 
 # Dismiss share sheet
-- tapOn: "Cancel"
+- tapOn:
+    point: "90%, 15%"

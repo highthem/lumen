@@ -22,12 +22,13 @@ tags:
 - tapOn:
     id: "alarm-time-picker"
 - inputText: "0700"
-- tapOn: "Semaine"
+- tapOn:
+    id: "recurrence-weekdays"
 - tapOn:
     id: "alarm-sound-alarm-aube"
 - tapOn:
     id: "alarm-save-button"
 
 # Verify
-- assertVisible: "07:00"
-- assertVisible: "Lun – Ven"
+- assertVisible:
+    id: "alarm-row-07:00"

@@ -57,8 +57,8 @@ struct SplashView: View {
                 lumenWord
                     .position(x: W / 2, y: horizonY - LumenSpacing.sm2 - LumenSpacing.xl0)
 
-                // Subtitle — "Bonjour." italic, fades in below horizon
-                Text(localizedGreeting)
+                // Subtitle — "Morning Ritual" italic, fades in below horizon
+                Text("Morning Ritual")
                     .lumenFont(.bodySerif)
                     .italic()
                     .foregroundStyle(LumenColor.textPrimary.opacity(subtitleOpacity))
@@ -91,13 +91,6 @@ struct SplashView: View {
             }
         }
         .accessibilityHidden(true)
-    }
-
-    // MARK: - Localized greeting
-
-    private var localizedGreeting: String {
-        let lang = Locale.preferredLanguages.first ?? "fr"
-        return lang.hasPrefix("fr") ? "Bonjour." : "Hello."
     }
 
     // MARK: - Full-motion timeline

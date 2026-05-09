@@ -8,7 +8,8 @@ tags: [edge, lifecycle]
 - openLink: "lumen://ritual/q2"
 - runFlow: ../_shared/confirm-ios-open-lumen.yaml
 
-- assertVisible: "Qu'est-ce qui compte"
+- assertVisible:
+    id: "energy-orb"
 
 # Background l'app
 - pressKey: Home
@@ -22,5 +23,6 @@ tags: [edge, lifecycle]
 
 # Should resume on the same ritual step
 - extendedWaitUntil:
-    visible: "Qu'est-ce qui compte"
+    visible:
+      id: "energy-orb"
     timeout: 3000

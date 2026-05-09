@@ -53,7 +53,8 @@ env:
 - tapOn:
     id: "priority-keyboard-toggle"
 - inputText: "Bloquer 90 minutes pour le brief."
-- hideKeyboard
+- tapOn:
+    id: "priority-return-to-voice"
 - tapOn: "Suivant"
 
 # Q4 Gratitude — fallback typing (Maestro can't mic)
@@ -66,12 +67,14 @@ env:
 - tapOn:
     id: "gratitude-keyboard-toggle"
 - inputText: "Le silence avant que les enfants se lèvent."
-- hideKeyboard
+- tapOn:
+    id: "gratitude-return-to-voice"
 - tapOn: "Voir ma synthèse"
 
 # Synthesis screen
 - extendedWaitUntil:
-    visible: "Ton matin"
+    visible:
+      id: "synthesis-screen"
     timeout: 8000   # cloud AI call
 - assertVisible:
     id: "synthesis-listen-button"

@@ -9,6 +9,16 @@ struct AlarmListView: View {
     var body: some View {
         NavigationStack {
             List {
+                #if DEBUG
+                if LumenUITestMode.current.isMaestro {
+                    Button("Modifier son de test") {
+                        creating = true
+                    }
+                    .accessibilityIdentifier("alarm-test-edit-button")
+                    .listRowBackground(LumenColor.bgSecondary)
+                }
+                #endif
+
                 ForEach(vm.alarms) { alarm in
                     alarmRow(alarm)
                         .listRowBackground(LumenColor.bgSecondary)
@@ -81,6 +91,7 @@ struct AlarmListView: View {
             .tint(LumenColor.accent)
         }
         .padding(.vertical, LumenSpacing.s)
+        .contentShape(Rectangle())
         .accessibilityIdentifier("alarm-row-\(timeString(from: alarm.time))")
     }
 

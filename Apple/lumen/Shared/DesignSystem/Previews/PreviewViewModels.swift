@@ -39,7 +39,12 @@ extension OnboardingViewModel {
         let repo = PreviewAlarmRepository(seed: [])
         let scheduler = MaestroAlarmScheduler()
         let schedule = ScheduleAlarm(repository: repo, scheduler: scheduler)
-        return OnboardingViewModel(scheduler: scheduler, scheduleAlarm: schedule)
+        return OnboardingViewModel(
+            scheduler: scheduler,
+            scheduleAlarm: schedule,
+            audioPlayer: MaestroAudioPlayer(),
+            soundProvider: JSONSoundProvider()
+        )
     }
 }
 

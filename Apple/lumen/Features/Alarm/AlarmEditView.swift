@@ -137,6 +137,7 @@ struct AlarmEditView: View {
                 )
         }
         .buttonStyle(.plain)
+        .accessibilityIdentifier("recurrence-\(tag.rawValue)")
     }
 
     @ViewBuilder
@@ -161,6 +162,7 @@ struct AlarmEditView: View {
                         )
                 }
                 .buttonStyle(.plain)
+                .accessibilityIdentifier("custom-day-\(day.rawValue)")
             }
         }
     }

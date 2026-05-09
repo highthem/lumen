@@ -22,10 +22,19 @@ final class OnboardingViewModel {
 
     private let scheduler: any AlarmScheduling
     private let scheduleAlarmUseCase: ScheduleAlarm
+    private let audioPlayer: any AudioPlaying
+    private let soundProvider: any SoundProviding
 
-    init(scheduler: any AlarmScheduling, scheduleAlarm: ScheduleAlarm) {
+    init(
+        scheduler: any AlarmScheduling,
+        scheduleAlarm: ScheduleAlarm,
+        audioPlayer: any AudioPlaying,
+        soundProvider: any SoundProviding
+    ) {
         self.scheduler = scheduler
         self.scheduleAlarmUseCase = scheduleAlarm
+        self.audioPlayer = audioPlayer
+        self.soundProvider = soundProvider
     }
 
     func advance() {
@@ -40,6 +49,11 @@ final class OnboardingViewModel {
         let granted = (try? await scheduler.requestAuthorizationIfNeeded()) ?? false
         notificationsAuthorized = granted
         notificationsDenied = !granted
+    }
+
+    func previewAlarmSound() async {
+        let soundId = soundProvider.defaultSound(for: .alarm)?.id ?? "alarm-aube"
+        try? await audioPlayer.play(soundId: soundId, fadeIn: false)
     }
 
     func scheduleFirstAlarm() async throws {

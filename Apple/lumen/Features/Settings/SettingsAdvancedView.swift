@@ -203,6 +203,7 @@ struct SettingsAdvancedView: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
             .foregroundStyle(LumenColor.error)
+            .accessibilityIdentifier("api-key-status-invalid")
         case .valid:
             HStack(spacing: LumenSpacing.xs2) {
                 Image(systemName: "checkmark")
@@ -211,6 +212,7 @@ struct SettingsAdvancedView: View {
                     .lumenFont(.footnote)
             }
             .foregroundStyle(LumenColor.success)
+            .accessibilityIdentifier("api-key-status-valid")
         case .saved:
             HStack(spacing: LumenSpacing.xs2) {
                 Image(systemName: "checkmark")
@@ -219,6 +221,7 @@ struct SettingsAdvancedView: View {
                     .lumenFont(.footnote)
             }
             .foregroundStyle(LumenColor.success)
+            .accessibilityIdentifier("api-key-status-saved")
         default:
             EmptyView()
         }

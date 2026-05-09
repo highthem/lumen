@@ -10,10 +10,10 @@ tags: [edge, permissions, voice]
 - runFlow: ../_shared/confirm-ios-open-lumen.yaml
 
 - tapOn:
-    id: "mic-button"
+    id: "priority-mic"
 
 # Lumen falls back to typing without error
 - assertNotVisible:
     text: "Erreur"
 - assertVisible:
-    id: "gratitude-textarea"
+    id: "priority-textarea"

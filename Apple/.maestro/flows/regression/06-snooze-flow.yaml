@@ -12,10 +12,12 @@ env:
 - openLink: ${ALARM_DEEPLINK}
 - runFlow: ../_shared/confirm-ios-open-lumen.yaml
 
-- assertVisible: "07:00"
-- tapOn:
-    id: "alarm-snooze-button"
+- assertVisible:
+    id: "alarm-ringing-screen"
+- tapOn: "Snooze 5 min"
 
 # After snooze, expect normal app (alarm rescheduled)
-- assertVisible: "Aujourd'hui"
-- assertNotVisible: "07:00"
+- assertVisible:
+    id: "dashboard-screen"
+- assertNotVisible:
+    id: "alarm-ringing-screen"

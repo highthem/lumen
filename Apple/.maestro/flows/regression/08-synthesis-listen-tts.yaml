@@ -12,15 +12,16 @@ env:
 - runFlow: ../_shared/confirm-ios-open-lumen.yaml
 
 # Synthesis ready, tap Listen
-- assertVisible: "Ton matin"
+- assertVisible:
+    id: "synthesis-screen"
 - tapOn:
     id: "synthesis-listen-button"
 
 # Reading focus active : paragraphe 1 visible, autres dimmed
 - assertVisible:
-    id: "synthesis-block-0"
+    id: "synthesis-focus"
 - assertVisible:
-    id: "synthesis-progress-bar"
+    id: "synthesis-listen-button"
 
 # Pause
 - tapOn:

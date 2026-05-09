@@ -12,7 +12,7 @@ struct OnboardingPermissionsView: View {
                         .font(LumenIconFont.xxl)
                 }
                 Spacer()
-                ProgressDots4(current: 2)
+                ProgressDots4(current: 1)
                 Spacer()
             }
             .padding(.top, LumenSpacing.xl)
@@ -48,7 +48,11 @@ struct OnboardingPermissionsView: View {
                     subtitle: "Audio en arrière-plan",
                     chip: {
                         AnyView(
-                            chipLabel("OK", isSelected: true)
+                            Button {
+                                Task { await vm.previewAlarmSound() }
+                            } label: {
+                                chipLabel("Écouter", isSelected: false)
+                            }
                         )
                     }
                 )
@@ -82,6 +86,14 @@ struct OnboardingPermissionsView: View {
     private var notificationChip: some View {
         if vm.notificationsAuthorized {
             chipLabel("Activé", isSelected: true)
+        } else if vm.notificationsDenied {
+            Button {
+                if let url = URL(string: UIApplication.openSettingsURLString) {
+                    UIApplication.shared.open(url)
+                }
+            } label: {
+                chipLabel("Réglages", isSelected: false)
+            }
         } else {
             Button {
                 Task { await vm.requestNotificationAuthorization() }

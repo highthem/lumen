@@ -13,7 +13,7 @@ struct OnboardingPitchView: View {
                         .font(LumenIconFont.xxl)
                 }
                 Spacer()
-                ProgressDots4(current: 1)
+                ProgressDots4(current: 0)
                 Spacer()
             }
             .padding(.top, LumenSpacing.xl)
@@ -26,14 +26,11 @@ struct OnboardingPitchView: View {
 
             Spacer().frame(height: LumenSpacing.s)
 
-            if showSecondLine {
-                KineticText(["Pas", "plus."])
-                    .lumenFont(.display)
-                    .italic()
-                    .foregroundStyle(LumenColor.textPrimary.opacity(LumenOpacity.ring))
-            } else {
-                Color.clear.frame(height: LumenSpacing.huge - LumenSpacing.xs2)
-            }
+            KineticText(["Pas", "plus."])
+                .lumenFont(.display)
+                .italic()
+                .foregroundStyle(LumenColor.textPrimary.opacity(LumenOpacity.ring))
+                .opacity(showSecondLine ? 1 : 0)
 
             Spacer().frame(height: LumenSpacing.xl)
 
@@ -47,9 +44,10 @@ struct OnboardingPitchView: View {
         }
         .padding(.horizontal, LumenSpacing.l)
         .padding(.bottom, LumenSpacing.xl)
+        .onAppear { showSecondLine = false }
         .task {
             try? await Task.sleep(for: LumenDelay.scene)
-            showSecondLine = true
+            withAnimation(LumenAnimation.standard) { showSecondLine = true }
         }
     }
 }

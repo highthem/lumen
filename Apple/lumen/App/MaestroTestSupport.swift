@@ -28,6 +28,8 @@ final class MaestroTestState {
 
 enum MaestroRoute {
     case dashboard(state: DashboardState)
+    case settings
+    case alarmEditor
     case timer
     case questionnaire(step: QuestionnaireStep)
     case synthesis(ritualId: UUID)
@@ -64,20 +66,31 @@ enum MaestroTestSupport {
             }
             return .dashboard(state: routeState)
 
+        case ("test", "/settings"):
+            await resetAppState(composition: composition)
+            OnboardingFlag.markCompleted()
+            UserDefaults.standard.set(true, forKey: "lumen.hasAnyRitual")
+            _ = try? await seedAlarm(composition: composition)
+            _ = try? await seedRitual(upTo: .gratitude, composition: composition)
+            return .settings
+
+        case ("test", "/alarm-edit"):
+            await resetAppState(composition: composition)
+            OnboardingFlag.markCompleted()
+            _ = try? await seedAlarm(composition: composition)
+            return .alarmEditor
+
         case ("ritual", "/start"), ("ritual", "/timer"):
             OnboardingFlag.markCompleted()
             _ = try? await seedAlarm(composition: composition)
             return .timer
 
         case ("ritual", "/q2"):
-            // Legacy route — pre-V11, "Q2" was Priority. Kept for any
-            // older Maestro flows still pointing here.
             OnboardingFlag.markCompleted()
             _ = try? await seedRitual(upTo: .mood, composition: composition)
-            return .questionnaire(step: .priority)
+            return .questionnaire(step: .energy)
 
         case ("ritual", "/q2-energy"):
-            // V11 route — opens the new breathing-orb + slider directly.
             OnboardingFlag.markCompleted()
             _ = try? await seedRitual(upTo: .mood, composition: composition)
             return .questionnaire(step: .energy)
@@ -85,8 +98,11 @@ enum MaestroTestSupport {
         case ("ritual", "/q3"):
             OnboardingFlag.markCompleted()
             state.voicePermissionDenied = queryValue("mic", in: url) == "denied"
-            _ = try? await seedRitual(upTo: .priority, composition: composition)
-            return .questionnaire(step: .gratitude)
+            if queryValue("voice", in: url) == "keyboard" {
+                UserDefaults.standard.set(false, forKey: SettingsViewModel.voiceDefaultKey)
+            }
+            _ = try? await seedRitual(upTo: .energy, composition: composition)
+            return .questionnaire(step: .priority)
 
         case ("ritual", "/q4-direct"):
             OnboardingFlag.markCompleted()

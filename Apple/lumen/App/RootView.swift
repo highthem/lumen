@@ -25,6 +25,7 @@ struct RootView: View {
     @State private var questionnaireInitialStep: QuestionnaireStep = .mood
     @State private var selectedTab: Int = 0
     @State private var showAskLumen = false
+    @State private var showMaestroAlarmEditor = false
     @State private var dashboardRefreshKey: Int = 0
     @State private var splashFinished: Bool = false
     /// Live-bound to the same UserDefaults key SettingsViewModel writes to —
@@ -34,6 +35,11 @@ struct RootView: View {
 
     init(composition: CompositionRoot = CompositionRoot()) {
         self.composition = composition
+        #if DEBUG
+        if composition.testMode.isMaestro && Self.hasEnabledLaunchFlag("reduceMotion") {
+            UserDefaults.standard.set("true", forKey: "reduceMotion")
+        }
+        #endif
         _splashFinished = State(initialValue: composition.testMode.isMaestro)
     }
 
@@ -58,6 +64,9 @@ struct RootView: View {
     var body: some View {
         rootBody
             .preferredColorScheme(currentAppearance.preferredColorScheme)
+            .sheet(isPresented: $showMaestroAlarmEditor) {
+                AlarmEditView(vm: makeAlarmEditViewModel(alarm: nil))
+            }
             .onOpenURL { url in
                 Task { await handleDeepLink(url) }
             }
@@ -80,7 +89,9 @@ struct RootView: View {
             OnboardingFlowView(
                 vm: OnboardingViewModel(
                     scheduler: composition.alarmScheduler,
-                    scheduleAlarm: composition.scheduleAlarm
+                    scheduleAlarm: composition.scheduleAlarm,
+                    audioPlayer: composition.audioPlayer,
+                    soundProvider: composition.soundProvider
                 ),
                 onComplete: { hasCompletedOnboarding = true }
             )
@@ -186,16 +197,18 @@ struct RootView: View {
                 scheduler: composition.alarmScheduler,
                 cancelUseCase: composition.cancelAlarm
             ),
-            makeEditVM: { alarm in
-                AlarmEditViewModel(
-                    alarm: alarm,
-                    repo: composition.alarmRepository,
-                    scheduler: composition.alarmScheduler,
-                    scheduleUseCase: composition.scheduleAlarm,
-                    soundProvider: composition.soundProvider,
-                    audioPlayer: composition.audioPlayer
-                )
-            }
+            makeEditVM: makeAlarmEditViewModel
+        )
+    }
+
+    private func makeAlarmEditViewModel(alarm: Alarm?) -> AlarmEditViewModel {
+        AlarmEditViewModel(
+            alarm: alarm,
+            repo: composition.alarmRepository,
+            scheduler: composition.alarmScheduler,
+            scheduleUseCase: composition.scheduleAlarm,
+            soundProvider: composition.soundProvider,
+            audioPlayer: composition.audioPlayer
         )
     }
 
@@ -292,6 +305,19 @@ struct RootView: View {
             selectedTab = 0
             dashboardRefreshKey &+= 1
 
+        case .settings:
+            ritualFlow = .none
+            selectedTab = 2
+
+        case .alarmEditor:
+            ritualFlow = .none
+            selectedTab = 1
+            showMaestroAlarmEditor = false
+            Task { @MainActor in
+                try? await Task.sleep(for: .milliseconds(200))
+                showMaestroAlarmEditor = true
+            }
+
         case .timer:
             questionnaireInitialStep = .mood
             ritualFlow = .timer
@@ -310,6 +336,17 @@ struct RootView: View {
         _ = url
         #endif
     }
+
+    #if DEBUG
+    private static func hasEnabledLaunchFlag(_ name: String) -> Bool {
+        let args = ProcessInfo.processInfo.arguments
+        let env = ProcessInfo.processInfo.environment
+        return args.contains(name)
+            || args.contains("-\(name)")
+            || UserDefaults.standard.string(forKey: name) == "true"
+            || env[name] == "true"
+    }
+    #endif
 }
 
 #Preview("Dark") {

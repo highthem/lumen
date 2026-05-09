@@ -12,5 +12,4 @@ tags: [regression, offline, queue]
 # Expect Queued state (no Apple Intelligence on simulator)
 - assertVisible: "Ta synthèse arrive"
 - assertVisible: "On te notifie dès que ton réseau revient."
-- tapOn:
-    id: "synthesis-continue-button"
+- tapOn: "Continuer vers le dashboard"

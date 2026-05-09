@@ -55,6 +55,7 @@ struct SynthesisView: View {
                 .foregroundStyle(LumenColor.textSecondary)
         }
         .frame(maxWidth: .infinity)
+        .accessibilityIdentifier("synthesis-queued-message")
     }
 
     // MARK: - Ready
@@ -98,7 +99,7 @@ struct SynthesisView: View {
             ListenPlayer(
                 isPlaying: vm.ttsPlaying,
                 progress: ttsProgress,
-                durationLabel: formatTime(vm.ttsDuration > 0 ? vm.ttsDuration : 38),
+                durationLabel: formatTime(vm.ttsDuration > 0 ? vm.ttsDuration : -1),
                 elapsedLabel: vm.ttsPlaying ? formatTime(vm.ttsElapsed) : nil,
                 onTap: { Task { await vm.toggleTTS() } },
                 accessibilityID: "synthesis-listen-button"
@@ -149,6 +150,8 @@ struct SynthesisView: View {
     /// "0:38" for sub-minute, "1:24" for longer. Used for both elapsed and
     /// total labels in the listen-player pill.
     private func formatTime(_ seconds: Double) -> String {
+        guard seconds >= 0 else { return "" }
+        
         let total = Int(seconds.rounded())
         let m = total / 60
         let s = total % 60
@@ -255,6 +258,7 @@ struct SynthesisView: View {
             .accessibilityIdentifier("synthesis-continue-button")
         }
         .frame(maxWidth: .infinity)
+        .accessibilityIdentifier("synthesis-rate-limit-message")
     }
 
     // MARK: - Rate limited

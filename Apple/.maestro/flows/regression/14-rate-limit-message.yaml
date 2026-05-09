@@ -13,7 +13,8 @@ env:
 - runFlow: ../_shared/confirm-ios-open-lumen.yaml
 
 # Expected rate limit
-- assertVisible: "Limite atteinte pour aujourd'hui"
-- tapOn:
-    id: "synthesis-continue-button"
-- assertVisible: "Aujourd'hui"
+- assertVisible:
+    id: "synthesis-rate-limit-message"
+- tapOn: "Continuer vers le dashboard"
+- assertVisible:
+    id: "dashboard-screen"

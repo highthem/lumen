@@ -8,10 +8,13 @@ tags: [regression, settings, byo]
 
 - openLink: "lumen://test/dashboard?state=ritual"
 - runFlow: ../_shared/confirm-ios-open-lumen.yaml
-- tapOn: "Réglages"
+- openLink: "lumen://test/settings"
+- runFlow: ../_shared/confirm-ios-open-lumen.yaml
 - scrollUntilVisible:
-    element: "Mode avancé"
-- tapOn: "Mode avancé"
+    element:
+      id: "settings-advanced-link"
+- tapOn:
+    id: "settings-advanced-link"
 
 # BYO API key flow
 - tapOn:
@@ -24,7 +27,8 @@ tags: [regression, settings, byo]
 
 # Test should fail (fake key)
 - extendedWaitUntil:
-    visible: "Clé invalide"
+    visible:
+      id: "api-key-status-invalid"
     timeout: 8000
 
 # Test with valid placeholder (env-injected during test)
@@ -35,9 +39,11 @@ tags: [regression, settings, byo]
 - tapOn:
     id: "test-key-button"
 - extendedWaitUntil:
-    visible: "Clé valide"
+    visible:
+      id: "api-key-status-valid"
     timeout: 8000
 
 - tapOn:
     id: "save-key-button"
-- assertVisible: "Clé personnelle"
+- assertVisible:
+    id: "api-key-status-saved"

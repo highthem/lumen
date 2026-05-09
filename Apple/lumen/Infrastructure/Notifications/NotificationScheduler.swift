@@ -40,7 +40,12 @@ final class NotificationScheduler: AlarmScheduling {
 
         switch alarm.recurrence {
         case .none:
-            let trigger = UNCalendarNotificationTrigger(dateMatching: dateComponents, repeats: false)
+            var fireDate = alarm.time
+            if fireDate <= Date() {
+                fireDate = calendar.date(byAdding: .day, value: 1, to: fireDate) ?? fireDate
+            }
+            let fullComponents = calendar.dateComponents([.year, .month, .day, .hour, .minute], from: fireDate)
+            let trigger = UNCalendarNotificationTrigger(dateMatching: fullComponents, repeats: false)
             let request = UNNotificationRequest(
                 identifier: alarm.id.uuidString,
                 content: content,

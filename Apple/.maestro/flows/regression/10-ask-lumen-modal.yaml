@@ -8,9 +8,9 @@ tags: [regression, ai, ask-lumen]
 
 - openLink: "lumen://test/dashboard?state=ritual"
 - runFlow: ../_shared/confirm-ios-open-lumen.yaml
-- assertVisible: "Aujourd'hui"
-- tapOn:
-    id: "ask-lumen-fab"
+- assertVisible:
+    id: "dashboard-screen"
+- tapOn: "Ask Lumen"
 
 - assertVisible: "Ask Lumen"
 - tapOn:
@@ -25,4 +25,5 @@ tags: [regression, ai, ask-lumen]
     timeout: 8000
 
 - tapOn: "Fermer"
-- assertVisible: "Aujourd'hui"
+- assertVisible:
+    id: "dashboard-screen"

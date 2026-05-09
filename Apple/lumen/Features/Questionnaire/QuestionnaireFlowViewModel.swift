@@ -49,7 +49,9 @@ final class QuestionnaireFlowViewModel {
         self.dictation = dictation
         self.step = initialStep
         self.presetRitualId = presetRitualId
-        self.editingByKeyboard = !SettingsViewModel.isVoiceModeEnabled
+        let usesKeyboardByDefault = !SettingsViewModel.isVoiceModeEnabled
+        self.priorityEditingByKeyboard = usesKeyboardByDefault
+        self.editingByKeyboard = usesKeyboardByDefault
     }
 
     // MARK: - Lifecycle

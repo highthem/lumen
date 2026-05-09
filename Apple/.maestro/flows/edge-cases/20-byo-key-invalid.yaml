@@ -8,10 +8,13 @@ tags: [edge, byo, error]
 
 - openLink: "lumen://test/dashboard?state=ritual"
 - runFlow: ../_shared/confirm-ios-open-lumen.yaml
-- tapOn: "Réglages"
+- openLink: "lumen://test/settings"
+- runFlow: ../_shared/confirm-ios-open-lumen.yaml
 - scrollUntilVisible:
-    element: "Mode avancé"
-- tapOn: "Mode avancé"
+    element:
+      id: "settings-advanced-link"
+- tapOn:
+    id: "settings-advanced-link"
 
 - tapOn:
     id: "provider-openai"
@@ -23,7 +26,7 @@ tags: [edge, byo, error]
 
 # Error state
 - extendedWaitUntil:
-    visible: "Clé invalide"
+    visible: "Format invalide."
     timeout: 8000
 
 # Save button disabled

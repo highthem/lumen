@@ -23,30 +23,46 @@ actor MockOnboardingScheduler: AlarmScheduling {
     func snooze(_ alarm: Alarm, minutes: Int) async throws {}
 }
 
+@MainActor
+final class MockOnboardingAudioPlayer: AudioPlaying {
+    func configureSession() async throws {}
+    func play(soundId: String, fadeIn: Bool) async throws {}
+    func stop() {}
+    func setVolume(_ volume: Float, fadeDuration: TimeInterval) {}
+}
+
+struct MockOnboardingSoundProvider: SoundProviding {
+    func sounds(for kind: SoundKind) -> [SoundEntry] { [] }
+    func defaultSound(for kind: SoundKind) -> SoundEntry? { nil }
+    func sound(id: String) -> SoundEntry? { nil }
+}
+
 @Suite("OnboardingViewModel")
 struct OnboardingViewModelTests {
+    @MainActor
+    private func makeViewModel(
+        scheduler: MockOnboardingScheduler = MockOnboardingScheduler(),
+        repo: MockAlarmRepository = MockAlarmRepository()
+    ) -> OnboardingViewModel {
+        OnboardingViewModel(
+            scheduler: scheduler,
+            scheduleAlarm: ScheduleAlarm(repository: repo, scheduler: scheduler),
+            audioPlayer: MockOnboardingAudioPlayer(),
+            soundProvider: MockOnboardingSoundProvider()
+        )
+    }
 
     @Test("default step is welcome")
     @MainActor
     func defaultStepIsWelcome() {
-        let scheduler = MockOnboardingScheduler()
-        let repo = MockAlarmRepository()
-        let vm = OnboardingViewModel(
-            scheduler: scheduler,
-            scheduleAlarm: ScheduleAlarm(repository: repo, scheduler: scheduler)
-        )
+        let vm = makeViewModel()
         #expect(vm.step == .welcome)
     }
 
     @Test("advance cycles through all steps")
     @MainActor
     func advanceCyclesThroughSteps() {
-        let scheduler = MockOnboardingScheduler()
-        let repo = MockAlarmRepository()
-        let vm = OnboardingViewModel(
-            scheduler: scheduler,
-            scheduleAlarm: ScheduleAlarm(repository: repo, scheduler: scheduler)
-        )
+        let vm = makeViewModel()
         #expect(vm.step == .welcome)
         vm.advance()
         #expect(vm.step == .pitch)
@@ -61,12 +77,7 @@ struct OnboardingViewModelTests {
     @Test("goBack from welcome stays at welcome")
     @MainActor
     func goBackFromWelcomeStaysAtWelcome() {
-        let scheduler = MockOnboardingScheduler()
-        let repo = MockAlarmRepository()
-        let vm = OnboardingViewModel(
-            scheduler: scheduler,
-            scheduleAlarm: ScheduleAlarm(repository: repo, scheduler: scheduler)
-        )
+        let vm = makeViewModel()
         vm.goBack()
         #expect(vm.step == .welcome)
     }
@@ -76,11 +87,7 @@ struct OnboardingViewModelTests {
     func notificationAuthorizationGranted() async {
         let scheduler = MockOnboardingScheduler()
         await scheduler.setAuthorizationResult(true)
-        let repo = MockAlarmRepository()
-        let vm = OnboardingViewModel(
-            scheduler: scheduler,
-            scheduleAlarm: ScheduleAlarm(repository: repo, scheduler: scheduler)
-        )
+        let vm = makeViewModel(scheduler: scheduler)
         await vm.requestNotificationAuthorization()
         #expect(vm.notificationsAuthorized == true)
         let requested = await scheduler.authRequested
@@ -92,11 +99,7 @@ struct OnboardingViewModelTests {
     func notificationAuthorizationDenied() async {
         let scheduler = MockOnboardingScheduler()
         await scheduler.setAuthorizationResult(false)
-        let repo = MockAlarmRepository()
-        let vm = OnboardingViewModel(
-            scheduler: scheduler,
-            scheduleAlarm: ScheduleAlarm(repository: repo, scheduler: scheduler)
-        )
+        let vm = makeViewModel(scheduler: scheduler)
         await vm.requestNotificationAuthorization()
         #expect(vm.notificationsAuthorized == false)
     }
@@ -107,10 +110,7 @@ struct OnboardingViewModelTests {
         OnboardingFlag.reset()
         let scheduler = MockOnboardingScheduler()
         let repo = MockAlarmRepository()
-        let vm = OnboardingViewModel(
-            scheduler: scheduler,
-            scheduleAlarm: ScheduleAlarm(repository: repo, scheduler: scheduler)
-        )
+        let vm = makeViewModel(scheduler: scheduler, repo: repo)
         try await vm.scheduleFirstAlarm()
         let alarmCount = await repo.alarms.count
         let schedCount = await scheduler.scheduledAlarms.count
@@ -125,10 +125,7 @@ struct OnboardingViewModelTests {
         OnboardingFlag.reset()
         let scheduler = MockOnboardingScheduler()
         let repo = MockAlarmRepository()
-        let vm = OnboardingViewModel(
-            scheduler: scheduler,
-            scheduleAlarm: ScheduleAlarm(repository: repo, scheduler: scheduler)
-        )
+        let vm = makeViewModel(scheduler: scheduler, repo: repo)
         try await vm.scheduleFirstAlarm()
         #expect(OnboardingFlag.isCompleted == true)
         OnboardingFlag.reset()

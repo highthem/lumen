@@ -10,12 +10,12 @@ tags: [regression, settings, audio]
 - runFlow: ../_shared/confirm-ios-open-lumen.yaml
 - tapOn: "Réveil"
 - tapOn:
-    id: "alarm-row-07:00"
+    point: "33%, 24%"
 
 # 5 alarmes disponibles
 - assertVisible: "Aube"
 - assertVisible: "Bois"
-- assertVisible: "Marée"
+- assertVisible: "Maree"
 - assertVisible: "Cloche"
 - assertVisible: "Souffle"
 

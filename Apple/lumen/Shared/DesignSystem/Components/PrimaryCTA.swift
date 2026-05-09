@@ -11,6 +11,7 @@ struct PrimaryCTA<Label: View>: View {
                 .lumenFont(.body)
                 .foregroundStyle(LumenColor.bgPrimary)
         }
+        .contentShape(Rectangle())
         .frame(maxWidth: .infinity, minHeight: 52)
         .background(LumenColor.accent)
         .clipShape(RoundedRectangle(cornerRadius: LumenRadius.m, style: .continuous))

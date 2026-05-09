@@ -8,7 +8,11 @@ tags: [regression, settings, appearance]
 
 - openLink: "lumen://test/dashboard?state=ritual"
 - runFlow: ../_shared/confirm-ios-open-lumen.yaml
-- tapOn: "Réglages"
+- openLink: "lumen://test/settings"
+- runFlow: ../_shared/confirm-ios-open-lumen.yaml
+- scrollUntilVisible:
+    element:
+      id: "appearance-picker"
 - tapOn:
     id: "appearance-picker"
 

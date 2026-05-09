@@ -41,7 +41,11 @@ struct Q3PriorityView: View {
 
             ghostActionsRow
                 .frame(maxWidth: .infinity, minHeight: LumenSize.blockMin)
-
+                .padding(.bottom)
+        }
+        .padding(.horizontal, LumenSpacing.l)
+        .padding(.top, LumenSpacing.xl0)
+        .safeAreaInset(edge: .bottom, spacing: 0) {
             FooterRow(
                 backTitle: "Retour",
                 nextTitle: "Suivant",
@@ -49,10 +53,10 @@ struct Q3PriorityView: View {
                 onBack: onBack,
                 onNext: onNext
             )
+            .padding(.horizontal, LumenSpacing.l)
+            .padding(.bottom, LumenSpacing.l)
+            .background(LumenColor.bgPrimary)
         }
-        .padding(.horizontal, LumenSpacing.l)
-        .padding(.top, LumenSpacing.xl0)
-        .padding(.bottom, LumenSpacing.l)
     }
 
     // MARK: - Reveal area (above mic)
@@ -194,6 +198,7 @@ struct Q3PriorityView: View {
                         .foregroundStyle(LumenColor.textSecondary)
                 }
                 .buttonStyle(.plain)
+                .accessibilityIdentifier("priority-return-to-voice")
                 Spacer()
             }
         }

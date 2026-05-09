@@ -68,6 +68,7 @@ struct AlarmRingingView: View {
         .onDisappear {
             audioPlayer.stop()
         }
+        .accessibilityIdentifier("alarm-ringing-screen")
     }
 
     private func content(now: Date) -> some View {

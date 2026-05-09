@@ -38,4 +38,4 @@ tags:
       id: "dashboard-screen"
     timeout: 8000
 - assertVisible:
-    id: "ritual-cta"
+    id: "dashboard-idle-hero"

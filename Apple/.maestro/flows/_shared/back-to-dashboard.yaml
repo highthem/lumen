@@ -1,4 +1,5 @@
 appId: com.highthem.lumen
 ---
 - pressKey: Back
-- assertVisible: "Aujourd'hui"
+- assertVisible:
+    id: "dashboard-screen"

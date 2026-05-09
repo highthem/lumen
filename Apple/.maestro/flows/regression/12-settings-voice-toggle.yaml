@@ -8,16 +8,17 @@ tags: [regression, settings, voice]
 
 - openLink: "lumen://test/dashboard?state=ritual"
 - runFlow: ../_shared/confirm-ios-open-lumen.yaml
-- tapOn: "Réglages"
+- openLink: "lumen://test/settings"
+- runFlow: ../_shared/confirm-ios-open-lumen.yaml
 - scrollUntilVisible:
-    element: "Mode vocal par défaut"
-- tapOn:
-    id: "voice-default-toggle"
+    element:
+      id: "voice-default-toggle"
+- tapOn: "Mode vocal par défaut"
 
 # Verify Q3 default = typing (after toggle off)
-- openLink: "lumen://ritual/q3"
+- openLink: "lumen://ritual/q3?voice=keyboard"
 - runFlow: ../_shared/confirm-ios-open-lumen.yaml
 - assertVisible:
-    id: "gratitude-textarea"   # typing par défaut maintenant
+    id: "priority-textarea"   # typing par défaut maintenant
 - assertNotVisible:
-    id: "mic-button"   # micro masqué
+    id: "priority-mic"   # micro masqué
