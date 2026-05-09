@@ -11,7 +11,11 @@ struct DictateAnswer: Sendable {
         transcriber.startTranscription(locale: locale)
     }
 
-    func stop() async {
-        await transcriber.stop()
+    func finish() async {
+        await transcriber.finishTranscription()
+    }
+
+    func cancel() async {
+        await transcriber.cancelTranscription()
     }
 }

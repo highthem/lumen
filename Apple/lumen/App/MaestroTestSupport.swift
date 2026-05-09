@@ -241,7 +241,8 @@ final class MaestroVoiceTranscriber: VoiceTranscribing {
         }
     }
 
-    func stop() async {}
+    func finishTranscription() async {}
+    func cancelTranscription() async {}
     func isOnDeviceSupported(locale: Locale) -> Bool { true }
 }
 

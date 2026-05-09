@@ -30,7 +30,7 @@ extension PrimaryCTA where Label == Text {
 #if DEBUG
 #Preview {
     VStack(spacing: LumenSpacing.l) {
-        PrimaryCTA("Continuer") {}
+        PrimaryCTA("Continuer") { print("Tapped") }
         PrimaryCTA("Continuer", isEnabled: false) {}
     }
     .padding(LumenSpacing.l)

@@ -95,7 +95,7 @@ struct Q4GratitudeView: View {
             MicCTA(
                 isListening: state == .listening,
                 onPressDown: { vm.startDictation(for: .gratitude) },
-                onPressUp: { Task { await vm.stopDictation(for: .gratitude) } },
+                onPressUp: { Task { await vm.finishDictation(for: .gratitude) } },
                 accessibilityID: "mic-button"
             )
 
@@ -148,7 +148,7 @@ struct Q4GratitudeView: View {
             case .listening:
                 Spacer()
                 Button {
-                    Task { await vm.stopDictation(for: .gratitude) }
+                    Task { await vm.cancelDictation(for: .gratitude) }
                 } label: {
                     Text("Annuler")
                         .lumenFont(.footnote)

@@ -136,9 +136,8 @@ final class QuestionnaireFlowViewModel {
         }
     }
 
-    func stopDictation(for targetStep: QuestionnaireStep) async {
-        dictationTask?.cancel()
-        await dictation.stop()
+    func finishDictation(for targetStep: QuestionnaireStep) async {
+        await dictation.finish()
         switch targetStep {
         case .gratitude:
             if micState == .listening {
@@ -147,6 +146,24 @@ final class QuestionnaireFlowViewModel {
         case .priority:
             if priorityMicState == .listening {
                 priorityMicState = priorityText.isEmpty ? .idle : .transcribed
+            }
+        default:
+            break
+        }
+    }
+
+    func cancelDictation(for targetStep: QuestionnaireStep) async {
+        dictationTask?.cancel()
+        dictationTask = nil
+        await dictation.cancel()
+        switch targetStep {
+        case .gratitude:
+            if micState == .listening {
+                micState = .idle
+            }
+        case .priority:
+            if priorityMicState == .listening {
+                priorityMicState = .idle
             }
         default:
             break
@@ -172,7 +189,7 @@ final class QuestionnaireFlowViewModel {
             gratitudeText = text
             micState = .transcribed
         case .error(let err):
-            if err == .unsupportedLocale || err == .permissionDenied { editingByKeyboard = true }
+            if err.fallsBackToKeyboard { editingByKeyboard = true }
             micState = .idle
         case .finished:
             if micState == .listening {
@@ -189,7 +206,7 @@ final class QuestionnaireFlowViewModel {
             priorityText = text
             priorityMicState = .transcribed
         case .error(let err):
-            if err == .unsupportedLocale || err == .permissionDenied { priorityEditingByKeyboard = true }
+            if err.fallsBackToKeyboard { priorityEditingByKeyboard = true }
             priorityMicState = .idle
         case .finished:
             if priorityMicState == .listening {
@@ -200,13 +217,26 @@ final class QuestionnaireFlowViewModel {
 
     func resetGratitude() {
         dictationTask?.cancel()
+        Task { await dictation.cancel() }
         gratitudeText = ""
         micState = .idle
     }
 
     func resetPriority() {
         dictationTask?.cancel()
+        Task { await dictation.cancel() }
         priorityText = ""
         priorityMicState = .idle
+    }
+}
+
+private extension VoiceTranscribingError {
+    var fallsBackToKeyboard: Bool {
+        switch self {
+        case .permissionDenied, .unsupportedLocale, .audioEngineFailed:
+            true
+        case .recognitionFailed:
+            false
+        }
     }
 }

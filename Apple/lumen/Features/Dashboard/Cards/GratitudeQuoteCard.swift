@@ -12,7 +12,7 @@ struct GratitudeQuoteCard: View {
             VStack(alignment: .leading, spacing: 0) {
                 Eyebrow("Gratitude")
                     .padding(.bottom, LumenSpacing.s)
-                HStack(alignment: .top, spacing: LumenSpacing.sm) {
+                HStack(spacing: LumenSpacing.sm) {
                     Text("\u{201C}")
                         .font(.system(size: 38, weight: .regular, design: .serif))
                         .italic()
@@ -27,6 +27,13 @@ struct GratitudeQuoteCard: View {
                         .lineSpacing(17 * 0.40)
                         .foregroundStyle(LumenColor.textPrimary.opacity(0.75))
                         .fixedSize(horizontal: false, vertical: true)
+                    Text("\u{201D}")
+                        .font(.system(size: 38, weight: .regular, design: .serif))
+                        .italic()
+                        .lineSpacing(-15)
+                        .foregroundStyle(LumenColor.accent)
+                        .padding(.top, 6)
+                        .accessibilityHidden(true)
                 }
             }
             .padding(.horizontal, 20)
@@ -47,9 +54,17 @@ struct GratitudeQuoteCard: View {
 }
 
 #if DEBUG
-#Preview {
+#Preview("multiple lines") {
     GratitudeQuoteCard(
         text: "Le silence avant que les enfants se lèvent.",
+        onTap: {}
+    )
+    .padding(LumenSpacing.l)
+    .background(LumenColor.bgPrimary)
+}
+#Preview("single lines") {
+    GratitudeQuoteCard(
+        text: "Le silence.",
         onTap: {}
     )
     .padding(LumenSpacing.l)

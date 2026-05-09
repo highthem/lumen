@@ -54,7 +54,7 @@ struct SettingsAdvancedView: View {
                 .foregroundStyle(LumenColor.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
 
-            Text("Lumen consomme ta clé directement, sans passer par nos serveurs. Plus de limite quotidienne — tu paies ton usage à OpenAI ou Anthropic.")
+            Text("Lumen consomme ta clé directement, sans passer par nos serveurs. Plus de limite quotidienne, tu paies ton usage à OpenAI ou Anthropic.")
                 .lumenFont(.calloutSerif)
                 .italic()
                 .foregroundStyle(LumenColor.textSecondary)

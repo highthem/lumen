@@ -65,8 +65,7 @@ final class AskLumenViewModel {
     }
 
     func stopDictation() async {
-        dictationTask?.cancel()
-        await dictation?.stop()
+        await dictation?.finish()
         if micState == .listening {
             micState = question.isEmpty ? .idle : .transcribed
         }

@@ -97,7 +97,7 @@ struct Q3PriorityView: View {
             MicCTA(
                 isListening: state == .listening,
                 onPressDown: { vm.startDictation(for: .priority) },
-                onPressUp: { Task { await vm.stopDictation(for: .priority) } },
+                onPressUp: { Task { await vm.finishDictation(for: .priority) } },
                 accessibilityID: "priority-mic"
             )
 
@@ -149,7 +149,7 @@ struct Q3PriorityView: View {
             case .listening:
                 Spacer()
                 Button {
-                    Task { await vm.stopDictation(for: .priority) }
+                    Task { await vm.cancelDictation(for: .priority) }
                 } label: {
                     Text("Annuler")
                         .lumenFont(.footnote)

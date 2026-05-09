@@ -16,6 +16,7 @@ enum VoiceTranscribingError: Error, Sendable {
 
 protocol VoiceTranscribing: Sendable {
     func startTranscription(locale: Locale) -> AsyncStream<VoiceTranscribingState>
-    func stop() async
+    func finishTranscription() async
+    func cancelTranscription() async
     func isOnDeviceSupported(locale: Locale) -> Bool
 }

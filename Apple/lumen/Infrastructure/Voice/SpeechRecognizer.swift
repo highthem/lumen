@@ -7,7 +7,13 @@ final class SpeechRecognizer: VoiceTranscribing {
 
     private let permissions = VoicePermissions()
 
-    private let audioEngine = AVAudioEngine()
+    // Reassigned at the start of each transcription session so the input
+    // audio unit lazy-initializes under the freshly-configured
+    // .playAndRecord session. Reusing a single engine across sessions
+    // strands a stale 0-Hz audio unit when an earlier `inputNode` access
+    // happened under .playback (TTS / alarms) — manifests as
+    // `AURemoteIO -10851` on engine.start.
+    private var audioEngine = AVAudioEngine()
     private var recognizer: SFSpeechRecognizer?
     private var cachedLocale: Locale?
     private var recognitionRequest: SFSpeechAudioBufferRecognitionRequest?
@@ -48,13 +54,6 @@ final class SpeechRecognizer: VoiceTranscribing {
                     return
                 }
 
-                guard self.isOnDeviceSupported(locale: locale) else {
-                    LumenLog.speechRecognition.notice("startTranscription: locale not supported on-device; falling back via unsupportedLocale")
-                    continuation.yield(.error(.unsupportedLocale))
-                    continuation.finish()
-                    return
-                }
-
                 let recognizer = self.resolveRecognizer(locale: locale)
                 guard let recognizer, recognizer.isAvailable else {
                     LumenLog.speechRecognition.error("startTranscription: recognizer unavailable")
@@ -63,22 +62,19 @@ final class SpeechRecognizer: VoiceTranscribing {
                     return
                 }
 
-                self.teardownActiveSessionPreservingEngine()
-
                 do {
-                    let session = AVAudioSession.sharedInstance()
-                    try session.setCategory(.record, mode: .measurement, options: .duckOthers)
-                    try session.setActive(true, options: .notifyOthersOnDeactivation)
-                    self.sessionConfigured = true
-                    LumenLog.speechRecognition.info("startTranscription: audio session configured (.record)")
+                    try self.configureSpeechAudioSessionForRecording()
                 } catch {
-                    LumenLog.speechRecognition.error("startTranscription: audio session error", error: error)
                     continuation.yield(.error(.audioEngineFailed))
                     continuation.finish()
                     return
                 }
 
                 let request = SFSpeechAudioBufferRecognitionRequest()
+                // false = let SFSpeechRecognizer pick on-device when the locale
+                // model is installed, otherwise fall back to Apple's cloud
+                // service. true would force on-device-only and silently fail
+                // on simulator and on devices without the fr_FR model.
                 request.requiresOnDeviceRecognition = false
                 request.shouldReportPartialResults = true
                 self.recognitionRequest = request
@@ -107,7 +103,7 @@ final class SpeechRecognizer: VoiceTranscribing {
                     LumenLog.speechRecognition.error("startTranscription: audio pipeline failed", error: error)
                     self.audioEngine.inputNode.removeTap(onBus: 0)
                     continuation.yield(.error(.audioEngineFailed))
-                    await self.stop()
+                    await self.cancelTranscription()
                     continuation.finish()
                     return
                 }
@@ -118,7 +114,13 @@ final class SpeechRecognizer: VoiceTranscribing {
         }
     }
 
-    nonisolated func stop() async {
+    nonisolated func finishTranscription() async {
+        await MainActor.run {
+            self.finishCapturePreservingRecognition()
+        }
+    }
+
+    nonisolated func cancelTranscription() async {
         await MainActor.run {
             self.tearDownAndDeactivateSession()
         }
@@ -140,6 +142,70 @@ final class SpeechRecognizer: VoiceTranscribing {
             try? session.setCategory(.playback, options: [.duckOthers])
             sessionConfigured = false
         }
+    }
+
+    @MainActor
+    private func configureSpeechAudioSessionForRecording() throws {
+        // Cancel any in-flight recognition before reconfiguring the session.
+        // These are Speech.framework-only calls — they don't touch the audio
+        // engine, so it's safe to run them before the session category flip.
+        recognitionTask?.cancel()
+        recognitionTask = nil
+        recognitionRequest?.endAudio()
+        recognitionRequest = nil
+
+        let session = AVAudioSession.sharedInstance()
+        do {
+            try session.setCategory(
+                .playAndRecord,
+                mode: .measurement,
+                options: [.duckOthers, .defaultToSpeaker, .allowBluetoothHFP]
+            )
+            try session.setActive(true, options: .notifyOthersOnDeactivation)
+            sessionConfigured = true
+
+            logAudioSessionState(prefix: "startTranscription: audio session configured (.playAndRecord)")
+
+            guard session.isInputAvailable else {
+                LumenLog.speechRecognition.error("startTranscription: audio session has no available input")
+                throw VoiceTranscribingError.audioEngineFailed
+            }
+
+            // Recreate the engine *after* the session is in .playAndRecord so
+            // the input audio unit lazy-initializes under the recording
+            // category (48 kHz from the device, not the 0 Hz it inherits
+            // from .playback). The old engine releases naturally; we never
+            // installed a tap on the new one, so no cleanup needed.
+            audioEngine = AVAudioEngine()
+        } catch {
+            LumenLog.speechRecognition.error("startTranscription: audio session error", error: error)
+            // Don't call tearDownAndDeactivateSession here — it would touch
+            // audioEngine.inputNode and could create a stale audio unit
+            // under .playback if setCategory failed. Just unwind the session.
+            if sessionConfigured {
+                try? session.setActive(false, options: .notifyOthersOnDeactivation)
+                try? session.setCategory(.playback, options: [.duckOthers])
+                sessionConfigured = false
+            }
+            throw VoiceTranscribingError.audioEngineFailed
+        }
+    }
+
+    @MainActor
+    private func logAudioSessionState(prefix: String) {
+        let session = AVAudioSession.sharedInstance()
+        let inputs = session.currentRoute.inputs
+            .map { "\($0.portType.rawValue):\($0.portName)" }
+            .joined(separator: ",")
+        let outputs = session.currentRoute.outputs
+            .map { "\($0.portType.rawValue):\($0.portName)" }
+            .joined(separator: ",")
+        let availableInputs = session.availableInputs?
+            .map { "\($0.portType.rawValue):\($0.portName)" }
+            .joined(separator: ",") ?? "none"
+        LumenLog.speechRecognition.info(
+            "\(prefix); sampleRate=\(session.sampleRate), ioBuffer=\(session.ioBufferDuration), inputAvailable=\(session.isInputAvailable), routeInputs=\(inputs), routeOutputs=\(outputs), availableInputs=\(availableInputs)"
+        )
     }
 
     // MARK: - Nonisolated callback factories
@@ -190,7 +256,7 @@ final class SpeechRecognizer: VoiceTranscribing {
         let inputNode = engine.inputNode
         let format = inputNode.outputFormat(forBus: 0)
 
-        guard format.sampleRate > 0, format.channelCount > 0 else {
+        guard isValidInputFormat(format) else {
             LumenLog.speechRecognition.error("installAudioPipeline: invalid input format \(String(describing: format))")
             throw VoiceTranscribingError.audioEngineFailed
         }
@@ -224,6 +290,10 @@ final class SpeechRecognizer: VoiceTranscribing {
         }
     }
 
+    nonisolated static func isValidInputFormat(_ format: AVAudioFormat) -> Bool {
+        format.sampleRate > 0 && format.channelCount > 0
+    }
+
     private func resolveRecognizer(locale: Locale) -> SFSpeechRecognizer? {
         if let recognizer, cachedLocale == locale {
             return recognizer
@@ -245,5 +315,22 @@ final class SpeechRecognizer: VoiceTranscribing {
             audioEngine.stop()
         }
         audioEngine.inputNode.removeTap(onBus: 0)
+    }
+
+    @MainActor
+    private func finishCapturePreservingRecognition() {
+        recognitionRequest?.endAudio()
+        if audioEngine.isRunning {
+            audioEngine.stop()
+        }
+        audioEngine.inputNode.removeTap(onBus: 0)
+        // Watchdog: if Speech.framework doesn't deliver a final transcript or
+        // error within 3s, force the session reset so the next dictation
+        // attempt isn't blocked by a stale .playAndRecord session.
+        Task { @MainActor [weak self] in
+            try? await Task.sleep(for: .seconds(3))
+            guard let self, self.sessionConfigured else { return }
+            self.tearDownAndDeactivateSession()
+        }
     }
 }
