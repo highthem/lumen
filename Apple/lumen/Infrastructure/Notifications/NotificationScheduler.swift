@@ -2,12 +2,18 @@ import Foundation
 import UserNotifications
 
 final class NotificationScheduler: AlarmScheduling {
-    private let soundProvider: any SoundProviding
     private let soundInstaller: NotificationSoundInstaller
+    private let contentBuilder: AlarmNotificationContentBuilder
 
     init(soundProvider: any SoundProviding, soundInstaller: NotificationSoundInstaller) {
-        self.soundProvider = soundProvider
         self.soundInstaller = soundInstaller
+        let selector = AlarmNotificationSoundSelector(
+            soundProvider: soundProvider,
+            installedSoundName: { soundId in
+                soundInstaller.installedName(for: soundId)
+            }
+        )
+        self.contentBuilder = AlarmNotificationContentBuilder(soundSelector: selector)
     }
 
     func requestAuthorizationIfNeeded() async throws -> Bool {
@@ -21,18 +27,13 @@ final class NotificationScheduler: AlarmScheduling {
 
     func schedule(_ alarm: Alarm) async throws {
         let center = UNUserNotificationCenter.current()
+        await logSoundSettingIfNeeded(center: center)
 
         let existingIds = existingIdentifiers(for: alarm.id)
         center.removePendingNotificationRequests(withIdentifiers: existingIds)
         center.removeDeliveredNotifications(withIdentifiers: existingIds)
 
-        let content = UNMutableNotificationContent()
-        content.title = "Lumen"
-        content.body = "Bonjour."
-        content.categoryIdentifier = LumenNotificationCategory.alarm.rawValue
-        content.interruptionLevel = .timeSensitive
-
-        content.sound = sound(for: alarm)
+        let content = contentBuilder.content(for: alarm).notificationContent
 
         let calendar = Calendar.current
         let dateComponents = calendar.dateComponents([.hour, .minute], from: alarm.time)
@@ -105,12 +106,8 @@ final class NotificationScheduler: AlarmScheduling {
 
     func snooze(_ alarm: Alarm, minutes: Int) async throws {
         let center = UNUserNotificationCenter.current()
-        let content = UNMutableNotificationContent()
-        content.title = "Lumen"
-        content.body = "Bonjour."
-        content.categoryIdentifier = LumenNotificationCategory.alarm.rawValue
-        content.interruptionLevel = .timeSensitive
-        content.sound = sound(for: alarm)
+        await logSoundSettingIfNeeded(center: center)
+        let content = contentBuilder.content(for: alarm).notificationContent
 
         let fireDate = Date().addingTimeInterval(Double(minutes * 60))
         let components = Calendar.current.dateComponents([.year, .month, .day, .hour, .minute, .second], from: fireDate)
@@ -123,11 +120,11 @@ final class NotificationScheduler: AlarmScheduling {
         try await center.add(request)
     }
 
-    private func sound(for alarm: Alarm) -> UNNotificationSound {
-        guard let installedName = soundInstaller.installedName(for: alarm.soundId) else {
-            return .default
+    private func logSoundSettingIfNeeded(center: UNUserNotificationCenter) async {
+        let settings = await center.notificationSettings()
+        if settings.soundSetting == .disabled {
+            LumenLog.notifications.warning("Notification sound setting is disabled for Lumen; alarm notification may be silent")
         }
-        return UNNotificationSound(named: UNNotificationSoundName(rawValue: installedName))
     }
 
     private func existingIdentifiers(for id: UUID) -> [String] {
