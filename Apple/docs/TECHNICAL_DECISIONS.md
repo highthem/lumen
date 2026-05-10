@@ -17,6 +17,8 @@ Architecture Decision Records (ADRs) — every non-trivial technical choice in L
 
 ## ADR-001 — Alarm in background strategy
 
+*PALO brief requirement: "Réveil doux avec Snooze/Silence (fonctionnel en background)" + "UserNotifications + AVFoundation pour l'alarme en background".*
+
 **Context.** PALO brief requires iOS 17+, with `UserNotifications + AVFoundation` for the background alarm, no third-party libraries. Verified platform constraints:
 - **AlarmKit** is iOS 26+ only (WWDC 2025) — out of scope.
 - **Critical Alerts** require an Apple-approved entitlement (manual review, health/safety use cases only). Approval delay is incompatible with the 11 May deadline.
@@ -44,6 +46,8 @@ Architecture Decision Records (ADRs) — every non-trivial technical choice in L
 
 ## ADR-002 — SwiftData vs Core Data
 
+*PALO brief requirement: "SwiftData/Core Data pour la persistance (pas de lib tierce)".*
+
 **Context.** PALO brief mandates SwiftData or Core Data, no third-party. Binary choice.
 
 **Decision.** **SwiftData**, with a documented Core Data fallback path.
@@ -61,6 +65,8 @@ Architecture Decision Records (ADRs) — every non-trivial technical choice in L
 ---
 
 ## ADR-003 — Swift Concurrency vs Combine
+
+*PALO brief requirement: "Combine ou Swift Concurrency (à justifier)".*
 
 **Context.** PALO brief asks for "Combine or Swift Concurrency (justified)". Binary choice.
 
@@ -82,6 +88,8 @@ Architecture Decision Records (ADRs) — every non-trivial technical choice in L
 ---
 
 ## ADR-004 — AI waterfall with Apple Intelligence and offline queue
+
+*PALO brief requirement: "Synthèse générée par IA (avec fallback hors-ligne et monitoring éthique)" + "Intégration IA via OpenAI ou Anthropic, avec journalisation et rate limiting local".*
 
 **Context.** Brief: "AI synthesis with offline fallback and ethical monitoring", "OpenAI or Anthropic with logging and rate limiting". Verified: Apple Intelligence (Foundation Models framework) is **iOS 26+ only** and requires an A17 Pro+ chip — many devices in our iOS 17+ target will never have it.
 
@@ -114,6 +122,8 @@ Architecture Decision Records (ADRs) — every non-trivial technical choice in L
 
 ## ADR-005 — Ethical monitoring
 
+*PALO brief requirement: "monitoring éthique" + "Un export JSON des logs de monitoring éthique" + "rate limiting local".*
+
 **Context.** Brief: monitor AI usage with logging, rate limiting, and JSON export. "Ethical monitoring" is loosely defined; we interpret it as making AI usage **visible, auditable, and bounded**, with a privacy-first stance.
 
 **Decision.** Four-pillar implementation:
@@ -144,6 +154,8 @@ Settings → "Export my logs" generates a JSON file via `ShareSheet`. Settings �
 ---
 
 ## ADR-006 — CI/CD via Xcode Cloud, with dual Xcode version strategy
+
+*Not a direct PALO brief requirement (the brief only asks for "Xcode 16+, build direct"); this ADR documents the internal CI/CD choice that backs that constraint.*
 
 **Context.** PALO brief requires Xcode 16+ for direct build. Development environment runs Xcode 26.4 (needed for Foundation Models). The repository must build cleanly on Xcode 16 to match the brief.
 

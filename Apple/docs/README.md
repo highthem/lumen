@@ -30,6 +30,8 @@ xcodebuild -project lumen.xcodeproj -scheme lumen -destination 'platform=iOS Sim
 xcodebuild -project lumen.xcodeproj -scheme lumen -destination 'platform=iOS Simulator,name=iPhone 15' test
 ```
 
+The Domain test target lives in `lumenTests/Domain/`. Per the PALO brief, the **alarm/snooze logic is the priority test surface** — see `lumenTests/Domain/AlarmUseCaseTests.swift` and `lumenTests/Domain/RateLimiterTests.swift`.
+
 ## What's in this repo
 
 | File / Folder | Description |
@@ -40,9 +42,10 @@ xcodebuild -project lumen.xcodeproj -scheme lumen -destination 'platform=iOS Sim
 | `lumenUITests/` | UI tests (1–2 critical user journeys) |
 | `ci_scripts/` | Xcode Cloud post-clone script (secrets injection) |
 | `ARCHITECTURE.md` | MVVM + Clean architecture details |
-| `TECHNICAL_DECISIONS.md` | 6 ADRs (alarm, persistence, concurrency, AI waterfall, ethical monitoring, CI/CD) |
+| `TECHNICAL_DECISIONS.md` | 8 ADRs (brief requires ≥5) — alarm, persistence, concurrency, AI waterfall, ethical monitoring, CI/CD, voice, UI testing |
 | `ETHICAL_MONITORING.md` | AI usage logging, privacy policy, JSON export schema |
-| `ARTIFACTS.md` | Diagrams, AI prompts used during development, screenshots, test data |
+| `ARTIFACTS.md` | Diagrams, AI prompts used during development, screenshots, test data, deliverables checklist |
+| `samples/ethical-monitoring-export.json` | Anonymised sample of the Settings → Export my logs payload |
 | `lumen/Config/Secrets.xcconfig.sample` | Template for API keys (the real one is gitignored) |
 
 ## Tech stack
@@ -54,6 +57,48 @@ xcodebuild -project lumen.xcodeproj -scheme lumen -destination 'platform=iOS Sim
 - **UserNotifications + AVFoundation** for the background alarm
 - **AI waterfall**: OpenAI (primary) → Anthropic Claude (cloud fallback) → Apple Intelligence on-device (iOS 26+ with A17 Pro+) → offline queue with deferred generation
 - **Voice I/O on-device** (ADR-007): `SFSpeechRecognizer` (`requiresOnDeviceRecognition = true`) for dictation on Q3/Q4 + `AVSpeechSynthesizer` (neural voices) for synthesis playback
+
+## PALO-IT requirements coverage
+
+Direct mapping of every bullet in the brief (Sami Henchiri, 21 Apr 2026) to the concrete answer in this repo. Code paths are relative to `Apple/`.
+
+### Flux complet
+| Requirement | Where it lives | Status |
+|---|---|---|
+| Réveil doux avec Snooze/Silence (background) | `lumen/Infrastructure/Notifications/NotificationScheduler.swift`, `NotificationCategories.swift`, `lumen/Domain/UseCases/SnoozeAlarm.swift`, `lumen/Features/Alarm/AlarmRingingView.swift` — see ADR-001 | ✅ |
+| Timer de présence avec citation inspirante | `lumen/Features/Timer/PresenceTimerView.swift` + `PresenceTimerViewModel.swift`, quotes in `lumen/Shared/Resources/Quotes.json` | ✅ |
+| Questionnaire matinal en 4 étapes (persistance locale) | `lumen/Features/Questionnaire/Q1MoodView.swift` … `Q4GratitudeView.swift`, `lumen/Domain/UseCases/SaveQuestionnaireAnswer.swift`, SwiftData via `lumen/Data/Models/` | ✅ |
+| Synthèse IA (fallback hors-ligne + monitoring éthique) | `lumen/Data/AI/WaterfallAISynthesisService.swift` — see ADR-004 + `ETHICAL_MONITORING.md` | ✅ |
+| Dashboard ≥6 catégories + accès rapide IA | `lumen/Domain/Entities/DashboardCategory.swift` (6 cases), `lumen/Features/Dashboard/`, AskLumen FAB in `lumen/Features/AskLumen/` | ✅ |
+
+### Repo & files
+| Requirement | Where it lives | Status |
+|---|---|---|
+| Repo GitHub privé Xcode 16+, build direct | This repo, `lumen.xcodeproj`, CI workflow "Tests on push (Xcode 16)" | ✅ |
+| Partagé avec `shenchiri@palo-it.com` | GitHub repo settings — collaborator added | ✅ |
+| `README.md` | This file | ✅ |
+| `ARCHITECTURE.md` | [`ARCHITECTURE.md`](ARCHITECTURE.md) | ✅ |
+| `TECHNICAL_DECISIONS.md` (≥5 ADRs) | [`TECHNICAL_DECISIONS.md`](TECHNICAL_DECISIONS.md) — 8 ADRs | ✅ |
+| `ETHICAL_MONITORING.md` | [`ETHICAL_MONITORING.md`](ETHICAL_MONITORING.md) | ✅ |
+| `ARTIFACTS.md` | [`ARTIFACTS.md`](ARTIFACTS.md) | ✅ |
+
+### Tests, démo, livrables
+| Requirement | Where it lives | Status |
+|---|---|---|
+| Tests ≥60 % Domain, alarme/snooze prioritaire | `lumenTests/Domain/AlarmUseCaseTests.swift`, `RateLimiterTests.swift`, `WaterfallAISynthesisServiceTests.swift`, `BuildDashboardSnapshotTests.swift`, `ContentSafetyDetectorTests.swift`, `FetchRitualHistoryTests.swift`, `PresenceStateTests.swift` — ~66 % raw LOC | ✅ |
+| Export JSON des logs de monitoring éthique | `lumen/Domain/UseCases/ExportEthicalLogs.swift` + Settings UI; sample at [`samples/ethical-monitoring-export.json`](samples/ethical-monitoring-export.json) | ✅ |
+| Démo Loom (≤ 5 min) ou TestFlight | TestFlight build via Xcode Cloud "TestFlight on `v*` tag" workflow + Loom backup | 📧 link sent in recap email |
+| Présentation 10–15 slides | `Design/designs/Design/slides/soutenance-lumen.html` (HTML deck) | ✅ |
+
+### Contraintes techniques
+| Constraint | Where it lives | Status |
+|---|---|---|
+| iOS 17+, SwiftUI (pas d'UIKit pur) | `IPHONEOS_DEPLOYMENT_TARGET = 17.0`; zero `UIKit` imports in Features | ✅ |
+| MVVM + Clean | `ARCHITECTURE.md` — Features → Domain → Data → Infrastructure | ✅ |
+| Combine ou Swift Concurrency (justifié) | Swift Concurrency, justified in [ADR-003](TECHNICAL_DECISIONS.md#adr-003--swift-concurrency-vs-combine) | ✅ |
+| SwiftData/Core Data (pas de lib tierce) | SwiftData chosen — see [ADR-002](TECHNICAL_DECISIONS.md#adr-002--swiftdata-vs-core-data); zero third-party SPM deps | ✅ |
+| UserNotifications + AVFoundation pour l'alarme | `lumen/Infrastructure/Notifications/`, `lumen/Infrastructure/Audio/AudioPlayer.swift` — see [ADR-001](TECHNICAL_DECISIONS.md#adr-001--alarm-in-background-strategy) | ✅ |
+| IA via OpenAI ou Anthropic + journalisation + rate limiting local | `lumen/Data/AI/WaterfallAISynthesisService.swift`, `lumen/Domain/Services/RateLimiter.swift`, `EthicalLog` SwiftData entity — see [ADR-004](TECHNICAL_DECISIONS.md#adr-004--ai-waterfall-with-apple-intelligence-and-offline-queue) + [ADR-005](TECHNICAL_DECISIONS.md#adr-005--ethical-monitoring) | ✅ |
 
 ## CI/CD
 
@@ -79,10 +124,13 @@ App → Features (SwiftUI + ViewModels)
 
 ## Demo
 
-- **TestFlight**: link shared via email
-- **Loom video** (5 min walkthrough): link shared via email
-- **Ethical monitoring JSON export**: attached to email
+Per PALO's *Modalités de restitution*, the recap email to `shenchiri@palo-it.com` carries:
+
+- **TestFlight invite** (primary) — built by Xcode Cloud "TestFlight on `v*` tag" workflow.
+- **Loom video** (≤ 5 min walkthrough, backup) — covers alarm → ritual → synthesis → dashboard → settings export.
+- **Ethical monitoring JSON export** — attached; schema documented in [`ETHICAL_MONITORING.md`](ETHICAL_MONITORING.md), sample at [`samples/ethical-monitoring-export.json`](samples/ethical-monitoring-export.json).
 
 ## Contact
 
 Haithem Ben Hamouda — `ceo@highthem.com`
+Repo shared (private) with `shenchiri@palo-it.com`.

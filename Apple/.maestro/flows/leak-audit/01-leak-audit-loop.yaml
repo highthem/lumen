@@ -1,0 +1,212 @@
+appId: com.highthem.lumen
+name: Leak Audit Loop
+tags:
+  - leak-audit
+# Single long-running flow exercising the heaviest VM/Task/AsyncStream paths
+# multiple times within ONE app process so xctrace can stay attached and any
+# retain cycles compound visibly across iterations.
+#
+# Audio + ElevenLabs paths are stubbed in Maestro mode (MaestroAudioPlayer /
+# MaestroTextToSpeech in CompositionRoot). For those, run a separate
+# real-mode pass — see Apple/docs/MEMORY_PROFILING.md.
+---
+# === Bootstrap (single launch — DO NOT clearState after this) ===
+- launchApp:
+    clearState: true
+    arguments:
+      isMaestro: "true"
+- runFlow: ../_shared/confirm-ios-open-lumen.yaml
+- runFlow: ../_shared/quick-onboard.yaml
+
+# === Iteration 1: full ritual via deeplink ===
+- openLink: "lumen://ritual/start"
+- runFlow: ../_shared/confirm-ios-open-lumen.yaml
+- extendedWaitUntil:
+    visible:
+      id: "presence-timer-screen"
+    timeout: 8000
+- tapOn: "Passer →"
+- waitForAnimationToEnd:
+    timeout: 3000
+- tapOn:
+    point: "50%, 50%"
+- waitForAnimationToEnd:
+    timeout: 3000
+- extendedWaitUntil:
+    visible:
+      id: "energy-orb"
+    timeout: 8000
+- tapOn: "Suivant"
+- waitForAnimationToEnd:
+    timeout: 3000
+- extendedWaitUntil:
+    visible:
+      id: "priority-keyboard-toggle"
+    timeout: 8000
+- tapOn:
+    id: "priority-keyboard-toggle"
+- inputText: "Iteration 1 priority"
+- tapOn:
+    id: "priority-return-to-voice"
+- tapOn: "Suivant"
+- waitForAnimationToEnd:
+    timeout: 3000
+- extendedWaitUntil:
+    visible:
+      id: "gratitude-keyboard-toggle"
+    timeout: 8000
+- tapOn:
+    id: "gratitude-keyboard-toggle"
+- inputText: "Iteration 1 gratitude"
+- tapOn:
+    id: "gratitude-return-to-voice"
+- tapOn: "Voir ma synthèse"
+- extendedWaitUntil:
+    visible:
+      id: "synthesis-screen"
+    timeout: 8000
+- tapOn:
+    id: "synthesis-continue-button"
+- extendedWaitUntil:
+    visible:
+      id: "dashboard-screen"
+    timeout: 8000
+
+# === Iteration 2: same — leaks compound ===
+- openLink: "lumen://ritual/start"
+- runFlow: ../_shared/confirm-ios-open-lumen.yaml
+- extendedWaitUntil:
+    visible:
+      id: "presence-timer-screen"
+    timeout: 8000
+- tapOn: "Passer →"
+- waitForAnimationToEnd:
+    timeout: 3000
+- tapOn:
+    point: "50%, 50%"
+- waitForAnimationToEnd:
+    timeout: 3000
+- extendedWaitUntil:
+    visible:
+      id: "energy-orb"
+    timeout: 8000
+- tapOn: "Suivant"
+- waitForAnimationToEnd:
+    timeout: 3000
+- extendedWaitUntil:
+    visible:
+      id: "priority-keyboard-toggle"
+    timeout: 8000
+- tapOn:
+    id: "priority-keyboard-toggle"
+- inputText: "Iteration 2 priority"
+- tapOn:
+    id: "priority-return-to-voice"
+- tapOn: "Suivant"
+- waitForAnimationToEnd:
+    timeout: 3000
+- extendedWaitUntil:
+    visible:
+      id: "gratitude-keyboard-toggle"
+    timeout: 8000
+- tapOn:
+    id: "gratitude-keyboard-toggle"
+- inputText: "Iteration 2 gratitude"
+- tapOn:
+    id: "gratitude-return-to-voice"
+- tapOn: "Voir ma synthèse"
+- extendedWaitUntil:
+    visible:
+      id: "synthesis-screen"
+    timeout: 8000
+- tapOn:
+    id: "synthesis-continue-button"
+- extendedWaitUntil:
+    visible:
+      id: "dashboard-screen"
+    timeout: 8000
+
+# === Iteration 3: synthesis-only churn (skip presence + questionnaire,
+# directly open synthesis route — exercises GenerateMorningSynthesis +
+# SynthesisViewModel teardown specifically) ===
+- repeat:
+    times: 3
+    commands:
+      - openLink: "lumen://test/synthesis?state=ready"
+      - runFlow: ../_shared/confirm-ios-open-lumen.yaml
+      - extendedWaitUntil:
+          visible:
+            id: "synthesis-screen"
+          timeout: 8000
+      - tapOn:
+          id: "synthesis-continue-button"
+      - extendedWaitUntil:
+          visible:
+            id: "dashboard-screen"
+          timeout: 8000
+
+# === Alarm ringing cover churn — triggers AlarmRingingView creation/destruction ===
+- repeat:
+    times: 5
+    commands:
+      - openLink: "lumen://alarm/test-ringing"
+      - runFlow: ../_shared/confirm-ios-open-lumen.yaml
+      - extendedWaitUntil:
+          visible:
+            id: "alarm-silence-button"
+          timeout: 5000
+      - tapOn:
+          id: "alarm-silence-button"
+      - waitForAnimationToEnd:
+          timeout: 2000
+
+# === Tab switching — exercises DashboardHomeViewModel .task lifecycle ===
+- repeat:
+    times: 5
+    commands:
+      - tapOn: "Réveil"
+      - waitForAnimationToEnd:
+          timeout: 2000
+      - tapOn: "Réglages"
+      - waitForAnimationToEnd:
+          timeout: 2000
+      - tapOn: "Matin"
+      - waitForAnimationToEnd:
+          timeout: 2000
+
+# === Alarm editor sheet churn ===
+- openLink: "lumen://test/alarm-edit"
+- runFlow: ../_shared/confirm-ios-open-lumen.yaml
+- waitForAnimationToEnd:
+    timeout: 2000
+- repeat:
+    times: 3
+    commands:
+      - tapOn: "Annuler"
+      - waitForAnimationToEnd:
+          timeout: 2000
+      - tapOn: "Réveil"
+      - waitForAnimationToEnd:
+          timeout: 2000
+      - openLink: "lumen://test/alarm-edit"
+      - runFlow: ../_shared/confirm-ios-open-lumen.yaml
+      - waitForAnimationToEnd:
+          timeout: 2000
+
+# === Settings → erase logs cycle (SwiftData ModelContext exercise) ===
+- openLink: "lumen://test/settings"
+- runFlow: ../_shared/confirm-ios-open-lumen.yaml
+- waitForAnimationToEnd:
+    timeout: 2000
+- scrollUntilVisible:
+    element:
+      id: "export-json-button"
+- tapOn:
+    id: "export-json-button"
+- extendedWaitUntil:
+    visible: "Copy"
+    timeout: 5000
+- tapOn:
+    point: "90%, 15%"
+- waitForAnimationToEnd:
+    timeout: 2000

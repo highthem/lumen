@@ -109,6 +109,29 @@ Settings → **Export my logs** writes a JSON file and surfaces a `ShareSheet`. 
 }
 ```
 
+## Producing the JSON export for the PALO deliverable
+
+The brief asks for "Un export JSON des logs de monitoring éthique" attached to the recap email. To produce it from a running build:
+
+1. Open the app → **Settings** tab.
+2. Tap **Export my logs**.
+3. iOS opens the standard `ShareSheet` — pick **Save to Files** (or AirDrop to your Mac).
+4. The resulting `.json` file is what gets attached to the PALO recap email.
+
+A pre-recorded, anonymised version of this export — usable to inspect the schema without running the app — is committed at [`samples/ethical-monitoring-export.json`](samples/ethical-monitoring-export.json) and referenced from [`ARTIFACTS.md`](ARTIFACTS.md).
+
+**Code anchors:**
+- Use case: `Apple/lumen/Domain/UseCases/ExportEthicalLogs.swift`
+- Repository (JSON encoder): `Apple/lumen/Data/Repositories/SwiftDataEthicalLogRepository.swift`
+- Settings UI: `Apple/lumen/Features/Settings/`
+
+## Rate limiting — code anchor
+
+PALO asked for "rate limiting local". The implementation is a Swift `actor` to keep budget reads/writes data-race-free under Swift 6 strict concurrency:
+
+- Service: `Apple/lumen/Domain/Services/RateLimiter.swift`
+- Tests: `Apple/lumenTests/Domain/RateLimiterTests.swift` (covers the daily reset at local midnight and both budgets — 1 auto + 3 manual/Ask Lumen shared)
+
 ## Right to erasure
 
 Settings → **Erase my logs** purges all `EthicalLog` rows from SwiftData. Confirmation dialog before deletion. No remote copy — once deleted, the data is gone.

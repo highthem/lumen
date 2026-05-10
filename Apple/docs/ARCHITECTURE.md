@@ -60,14 +60,15 @@ lumen/
 │   ├── CompositionRoot.swift       // manual DI wiring
 │   └── AppStateMachine.swift       // global states: idle, ritual_active, etc.
 ├── Features/
-│   ├── Alarm/
-│   ├── Timer/
-│   ├── Questionnaire/
-│   ├── Synthesis/
-│   ├── Dashboard/
+│   ├── Alarm/                       // PALO #1: Réveil doux + Snooze/Silence (ADR-001)
+│   ├── Timer/                       // PALO #2: Timer de présence + citation inspirante
+│   ├── Questionnaire/               // PALO #3: Q1 Mood, Q2 Energy, Q3 Priority, Q4 Gratitude (SwiftData)
+│   ├── Synthesis/                   // PALO #4: Waterfall IA + offline + monitoring éthique (ADR-004)
+│   ├── Dashboard/                   // PALO #5: 6 catégories + AskLumen FAB (accès rapide IA)
 │   ├── Onboarding/
-│   ├── Settings/
-│   └── AskLumen/
+│   ├── Splash/
+│   ├── Settings/                    // Export/Erase logs (ADR-005), voice prefs (ADR-007)
+│   └── AskLumen/                    // PALO #5: accès rapide IA depuis le dashboard
 ├── Domain/
 │   ├── Entities/                   // pure Swift structs (Alarm, Ritual, AIResponse, …)
 │   ├── UseCases/                   // ScheduleAlarm, GenerateMorningSynthesis, …
@@ -121,6 +122,21 @@ final class CompositionRoot {
 ```
 
 No third-party DI library: pure constructor injection through Composition Root.
+
+## Dashboard categories (PALO ≥6)
+
+The brief asks for "Dashboard avec au moins 6 catégories et accès rapide à l'IA". The 6 categories are defined as a single source of truth in `Apple/lumen/Domain/Entities/DashboardCategory.swift`:
+
+| # | Case | Display name (FR) | V1 rendering |
+|---|---|---|---|
+| 1 | `mood` | Humeur | Dedicated `MoodCard` (`Features/Dashboard/Cards/MoodCard.swift`) |
+| 2 | `energy` | Énergie | Dedicated `EnergyCard` |
+| 3 | `priority` | Priorité | Dedicated `PriorityHeroCard` (hero slot) |
+| 4 | `gratitude` | Gratitude | Dedicated `GratitudeQuoteCard` |
+| 5 | `presence` | Présence | Snapshot row (timer completion + duration) |
+| 6 | `sleep` | Sommeil | Snapshot row (HealthKit-permission gated, see `SleepPermissionSheet`) |
+
+**Quick AI access:** the AskLumen FAB on `DashboardHomeView` opens a category-aware question modal (`Features/AskLumen/`). Tapping any category card also opens `CategoryDetailView` with a regeneration button that reuses the AI waterfall under the rate limiter. See ADR-004 for the waterfall and ADR-005 for the rate-limit budgets.
 
 ## Global state machine
 

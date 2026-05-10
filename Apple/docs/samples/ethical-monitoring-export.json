@@ -1,0 +1,92 @@
+{
+  "exported_at": "2026-05-10T08:14:32Z",
+  "app_version": "1.0.0",
+  "device_locale": "fr_FR",
+  "privacy_scope": "local_user_data_only",
+  "logs": [
+    {
+      "id": "8c3e5f9b-1d4a-4f0c-9b21-2e7a6c1d4f10",
+      "timestamp": "2026-05-05T07:05:23Z",
+      "provider": "openai",
+      "mode": "auto",
+      "latency_ms": 1842,
+      "token_in": 247,
+      "token_out": 98,
+      "prompt_hash": "sha256:9f4c2b1a7e3d8f5c0b6a1e2d4c7f0a3b8e9d1c2f4a6b8d0e2c4a6b8d0e2c4a6b",
+      "content_safety_flags": [],
+      "user_feedback": null,
+      "privacy_scope": "user_input_only",
+      "tts_provider": null
+    },
+    {
+      "id": "a7d2c8e4-3b91-4e7a-8c5f-1d6b9e2a4c70",
+      "timestamp": "2026-05-06T07:08:11Z",
+      "provider": "anthropic",
+      "mode": "auto",
+      "latency_ms": 2104,
+      "token_in": 251,
+      "token_out": 112,
+      "prompt_hash": "sha256:b1e3d5f7a9c0b2d4e6f8a0c2b4d6e8f0a2c4b6d8e0f2a4c6b8d0e2f4a6c8b0d2",
+      "content_safety_flags": [],
+      "user_feedback": "positive",
+      "privacy_scope": "user_input_only",
+      "tts_provider": "elevenlabs"
+    },
+    {
+      "id": "f4b8e1a2-7c0d-4e9b-9a3f-5d2c8b1e6a40",
+      "timestamp": "2026-05-07T07:11:54Z",
+      "provider": "apple",
+      "mode": "fallbackOnDevice",
+      "latency_ms": 1523,
+      "token_in": null,
+      "token_out": null,
+      "prompt_hash": "sha256:c2d4e6f8a0b2c4d6e8f0a2b4c6d8e0f2a4b6c8d0e2f4a6b8c0d2e4f6a8b0c2d4",
+      "content_safety_flags": [],
+      "user_feedback": "positive",
+      "privacy_scope": "device_only",
+      "tts_provider": "apple-on-device"
+    },
+    {
+      "id": "0e9b3a7d-4f12-4c8e-b6a1-9d2c5e8f1b30",
+      "timestamp": "2026-05-08T07:03:09Z",
+      "provider": "queued",
+      "mode": "fallbackQueued",
+      "latency_ms": null,
+      "token_in": null,
+      "token_out": null,
+      "prompt_hash": "sha256:d3e5f7a9b1c3d5e7f9a1b3c5d7e9f1a3b5c7d9e1f3a5b7c9d1e3f5a7b9c1d3e5",
+      "content_safety_flags": [],
+      "user_feedback": null,
+      "privacy_scope": "pending",
+      "tts_provider": null
+    },
+    {
+      "id": "2c1d5b8e-9a04-4f73-b2c5-7e1f4a9d6c80",
+      "timestamp": "2026-05-09T07:06:47Z",
+      "provider": "openai",
+      "mode": "manualRegenerate",
+      "latency_ms": 1976,
+      "token_in": 263,
+      "token_out": 104,
+      "prompt_hash": "sha256:e4f6a8b0c2d4e6f8a0b2c4d6e8f0a2b4c6d8e0f2a4b6c8d0e2f4a6b8c0d2e4f6",
+      "content_safety_flags": [],
+      "user_feedback": "negative",
+      "privacy_scope": "user_input_only",
+      "tts_provider": null
+    },
+    {
+      "id": "5b8e2c9d-1f30-4a6b-8e7c-3d9f2a5c1b70",
+      "timestamp": "2026-05-10T07:04:18Z",
+      "provider": "apple",
+      "mode": "auto",
+      "latency_ms": 12,
+      "token_in": null,
+      "token_out": null,
+      "prompt_hash": "sha256:f5a7b9c1d3e5f7a9b1c3d5e7f9a1b3c5d7e9f1a3b5c7d9e1f3a5b7c9d1e3f5a7",
+      "content_safety_flags": ["selfHarmCue"],
+      "user_feedback": null,
+      "privacy_scope": "device_only",
+      "tts_provider": null
+    }
+  ]
+}

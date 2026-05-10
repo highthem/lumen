@@ -25,28 +25,21 @@ For development-time prompts (used to generate code with Claude / GPT), the poli
 ## Diagrams
 
 ### High-level architecture
-ASCII diagram in [ARCHITECTURE.md](ARCHITECTURE.md). A higher-fidelity Mermaid diagram is also in `docs/diagrams/architecture.mmd`.
+ASCII diagram in [ARCHITECTURE.md](ARCHITECTURE.md) — the source of truth for V1.
 
 ### Synthesis flow (waterfall AI)
-Sequence diagram in [TECHNICAL_DECISIONS.md](TECHNICAL_DECISIONS.md) (ADR-004). Mermaid source in `docs/diagrams/synthesis-flow.mmd`.
+Sequence diagram in [TECHNICAL_DECISIONS.md](TECHNICAL_DECISIONS.md) (ADR-004) and the *Synthesis flow* section of [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ### Alarm state machine
-Diagram of the alarm lifecycle (scheduled → ringing → snoozed → silenced → expired). Mermaid source in `docs/diagrams/alarm-states.mmd`.
+Lifecycle (scheduled → ringing → snoozed → silenced → expired) is documented as a table in [ADR-001](TECHNICAL_DECISIONS.md#adr-001--alarm-in-background-strategy) and exercised by `Apple/lumenTests/Domain/AlarmUseCaseTests.swift`.
+
+> Mermaid sources are deferred to V1.1 — the ASCII / table diagrams above are the deliverable for the PALO defence.
 
 ## Screenshots
 
-Captured during testing and used in the Loom demo:
-
-- `screenshots/onboarding-1.png` … `onboarding-4.png` — onboarding flow
-- `screenshots/alarm-ringing-foreground.png` — alarm screen when app is foregrounded
-- `screenshots/timer-presence.png` — 60-second presence timer with quote
-- `screenshots/questionnaire-q1-mood.png` … `questionnaire-q4-intention.png`
-- `screenshots/synthesis-cloud.png` — synthesis result from cloud provider
-- `screenshots/synthesis-apple-intelligence.png` — synthesis from on-device Apple Intelligence
-- `screenshots/synthesis-queued.png` — queued state when offline + no on-device AI
-- `screenshots/dashboard-empty.png` — first-launch empty state
-- `screenshots/dashboard-filled.png` — post-ritual dashboard with all 6 categories
-- `screenshots/settings-export-json.png` — ethical monitoring export
+- **App Store / marketing screenshots** captured during design handoff: `Design/designs/handoff/screenshots-appstore/` (used in slides and the recap email).
+- **Maestro UI test screenshots** captured during automated runs: `Apple/.maestro/screenshots/` (used to verify smoke-flow regressions).
+- **Loom demo recording** is the moving counterpart of these stills — link in the recap email.
 
 ## Test data
 
@@ -60,7 +53,7 @@ Captured during testing and used in the Loom demo:
 `lumenTests/Fixtures/QuestionnaireAnswers/` — covering all five mood levels (Q1), all five energy levels (Q2), a representative spread of priorities (Q3), and gratitudes (Q4).
 
 ### Sample ethical-monitoring export
-`docs/samples/ethical-monitoring-export.json` — anonymised JSON example matching the schema in [ETHICAL_MONITORING.md](ETHICAL_MONITORING.md).
+[`samples/ethical-monitoring-export.json`](samples/ethical-monitoring-export.json) — anonymised JSON example matching the schema in [ETHICAL_MONITORING.md](ETHICAL_MONITORING.md). Contains a realistic mix of providers (`openai`, `anthropic`, `apple`, `queued`), one entry with `userFeedback: "positive"`, and one entry showing `content_safety_flags` populated.
 
 ### Sound kit provenance
 `Design/sound-kit/` contains the alarm and breathing audio deliverables used by the app. The planned production path is SunoAPI sound generation with `model: V5`, followed by local mastering/encoding through `ffmpeg` and macOS `afconvert`.
@@ -69,9 +62,9 @@ The app-facing audio manifest lives at `Apple/lumen/Shared/Resources/Sounds/Soun
 
 ## Demo materials
 
-- `demo/loom-recording.md` — script and shot list for the 5-minute Loom demo
-- `demo/testflight-onboarding.md` — what to expect when you accept the TestFlight invite
-- `slides/lumen-defence-deck.pdf` — the 12-slide presentation used for the technical defence
+- **Slides (10–15)** — `Design/designs/Design/slides/soutenance-lumen.html` (HTML deck rendered via `deck-stage.js`); export to PDF before the defence if PALO prefers a static format.
+- **Loom URL (≤ 5 min)** and **TestFlight invite link** are sent in the recap email per PALO's *Modalités de restitution* — they don't live in the repo.
+- **Demo script & shot list** are folded into the slide deck's speaker notes (not duplicated as a separate Markdown file).
 
 ## Honest acknowledgements
 
@@ -80,3 +73,64 @@ The app-facing audio manifest lives at `Apple/lumen/Shared/Resources/Sounds/Soun
 - The SwiftUI scaffolding and repetitive Domain entity boilerplate were largely generated; the Domain logic, the AI waterfall orchestration, and the alarm state machine were hand-written and reviewed line by line.
 
 This trail exists so that, in the technical defence, every architectural and behavioural choice can be traced back to its rationale — whether AI-assisted or not.
+
+## Deliverables checklist (PALO-IT)
+
+Status legend: ✅ shipped in repo · 🟡 shipped, awaiting final polish · 📧 to be sent in the recap email (lives outside the repo by design).
+
+| Deliverable (PALO brief) | Where | Status |
+|---|---|---|
+| Repo GitHub privé Xcode 16+ build direct, partagé `shenchiri@palo-it.com` | This repo | ✅ |
+| `README.md` | [`README.md`](README.md) | ✅ |
+| `ARCHITECTURE.md` | [`ARCHITECTURE.md`](ARCHITECTURE.md) | ✅ |
+| `TECHNICAL_DECISIONS.md` (≥ 5 ADR) | [`TECHNICAL_DECISIONS.md`](TECHNICAL_DECISIONS.md) — 8 ADRs | ✅ |
+| `ETHICAL_MONITORING.md` | [`ETHICAL_MONITORING.md`](ETHICAL_MONITORING.md) | ✅ |
+| `ARTIFACTS.md` | This file | ✅ |
+| Tests ≥ 60 % Domain (alarme/snooze prioritaire) | `Apple/lumenTests/Domain/` (~66 % raw LOC; alarm + rate-limit tests prioritised) | ✅ |
+| Démo: Loom (≤ 5 min) **ou** TestFlight | TestFlight via Xcode Cloud `v*` tag + Loom backup | 📧 |
+| Export JSON des logs de monitoring éthique | [`samples/ethical-monitoring-export.json`](samples/ethical-monitoring-export.json) (sample) + Settings → Export my logs (live) | ✅ |
+| Présentation 10–15 slides | `Design/designs/Design/slides/soutenance-lumen.html` | ✅ |
+
+## PALO recap email — checklist
+
+Template for the recap email to `shenchiri@palo-it.com` (per PALO's *Modalités de restitution*). Fill the placeholders at send time.
+
+```
+À : shenchiri@palo-it.com
+Cc : (interne)
+Objet : Lümen — Morning Ritual : livrables techniques
+
+Bonjour Sami,
+
+Tu trouveras ci-dessous les livrables de l'exercice technique Lümen.
+
+1. Repo GitHub privé (collaborateur déjà ajouté) :
+   https://github.com/<owner>/<repo>
+
+2. Démo :
+   - TestFlight  : <invite link>
+   - Loom (≤5min): <loom URL>   (backup au cas où l'install TestFlight pose souci)
+
+3. Export JSON des logs de monitoring éthique : pièce jointe
+   ethical-monitoring-export.json
+   (schéma documenté dans Apple/docs/ETHICAL_MONITORING.md ;
+    sample versionné dans Apple/docs/samples/)
+
+4. Présentation 10–15 slides :
+   Design/designs/Design/slides/soutenance-lumen.html
+   (export PDF joint si tu préfères un format statique)
+
+Je reste dispo pour la soutenance technique de 30 min
+(10' archi + alarme/background, 15' revue de code, 5' Q/R).
+
+Bien à toi,
+Haithem
+```
+
+**Pre-send checklist:**
+- [ ] Repo URL filled, `shenchiri@palo-it.com` confirmed as collaborator (private repo)
+- [ ] Latest `v*` tag pushed → Xcode Cloud TestFlight build green → invite sent
+- [ ] Loom recording uploaded, link verified to be public/unlisted (not "private to me")
+- [ ] `ethical-monitoring-export.json` regenerated from a recent device build (or sample attached if device export not feasible)
+- [ ] Slides exported to PDF if the recipient prefers (HTML works in Chrome/Safari)
+- [ ] Subject line includes "Lümen" so the email threads with the original brief

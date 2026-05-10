@@ -14,6 +14,10 @@ final class PresenceTimerViewModel {
     private let soundProvider: any SoundProviding
     private let ritualRepository: (any RitualRepository)?
     private var countdownTask: Task<Void, Never>?
+    /// Tracks the fire-and-forget audio start so a dismissal mid-load
+    /// can cancel before `audioPlayer.play(...)` actually fires — without
+    /// this, audio could begin playing *after* `stop()` already ran.
+    private var audioStartTask: Task<Void, Never>?
     /// The ID of today's ritual once we've fetched-or-created it. Exposed so
     /// the View can hand it to the next stage (questionnaire / synthesis)
     /// instead of generating a placeholder UUID at the cover boundary.
@@ -26,6 +30,8 @@ final class PresenceTimerViewModel {
     func stop() {
         countdownTask?.cancel()
         countdownTask = nil
+        audioStartTask?.cancel()
+        audioStartTask = nil
         audioPlayer.stop()
     }
 
@@ -61,7 +67,9 @@ final class PresenceTimerViewModel {
             ?? soundProvider.defaultSound(for: .breathing)?.id
             ?? "breath-aube"
         try? await audioPlayer.configureSession()
-        Task { @MainActor [audioPlayer] in
+        audioStartTask?.cancel()
+        audioStartTask = Task { @MainActor [audioPlayer] in
+            guard !Task.isCancelled else { return }
             try? await audioPlayer.play(soundId: soundId, fadeIn: true)
         }
 
@@ -86,7 +94,9 @@ final class PresenceTimerViewModel {
 
     func skip() {
         countdownTask?.cancel()
-        Task { audioPlayer.stop() }
+        audioStartTask?.cancel()
+        audioStartTask = nil
+        audioPlayer.stop()
         let endState: PresenceState = elapsed >= totalDuration / 2 ? .partial : .skipped
         Task { await persistPresence(endState) }
         isComplete = true
