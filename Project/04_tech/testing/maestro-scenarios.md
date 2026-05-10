@@ -706,7 +706,7 @@ L'app doit exposer ces deep links **uniquement dans la build Debug** (pas en pro
 | `lumen://ritual/synthesis-mock` | Affiche un écran synthèse avec contenu fictif (skip cloud call) |
 | `lumen://alarm/test-ringing` | Affiche l'écran AlarmRinging |
 
-À implémenter dans `Apple/lumen/App/AppDelegate.swift` ou `lumenApp.swift` avec un `#if DEBUG` strict.
+À implémenter dans `Apple/lumen/App/MaestroTestSupport.swift` ou `lumenApp.swift` avec un `#if DEBUG` strict.
 
 ---
 

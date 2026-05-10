@@ -15,7 +15,7 @@ Symétriquement, lire la synthèse IA à l'écran force l'utilisateur à rester 
 
 | Capacité | Implémentation | Privacy |
 |---|---|---|
-| Input vocal | `Speech` (`SFSpeechRecognizer` avec `requiresOnDeviceRecognition = true`) | 100 % on-device, audio jamais quitte le téléphone |
+| Input vocal | `Speech` (`SFSpeechRecognizer`) | Audio jamais persisté ni loggé, fallback typing si permissions/audio indisponibles |
 | Output vocal — primaire | **ElevenLabs API** (voix neurales premium) | Texte transmis à ElevenLabs, audio synthétisé renvoyé |
 | Output vocal — fallback runtime | `AVFoundation` (`AVSpeechSynthesizer`) | 100 % on-device, voix neural iOS 17+ |
 
@@ -39,14 +39,14 @@ Le fallback est **runtime**, pas init-time : le routage est résolu à chaque ap
 
 ### Permissions Info.plist
 
-- `NSMicrophoneUsageDescription` : *"Lumen utilise le micro pour transcrire ta réponse au questionnaire matinal. L'audio reste sur ton téléphone."*
-- `NSSpeechRecognitionUsageDescription` : *"La reconnaissance vocale fonctionne directement sur ton téléphone. Aucun audio n'est envoyé à Apple."*
+- `NSMicrophoneUsageDescription` : *"Lumen utilise le micro pour transcrire ta réponse au questionnaire matinal. L'audio n'est jamais stocké."*
+- `NSSpeechRecognitionUsageDescription` : *"Lumen utilise la reconnaissance vocale iOS pour transformer ta voix en texte."*
 
 Pas de permission supplémentaire pour ElevenLabs — c'est un appel HTTP standard.
 
 ### Stratégie privacy stricte
 
-**Input :** `SFSpeechRecognitionRequest.requiresOnDeviceRecognition = true`. Si la reconnaissance on-device n'est pas supportée pour la langue de l'utilisateur, on **bascule sur typing** plutôt que d'envoyer l'audio à Apple. L'audio capté pour la dictation **n'est jamais persisté ni loggé**.
+**Input :** si les permissions micro/speech ou l'audio engine échouent, on **bascule sur typing**. L'audio capté pour la dictation **n'est jamais persisté ni loggé**.
 
 **Output :**
 - Texte de la synthèse transmis à ElevenLabs uniquement (pas d'audio capté côté utilisateur)

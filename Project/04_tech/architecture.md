@@ -253,8 +253,8 @@ User ── completes Q4 ──► QuestionnaireViewModel
 ## Background execution model
 
 - **Alarm trigger** : UN scheduled local notification → system réveille l'app si nécessaire, pas d'exécution code sans user tap
-- **User tape une action (Snooze / Silence)** depuis la notif → `NotificationActionsHandler` traite (background task court, UIBackgroundTaskIdentifier)
-- **App launch depuis notif** : `AppDelegate` redirige vers le bon écran (rituel start)
+- **User tape une action (Snooze / Silence)** depuis la notif → `NotificationActionsHandler` traite l'action puis envoie l'événement à `AppStateMachine`
+- **App launch depuis notif** : `RootView` observe l'état app et présente l'écran de sonnerie ou de rituel
 
 ## Points de vigilance
 

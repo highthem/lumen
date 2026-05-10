@@ -126,17 +126,19 @@ final class AppleIntelligenceProvider {
 ### `.xcconfig` local (jamais commité)
 
 ```
-// Lumen/Config/Secrets.xcconfig (gitignored)
+// Apple/lumen/Config/Secrets.xcconfig (gitignored)
 OPENAI_API_KEY = sk-proj-...
 ANTHROPIC_API_KEY = sk-ant-...
+ELEVENLABS_API_KEY = sk_...
 ```
 
 ### `.xcconfig.sample` (committé)
 
 ```
-// Lumen/Config/Secrets.xcconfig.sample (committed)
+// Apple/lumen/Config/Secrets.xcconfig.sample (committed)
 OPENAI_API_KEY = REPLACE_ME
 ANTHROPIC_API_KEY = REPLACE_ME
+ELEVENLABS_API_KEY = REPLACE_ME
 ```
 
 ### Xcode Cloud Environment Variables
@@ -144,15 +146,17 @@ ANTHROPIC_API_KEY = REPLACE_ME
 Configurées via Apple Developer / App Store Connect → Xcode Cloud → Workflow → Environment :
 - `OPENAI_API_KEY` (Secret = checked)
 - `ANTHROPIC_API_KEY` (Secret = checked)
+- `ELEVENLABS_API_KEY` (Secret = checked)
 
 Le build script Xcode Cloud (`ci_scripts/ci_post_clone.sh`) génère le fichier `Secrets.xcconfig` à partir des variables d'environnement.
 
 ```bash
 #!/bin/sh
 # ci_scripts/ci_post_clone.sh
-cat > Lumen/Config/Secrets.xcconfig <<EOF
+cat > Apple/lumen/Config/Secrets.xcconfig <<EOF
 OPENAI_API_KEY = ${OPENAI_API_KEY}
 ANTHROPIC_API_KEY = ${ANTHROPIC_API_KEY}
+ELEVENLABS_API_KEY = ${ELEVENLABS_API_KEY}
 EOF
 ```
 
@@ -220,10 +224,11 @@ Lumen/
 2. **Environment Variables ajoutées (App Store Connect → Xcode Cloud) :**
    - `OPENAI_API_KEY` (Secret = checked)
    - `ANTHROPIC_API_KEY` (Secret = checked)
+   - `ELEVENLABS_API_KEY` (Secret = checked)
 
 3. **Repo GitHub initialisé :**
-   - `.gitignore` avec `Lumen/Config/Secrets.xcconfig`
-   - `Lumen/Config/Secrets.xcconfig.sample` versionné
+   - `.gitignore` avec `Apple/lumen/Config/Secrets.xcconfig`
+   - `Apple/lumen/Config/Secrets.xcconfig.sample` versionné
    - `ci_scripts/ci_post_clone.sh` exécutable
 
 4. **Test du setup CI :**

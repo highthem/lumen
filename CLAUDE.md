@@ -28,11 +28,9 @@ scripts/           Utility scripts
 ```bash
 # First-time setup
 cp Apple/lumen/Config/Secrets.xcconfig.sample Apple/lumen/Config/Secrets.xcconfig
-# Fill in OPENAI_API_KEY and ANTHROPIC_API_KEY in Secrets.xcconfig
+# Fill in OPENAI_API_KEY, ANTHROPIC_API_KEY, and ELEVENLABS_API_KEY in Secrets.xcconfig
 
-# Open project
-open Apple/lumen.xcodeproj
-# — or —
+# Open workspace
 open Lumen.xcworkspace
 ```
 
@@ -40,7 +38,7 @@ In Xcode, set `Secrets.xcconfig` as **Base Configuration** for both Debug and Re
 
 Always use **Xcode MCP** to build, run and test the project.
 
-CI/CD runs on **Xcode Cloud** (3 workflows: "Xcode 16 - Build", "Test on push (iOS 26/Apple Intelligence)", "TestFlight on `v*` tag"). Secrets are injected by `ci_scripts/ci_post_clone.sh`.
+CI/CD runs on **Xcode Cloud** (Xcode 16 compatibility plus iOS 26 / Apple Intelligence validation). Secrets are injected by `ci_scripts/ci_post_clone.sh`.
 
 ## Architecture
 
@@ -136,6 +134,6 @@ API keys are never hardcoded. Access via `Bundle.main.object(forInfoDictionaryKe
 *These documents must always be updated to reflect current codebase*
 
 - **Architecture detail:** `Apple/docs/ARCHITECTURE.md`
-- **Artifacts details** `Apple/docs/ARTIFACTS.md`
+- **Artifacts details:** `Apple/docs/ARTIFACTS.md`
 - **ADRs:** `Apple/docs/TECHNICAL_DECISIONS.md`
-- **Monitoring** `Apple/docs/ETHICAL_MONITORING.md`
+- **Monitoring:** `Apple/docs/ETHICAL_MONITORING.md`

@@ -2,7 +2,7 @@
 
 > Exercice technique PALO IT (mai 2026) + projet iOS destiné à publication publique (V1.1 post-PALO).
 
-**Statut :** pré-développement. Pack produit/design/tech/business complet, code pas encore écrit.
+**Statut :** app iOS fonctionnelle en phase de polish/livraison PALO. Le pack produit/design/tech/business est conservé dans `Project/`, et le code source iOS vit dans `Apple/lumen/`.
 
 ## Quick start
 
@@ -12,6 +12,7 @@
 - Compte Apple Developer Program actif
 - Clé API OpenAI ([platform.openai.com](https://platform.openai.com/api-keys))
 - Clé API Anthropic ([console.anthropic.com](https://console.anthropic.com/settings/keys))
+- Clé API ElevenLabs optionnelle pour le TTS haute qualité ([elevenlabs.io](https://elevenlabs.io/app/api/api-keys))
 
 ### Setup local
 ```bash
@@ -19,7 +20,7 @@ git clone git@github.com:highthem/lumen.git
 cd lumen
 cp Apple/lumen/Config/Secrets.xcconfig.sample Apple/lumen/Config/Secrets.xcconfig
 # Éditer Secrets.xcconfig avec tes vraies clés
-open Apple/lumen.xcodeproj
+open Lumen.xcworkspace
 ```
 
 Dans Xcode, vérifier que `Secrets.xcconfig` est défini comme **Base Configuration** :
@@ -28,7 +29,8 @@ Dans Xcode, vérifier que `Secrets.xcconfig` est défini comme **Base Configurat
 ### CI/CD
 - Xcode Cloud (cf `Project/04_tech/adr/ADR-006-cicd-xcode-cloud.md`)
 - Secrets gérés via Environment Variables dans App Store Connect → Xcode Cloud → Workflow
-- `ci_scripts/ci_post_clone.sh` injecte les clés en CI
+- `ci_scripts/ci_post_clone.sh` génère `Apple/lumen/Config/Secrets.xcconfig` en CI
+- Secrets attendus : `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `ELEVENLABS_API_KEY`
 
 ### Documentation
 Voir `Project/` pour la documentation complète (vision, product, design, tech, business, roadmap, ecosystem).
@@ -44,7 +46,26 @@ Voir `Project/` pour la documentation complète (vision, product, design, tech, 
 
 Décision stratégique : **PALO first**, fork Studio à partir du 12 mai. La V1 livrée à Sami est gratuite et sans logique de monétisation ; la V1.1 ajoutera le paywall doux.
 
-## Structure de ce dossier
+## Organisation rapide
+
+```
+Apple/                     # Xcode project + iOS source
+  lumen.xcodeproj
+  lumen/
+    App/                   # App root, CompositionRoot, app state, test support
+    Features/              # SwiftUI screens/view models by workflow
+    Domain/                # Entities, protocols, use cases, domain services
+    Data/                  # SwiftData models/repositories and AI clients
+    Infrastructure/        # Notifications, audio, voice, network, logging
+    Shared/                # Design system, resources, small utilities
+  lumenTests/              # Unit tests mirroring Data/Domain/Features/Infrastructure
+Project/                   # Product, architecture, ADR, roadmap docs
+Design/                    # Local design kit and handoff assets
+ci_scripts/                # Xcode Cloud hooks
+scripts/                   # Local QA and utility scripts
+```
+
+## Documentation pack
 
 ```
 Project/
@@ -135,8 +156,8 @@ Entrée :
 
 ## Points d'attention à jour
 
-### ⚠️ Pré-requis technique bloquant
-- **Xcode 16 local non installé** : à résoudre avant 27 avril. Vérifier version macOS d'abord. Voir `00_brief/hypotheses_et_decisions.md` section P1.
+### ⚠️ Pré-requis technique
+- La compatibilité Xcode 16 est validée par Xcode Cloud ; le poste local peut rester sur Xcode 26.4 pour les chemins Apple Intelligence.
 
 ### Questions en attente de réponse Sami (bloquant partiellement démarrage dev)
 1. Fiabilité alarme vs modes Silence/Focus/DND

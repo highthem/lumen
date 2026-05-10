@@ -3,6 +3,9 @@
 .AppleDouble
 .LSOverride
 Iconrstate
+._*
+xcuserdata/
+*.xcuserstate
 build/
 DerivedData/
 *.dSYM.zip

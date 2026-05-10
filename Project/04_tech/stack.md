@@ -35,10 +35,10 @@
 
 ## Voice (input + output) — voir ADR-007
 
-- **Speech framework (`SFSpeechRecognizer`)** : input vocal (dictation Q3/Q4) en mode `requiresOnDeviceRecognition = true`. Aucun audio ne quitte le device.
-- **AVFoundation (`AVSpeechSynthesizer`)** : output vocal (TTS synthèse IA). Voix neural iOS 17+. 100% on-device.
+- **Speech framework (`SFSpeechRecognizer`)** : input vocal (dictation Q3/Q4) avec fallback typing si permissions/audio indisponibles. L'audio capté n'est jamais persisté ni loggé.
+- **ElevenLabs + AVFoundation (`AVSpeechSynthesizer`)** : output vocal (TTS synthèse IA). ElevenLabs est utilisé si une clé est configurée, avec fallback local AVSpeech.
 - Permissions Info.plist : `NSMicrophoneUsageDescription` + `NSSpeechRecognitionUsageDescription`.
-- Si on-device pas supporté pour la langue → fallback typing transparent (jamais cloud Apple).
+- Si la dictée échoue → fallback typing transparent.
 
 ## IA
 
@@ -85,8 +85,8 @@ Voir ADR-004 pour détail du waterfall.
 
 ## Secrets
 
-- **`Lumen/Config/Secrets.xcconfig`** non commité (gitignored) — contient les clés API
-- **`Lumen/Config/Secrets.xcconfig.sample`** versionné avec placeholders pour onboarding dev
+- **`Apple/lumen/Config/Secrets.xcconfig`** non commité (gitignored) — contient les clés API
+- **`Apple/lumen/Config/Secrets.xcconfig.sample`** versionné avec placeholders pour onboarding dev
 - **Xcode Cloud Environment Variables** (marquées Secret) pour CI/CD
 - **`ci_scripts/ci_post_clone.sh`** génère le `.xcconfig` à partir des env vars en CI
 - Clés API jamais hardcodées dans le code Swift

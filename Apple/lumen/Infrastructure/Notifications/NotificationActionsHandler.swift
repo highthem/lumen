@@ -1,5 +1,5 @@
 import Foundation
-import UserNotifications
+@preconcurrency import UserNotifications
 
 @MainActor
 final class NotificationActionsHandler: NSObject, UNUserNotificationCenterDelegate {
@@ -24,7 +24,7 @@ final class NotificationActionsHandler: NSObject, UNUserNotificationCenterDelega
     nonisolated func userNotificationCenter(
         _ center: UNUserNotificationCenter,
         didReceive response: UNNotificationResponse,
-        withCompletionHandler completionHandler: @escaping @Sendable () -> Void
+        withCompletionHandler completionHandler: @escaping () -> Void
     ) {
         let rawId = response.notification.request.identifier
         let baseId = extractBaseUUID(from: rawId)
@@ -35,13 +35,15 @@ final class NotificationActionsHandler: NSObject, UNUserNotificationCenterDelega
             return
         }
 
+        nonisolated(unsafe) let complete = completionHandler
+
         // Hop to MainActor so we can safely touch @MainActor-isolated state.
         // We only capture Sendable values (UUID + String) and call the handler
         // there — never blocking on UI-restoration work that might assert
         // when the scene is still being connected (lock-screen launch case).
         Task { @MainActor in
             await self.handle(actionId: actionId, alarmId: uuid)
-            completionHandler()
+            complete()
         }
     }
 

@@ -93,8 +93,8 @@ Voir US-AI8 (Project/02_product/user_stories/ai_synthesis.md) pour le détail de
 
 ### Voice integration (ADR-007) — engagements privacy supplémentaires
 - **L'audio capté pour la dictation N'EST JAMAIS persisté ni loggé.** Seul le texte transcrit est stocké (et seul le texte est transmis à l'IA cloud pour la synthèse).
-- **Reconnaissance vocale 100 % on-device** (`requiresOnDeviceRecognition = true`). Si la langue de l'utilisateur n'est pas supportée on-device → fallback typing, jamais cloud Apple speech.
-- **TTS (lecture synthèse) est on-device** via `AVSpeechSynthesizer` avec voix neural natives. Aucun audio généré n'est envoyé en cloud.
+- **Dictée vocale** via `SFSpeechRecognizer` avec fallback typing si permissions/audio indisponibles. L'audio capté n'est jamais persisté ni loggé.
+- **TTS (lecture synthèse)** utilise ElevenLabs si une clé premium est configurée, avec fallback local `AVSpeechSynthesizer`.
 - L'utilisateur peut désactiver input vocal et output vocal à tout moment dans Settings → Voice.
 
 ### Sound kit provenance — audio généré hors produit

@@ -8,6 +8,7 @@
 # Required env vars (must be marked "Secret" in Xcode Cloud):
 #   - OPENAI_API_KEY
 #   - ANTHROPIC_API_KEY
+#   - ELEVENLABS_API_KEY
 # ─────────────────────────────────────────────────────────────────────────
 
 echo "ci_post_clone.sh: generating Secrets.xcconfig from environment variables"

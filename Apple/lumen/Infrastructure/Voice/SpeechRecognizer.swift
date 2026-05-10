@@ -159,7 +159,7 @@ final class SpeechRecognizer: VoiceTranscribing {
             try session.setCategory(
                 .playAndRecord,
                 mode: .measurement,
-                options: [.duckOthers, .defaultToSpeaker, .allowBluetoothHFP]
+                options: [.duckOthers, .defaultToSpeaker, Self.bluetoothHandsFree]
             )
             try session.setActive(true, options: .notifyOthersOnDeactivation)
             sessionConfigured = true
@@ -292,6 +292,13 @@ final class SpeechRecognizer: VoiceTranscribing {
 
     nonisolated static func isValidInputFormat(_ format: AVAudioFormat) -> Bool {
         format.sampleRate > 0 && format.channelCount > 0
+    }
+
+    private static var bluetoothHandsFree: AVAudioSession.CategoryOptions {
+        // Xcode 16's Swift overlay does not expose `.allowBluetoothHFP`,
+        // while newer SDKs map it to the legacy Bluetooth bit. Use the raw
+        // option value so CI and local SDKs compile with the same behavior.
+        AVAudioSession.CategoryOptions(rawValue: 0x4)
     }
 
     private func resolveRecognizer(locale: Locale) -> SFSpeechRecognizer? {

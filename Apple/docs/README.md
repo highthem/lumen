@@ -7,27 +7,27 @@
 ## Quick start
 
 ### Requirements
-- macOS Sequoia 15.2+ (or Sonoma 14.5+ with Xcode 16.0–16.2)
-- Xcode 16+ (developed on Xcode 26.4 for Foundation Models, CI verifies Xcode 16 compatibility)
+- Xcode 16+ for the PALO-compatible build; local development currently uses Xcode 26.4 for Foundation Models checks
 - Apple Developer Program account
 - OpenAI API key — [platform.openai.com/api-keys](https://platform.openai.com/api-keys)
 - Anthropic API key — [console.anthropic.com/settings/keys](https://console.anthropic.com/settings/keys)
+- Optional ElevenLabs API key — [elevenlabs.io/app/api/api-keys](https://elevenlabs.io/app/api/api-keys)
 
 ### Setup
 ```bash
 git clone git@github.com:highthem/lumen.git
-cd lumen
-cp lumen/Config/Secrets.xcconfig.sample lumen/Config/Secrets.xcconfig
-# Edit lumen/Config/Secrets.xcconfig with your real API keys
-open lumen.xcodeproj
+cd Lumen
+cp Apple/lumen/Config/Secrets.xcconfig.sample Apple/lumen/Config/Secrets.xcconfig
+# Edit Apple/lumen/Config/Secrets.xcconfig with your real API keys
+open Lumen.xcworkspace
 ```
 
 In Xcode → Project → Info → Configurations: set `Secrets` as Base Configuration for Debug and Release.
 
 ### Build & test
 ```bash
-xcodebuild -project lumen.xcodeproj -scheme lumen -destination 'platform=iOS Simulator,name=iPhone 15' build
-xcodebuild -project lumen.xcodeproj -scheme lumen -destination 'platform=iOS Simulator,name=iPhone 15' test
+xcodebuild -workspace Lumen.xcworkspace -scheme lumen -destination 'platform=iOS Simulator,name=iPhone 17 Pro' build
+xcodebuild -workspace Lumen.xcworkspace -scheme lumen -destination 'platform=iOS Simulator,name=iPhone 17 Pro' test
 ```
 
 The Domain test target lives in `lumenTests/Domain/`. Per the PALO brief, the **alarm/snooze logic is the priority test surface** — see `lumenTests/Domain/AlarmUseCaseTests.swift` and `lumenTests/Domain/RateLimiterTests.swift`.
@@ -36,17 +36,18 @@ The Domain test target lives in `lumenTests/Domain/`. Per the PALO brief, the **
 
 | File / Folder | Description |
 |---|---|
-| `lumen.xcodeproj` | Xcode project (iOS 17+ deployment target, Swift 6) |
-| `lumen/` | App sources (App, Features, Domain, Data, Infrastructure, Shared) |
-| `lumenTests/` | Unit tests (Domain layer ≥60% coverage) |
-| `lumenUITests/` | UI tests (1–2 critical user journeys) |
+| `Apple/lumen.xcodeproj` | Xcode project (iOS 17+ deployment target, Swift 6) |
+| `Lumen.xcworkspace` | Root workspace used by Xcode Cloud and local setup |
+| `Apple/lumen/` | App sources (`App`, `Features`, `Domain`, `Data`, `Infrastructure`, `Shared`) |
+| `Apple/lumenTests/` | Unit tests mirroring production layers |
+| `Apple/.maestro/` | Declarative E2E flows for smoke/regression/edge cases |
 | `ci_scripts/` | Xcode Cloud post-clone script (secrets injection) |
-| `ARCHITECTURE.md` | MVVM + Clean architecture details |
-| `TECHNICAL_DECISIONS.md` | 8 ADRs (brief requires ≥5) — alarm, persistence, concurrency, AI waterfall, ethical monitoring, CI/CD, voice, UI testing |
-| `ETHICAL_MONITORING.md` | AI usage logging, privacy policy, JSON export schema |
-| `ARTIFACTS.md` | Diagrams, AI prompts used during development, screenshots, test data, deliverables checklist |
-| `samples/ethical-monitoring-export.json` | Anonymised sample of the Settings → Export my logs payload |
-| `lumen/Config/Secrets.xcconfig.sample` | Template for API keys (the real one is gitignored) |
+| `Apple/docs/ARCHITECTURE.md` | MVVM + Clean architecture details |
+| `Apple/docs/TECHNICAL_DECISIONS.md` | ADR summary |
+| `Apple/docs/ETHICAL_MONITORING.md` | AI usage logging, privacy policy, JSON export schema |
+| `Apple/docs/ARTIFACTS.md` | Deliverables, diagrams, design/audio/test artifacts |
+| `Apple/docs/samples/ethical-monitoring-export.json` | Anonymised Settings export sample |
+| `Apple/lumen/Config/Secrets.xcconfig.sample` | Template for API keys; the real file is gitignored |
 
 ## Tech stack
 
@@ -56,7 +57,7 @@ The Domain test target lives in `lumenTests/Domain/`. Per the PALO brief, the **
 - **SwiftData** for persistence — see ADR-002
 - **UserNotifications + AVFoundation** for the background alarm
 - **AI waterfall**: OpenAI (primary) → Anthropic Claude (cloud fallback) → Apple Intelligence on-device (iOS 26+ with A17 Pro+) → offline queue with deferred generation
-- **Voice I/O on-device** (ADR-007): `SFSpeechRecognizer` (`requiresOnDeviceRecognition = true`) for dictation on Q3/Q4 + `AVSpeechSynthesizer` (neural voices) for synthesis playback
+- **Voice I/O** (ADR-007): `SFSpeechRecognizer` for Q3/Q4 dictation with typing fallback on permission/audio failures, plus ElevenLabs or `AVSpeechSynthesizer` for synthesis playback
 
 ## PALO-IT requirements coverage
 
@@ -74,7 +75,7 @@ Direct mapping of every bullet in the brief (Sami Henchiri, 21 Apr 2026) to the 
 ### Repo & files
 | Requirement | Where it lives | Status |
 |---|---|---|
-| Repo GitHub privé Xcode 16+, build direct | This repo, `lumen.xcodeproj`, CI workflow "Tests on push (Xcode 16)" | ✅ |
+| Repo GitHub privé Xcode 16+, build direct | This repo, `Apple/lumen.xcodeproj`, CI workflow "Tests on push (Xcode 16)" | ✅ |
 | Partagé avec `shenchiri@palo-it.com` | GitHub repo settings — collaborator added | ✅ |
 | `README.md` | This file | ✅ |
 | `ARCHITECTURE.md` | [`ARCHITECTURE.md`](ARCHITECTURE.md) | ✅ |
@@ -93,7 +94,7 @@ Direct mapping of every bullet in the brief (Sami Henchiri, 21 Apr 2026) to the 
 ### Contraintes techniques
 | Constraint | Where it lives | Status |
 |---|---|---|
-| iOS 17+, SwiftUI (pas d'UIKit pur) | `IPHONEOS_DEPLOYMENT_TARGET = 17.0`; zero `UIKit` imports in Features | ✅ |
+| iOS 17+, SwiftUI (pas d'UIKit pur) | `IPHONEOS_DEPLOYMENT_TARGET = 17.0`; SwiftUI first, with minimal UIKit interop only for system integration | ✅ |
 | MVVM + Clean | `ARCHITECTURE.md` — Features → Domain → Data → Infrastructure | ✅ |
 | Combine ou Swift Concurrency (justifié) | Swift Concurrency, justified in [ADR-003](TECHNICAL_DECISIONS.md#adr-003--swift-concurrency-vs-combine) | ✅ |
 | SwiftData/Core Data (pas de lib tierce) | SwiftData chosen — see [ADR-002](TECHNICAL_DECISIONS.md#adr-002--swiftdata-vs-core-data); zero third-party SPM deps | ✅ |
@@ -107,6 +108,7 @@ Direct mapping of every bullet in the brief (Sami Henchiri, 21 Apr 2026) to the 
 2. **Tests on push (Xcode 26)** — Apple Intelligence path validation
 
 API keys provided as Environment Variables (Secret) in Xcode Cloud workflow settings.
+Required keys: `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `ELEVENLABS_API_KEY`.
 
 ## Architecture overview
 

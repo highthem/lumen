@@ -175,7 +175,7 @@ Settings → "Export my logs" generates a JSON file via `ShareSheet`. Settings �
 - No `MeshGradient` (iOS 18+), no Liquid Glass APIs (iOS 26+)
 - Mental check before every push to `main`: "does this compile on Xcode 16?"
 
-**Secrets handling.** `OPENAI_API_KEY` and `ANTHROPIC_API_KEY` live as Xcode Cloud Environment Variables (marked Secret). `ci_scripts/ci_post_clone.sh` injects them into `lumen/Config/Secrets.xcconfig` at build time. Locally, developers copy `Secrets.xcconfig.sample` and fill their own keys; the real `Secrets.xcconfig` is gitignored.
+**Secrets handling.** `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, and `ELEVENLABS_API_KEY` live as Xcode Cloud Environment Variables (marked Secret). `ci_scripts/ci_post_clone.sh` injects them into `Apple/lumen/Config/Secrets.xcconfig` at build time. Locally, developers copy `Secrets.xcconfig.sample` and fill their own keys; the real `Secrets.xcconfig` is gitignored.
 
 ---
 
@@ -187,13 +187,13 @@ Settings → "Export my logs" generates a JSON file via `ShareSheet`. Settings �
 
 | Capability | Framework | Cost | Privacy |
 |---|---|---|---|
-| Voice input | `Speech` (`SFSpeechRecognizer`) | 0 | On-device required (`requiresOnDeviceRecognition = true`) |
+| Voice input | `Speech` (`SFSpeechRecognizer`) | 0 | Dictation with typing fallback; captured audio is never persisted or logged |
 | Voice output (premium) | ElevenLabs HTTP API | API key | Synthesis text sent to ElevenLabs only when toggle is on |
 | Voice output (fallback) | `AVFoundation` (`AVSpeechSynthesizer`) | 0 | 100 % on-device, neural voices iOS 17+ |
 
 **Voice output — runtime fallback.** ElevenLabs is the primary TTS, with `AVSpeechSynthesizer` as a runtime fallback resolved at every `speak()` call. On any ElevenLabs failure (network, 4xx, 5xx, 8 s timeout) the `FallbackTextToSpeech` decorator transparently falls back to AVSpeech without restarting the app. The active provider is recorded in the `EthicalLog` (`tts_provider` field). A Settings toggle ("Voix premium ElevenLabs") lets the user force the on-device path.
 
-**Strict privacy stance.** `SFSpeechRecognitionRequest.requiresOnDeviceRecognition = true`. If on-device recognition isn't supported for the user's language (varies by device + language), **fallback to typing** rather than sending audio to Apple. Audio captured is **never persisted nor logged** — only the transcribed text is stored.
+**Strict privacy stance.** Audio captured for dictation is **never persisted nor logged** — only the transcribed text is stored. If permissions or the audio engine fail, the app falls back to typing.
 
 **UX.**
 - Voice input (Q3 + Q4): central large microphone button (thumb-sized), subtle pulse animation during listening (consistent with the timer's breathing circle — `style_guide.md` motion level 2 "signature"). Auto-stop after 2 s of silence. Transcribed text displayed in serif. "Edit" button discreet (switches to keyboard for manual correction). Skip always available.

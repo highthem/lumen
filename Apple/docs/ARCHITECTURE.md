@@ -54,11 +54,11 @@ Lumen follows **MVVM + Clean Architecture** with strict layer separation.
 ```
 lumen/
 ├── App/
-│   ├── lumenApp.swift
-│   ├── AppDelegate.swift           // notification action handling
 │   ├── RootView.swift
 │   ├── CompositionRoot.swift       // manual DI wiring
-│   └── AppStateMachine.swift       // global states: idle, ritual_active, etc.
+│   ├── AppStateMachine.swift       // global states: idle, ritual_active, etc.
+│   ├── LumenUITestMode.swift
+│   └── MaestroTestSupport.swift
 ├── Features/
 │   ├── Alarm/                       // PALO #1: Réveil doux + Snooze/Silence (ADR-001)
 │   ├── Timer/                       // PALO #2: Timer de présence + citation inspirante
@@ -85,8 +85,8 @@ lumen/
 │   ├── Network/
 │   └── Logging/
 ├── Shared/
-│   ├── DesignSystem/
-│   ├── Resources/                  // Quotes.json, Sounds, Localizable.xcstrings
+│   ├── DesignSystem/               // tokens, reusable components, preview catalog
+│   ├── Resources/                  // Quotes.json and bundled Sounds
 │   └── Utils/
 └── Config/
     ├── Secrets.xcconfig            // gitignored
@@ -102,18 +102,20 @@ A single `CompositionRoot` (`@MainActor` class) owns the wiring:
 final class CompositionRoot {
     init(modelContainer: ModelContainer) {
         let httpClient = URLSessionHTTPClient()
-        let openAI = OpenAIClient(http: httpClient, apiKey: Secrets.openAIKey)
-        let anthropic = AnthropicClient(http: httpClient, apiKey: Secrets.anthropicKey)
-        let appleIntelligence = AppleIntelligenceProvider() // iOS 26+ only
-        let queue = SynthesisQueue(persistedIn: modelContainer)
+        let openAI = OpenAIClient(httpClient: httpClient)
+        let anthropic = AnthropicClient(httpClient: httpClient)
+        let queue = SynthesisQueue(modelContainer: modelContainer)
 
         let aiService = WaterfallAISynthesisService(
-            cloudProviders: [openAI, anthropic],
-            onDeviceProvider: appleIntelligence,
-            synthesisQueue: queue,
-            rateLimiter: RateLimiter.defaults(),
-            ethicalLogger: SwiftDataEthicalLogger(container: modelContainer),
-            reachability: NWPathReachability()
+            cloudClients: [openAI, anthropic],
+            onDevice: AppleIntelligenceProviderStub(),
+            onDeviceAvailable: { false },
+            queue: queue,
+            rateLimiter: RateLimiter(),
+            ethicalLogger: EthicalLogger(repository: SwiftDataEthicalLogRepository(modelContainer: modelContainer)),
+            contentSafety: ContentSafetyDetector(),
+            supportResources: SupportResourcesProvider(),
+            reachability: NetworkMonitor()
         )
 
         // … wire ViewModels and use cases …
@@ -182,8 +184,8 @@ User completes Q4 Gratitude → QuestionnaireViewModel
 ## Background execution model
 
 - **Alarm trigger**: `UNCalendarNotificationTrigger` schedules the local notification. iOS wakes the app via the system; no code runs without user interaction.
-- **User taps Snooze / Silence** from notification: handled by `NotificationActionsHandler` within a short `UIBackgroundTask`.
-- **App launch from notification**: `AppDelegate` routes to the appropriate ritual screen.
+- **User taps Snooze / Silence** from notification: handled by `NotificationActionsHandler`, which hops to the `MainActor` and sends events to `AppStateMachine`.
+- **App launch from notification**: `RootView` consumes `AppStateMachine` events and presents the matching ritual/ringing surface.
 - **Foreground audio**: `AVAudioSession` with category `.playback` and option `.duckOthers` to gracefully attenuate concurrent audio.
 
 ## Notable platform constraints
@@ -191,7 +193,7 @@ User completes Q4 Gratitude → QuestionnaireViewModel
 - **No Critical Alerts entitlement**: alarm reliability is best-effort outside Silent / Focus / DND modes (documented in ADR-001).
 - **64 scheduled notifications limit**: recurring alarms are re-scheduled on each trigger, not pre-scheduled in bulk.
 - **Apple Intelligence requires iOS 26+ and A17 Pro+**: gated by `#if canImport(FoundationModels)` and `@available(iOS 26.0, *)` checks. On unsupported devices, offline synthesis is queued and delivered when the network returns.
-- **Voice (ADR-007)**: Speech recognition forced on-device (`requiresOnDeviceRecognition = true`). If user's language isn't supported on-device, fallback to typing — never cloud Apple speech. Audio never persisted or logged. AVSpeechSynthesizer for TTS, fully on-device with iOS 17+ neural voices.
+- **Voice (ADR-007)**: microphone audio is never persisted or logged. `SpeechRecognizer` prefers the platform speech path for dictation with typing fallback on permission/audio failures. TTS uses ElevenLabs when a key is configured, with `AVSpeechSynthesizer` as the local fallback.
 
 ## Testing strategy
 
@@ -203,4 +205,4 @@ User completes Q4 Gratitude → QuestionnaireViewModel
 
 ## Build configurations
 
-Two configurations: `Debug` and `Release`. Both inherit from `Secrets.xcconfig` (Base Configuration), which provides `OPENAI_API_KEY` and `ANTHROPIC_API_KEY` at build time. In CI (Xcode Cloud), `Secrets.xcconfig` is generated by `ci_scripts/ci_post_clone.sh` from environment variables.
+Two configurations: `Debug` and `Release`. Both inherit from `Apple/lumen/Config/Secrets.xcconfig` (Base Configuration), which provides `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, and `ELEVENLABS_API_KEY` at build time. In CI (Xcode Cloud), `Secrets.xcconfig` is generated by `ci_scripts/ci_post_clone.sh` from environment variables.
