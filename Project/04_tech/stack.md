@@ -63,9 +63,8 @@ Voir ADR-004 pour détail du waterfall.
 
 ## Tests
 
-- **XCTest** (unitaires)
-- **SwiftTesting** (iOS 17+) en complément si temps
-- **XCUITest** pour 1-2 parcours critiques (optionnel V1)
+- **SwiftTesting** (iOS 17+) unitaires
+- **Maestro.dev** pour les parcours, non regression, edge-cases.
 - **Couverture cible :** ≥ 60% sur Domain (contrainte brief)
 
 ## DI (Dependency Injection)
@@ -77,12 +76,12 @@ Voir ADR-004 pour détail du waterfall.
 ## Build & CI
 
 - **Xcode Cloud** (CI/CD principal) — 25 h/mois free tier inclus dans Apple Developer Program
-- 3 workflows : tests on push / TestFlight on tag / lint on PR (optionnel)
+- 3 workflows : Tests on push / TestFlight on tag / Build on push (Xcode 16 - Device/Simulator)
 - Build numbers auto-incrémentés
 - Provisioning + signing géré automatiquement
 - Voir ADR-006 pour détail
 
-**Note dev local :** Xcode 16+ requis sur la machine de dev (Xcode 16.0-16.2 = macOS Sonoma 14.5 minimum, Xcode 16.3+ = macOS Sequoia 15.2 minimum). Xcode Cloud ne remplace PAS l'IDE local pour coder, c'est un complément CI/CD.
+**Note dev local :** Xcode 16 n'étant pas dispo locallement, on utilise la Xcode Cloud pour s'assurer du respect du biref.
 
 ## Secrets
 

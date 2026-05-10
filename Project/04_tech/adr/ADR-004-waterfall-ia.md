@@ -135,7 +135,7 @@ Compilation conditionnelle : on importe `FoundationModels` derrière `#if canImp
 
 ### Queue offline
 
-Pour les devices iOS 17-25 ou < A17 Pro, sans réseau au moment du rituel :
+Pour les devices iOS 17-18 ou < A17 Pro, sans réseau au moment du rituel :
 
 ```swift
 actor SynthesisQueue {

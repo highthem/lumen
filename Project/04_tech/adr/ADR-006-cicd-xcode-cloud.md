@@ -40,11 +40,6 @@ Cette stratégie garantit que :
 - Setup signing/provisioning manuel (fastlane)
 - Secrets via GitHub Secrets
 
-### Option C — Self-hosted Mac mini
-- Coût matériel élevé (~600-1500 €)
-- Maintenance lourde
-- Hors scope timeline
-
 ## Décision
 
 **Xcode Cloud** comme CI/CD principal.

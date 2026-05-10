@@ -30,8 +30,7 @@ Réveil doux + timer de présence + questionnaire court + synthèse IA + dashboa
 - **Flow guidé** → pas de friction décisionnelle le matin
 - **Synthèse IA** → l'utilisateur n'a pas à structurer lui-même
 - **Dashboard sans chiffres** → pas de quantified-self anxiogène
-- **Aucun streak, aucun badge** → zéro culpabilisation
-- **Billing transparent** → confiance, rétention
+- **Aucun badge, aucune gamification** → zéro culpabilisation, zéro addiction
 
 ### Gain creators
 - Clarté en 5 minutes
@@ -47,10 +46,10 @@ Réveil doux + timer de présence + questionnaire court + synthèse IA + dashboa
 
 | Dimension | Fabulous | Alarmy | Opal | Rise | **Lumen** |
 |-----------|----------|--------|------|------|-----------|
-| Réveil en background | Non | Oui (brutal) | Non | Smart alarm | **Oui (doux)** |
+| Réveil en background | Non | Oui (brutal) | Non | Smart alarm | **Oui (doux)** *Apple approval required* |
 | Rituel matinal guidé | Oui | Non | Non | Non | **Oui** |
 | Questionnaire réflexif | Non | Non | Non | Non | **Oui** |
 | Synthèse IA contextuelle | Non | Non | Non | Non | **Oui** |
 | Dashboard identité (non clinique) | Partiel | Non | Focus only | Non (clinique) | **Oui** |
-| Billing transparent | Non (1★ plaintes) | Polémique | Non (1★ plaintes) | Non (1★ plaintes) | **Oui** |
+| Billing transparent | Non (1★ plaintes) | Polémique | Non (1★ plaintes) | Non (1★ plaintes) | **Oui** *Not in V1* |
 | Chaîne complète couverte | ~40% | ~20% | 0% | ~20% | **100%** |

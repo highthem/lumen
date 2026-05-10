@@ -1,25 +1,24 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Lumen is an iOS morning ritual app (alarm → 5-minute guided questionnaire → AI synthesis → dashboard). It is simultaneously:
 
 ## Project context
 
-Lumen is an iOS morning ritual app (alarm → 5-minute guided questionnaire → AI synthesis → dashboard). It is simultaneously:
-1. **PALO IT technical exercise** — delivered to Sami Henchiri by 11 May 2026. No monetisation, no analytics, privacy-first.
-2. **Future public Studio project** — V1.1 post-PALO with App Store publication and a soft paywall.
+**PALO IT technical exercise** — delivered to Sami Henchiri by 11 May 2026. No monetisation, no analytics, privacy-first.
 
-**Status:** pre-development. Architecture, ADRs, product specs, and design docs are complete; code is not yet written (beyond the Xcode scaffold in `Apple/lumen/`).
+**Status:** pre-development. Architecture, ADRs, product specs, and design docs are complete; code is almost complete and yet still to polish for delivery.
 
 ## Repository layout
 
 ```
-Apple/             iOS Xcode project (the actual code)
+Apple/             iOS Xcode project (the actual iOS app code)
 Design/            Design kit + PALO deliverable docs (ARCHITECTURE, TECHNICAL_DECISIONS, etc.)
 Project/           Full product/tech/business documentation
   00_brief/        PALO brief + assumptions
   02_product/      User stories, flows, acceptance criteria
   04_tech/         Stack, architecture, data model, API contracts, 5 ADRs
   06_roadmap/      Sprint breakdown (3 sprints, demi-journée granularity)
+  …
 Lumen.xcworkspace  Workspace pointing to Apple/lumen.xcodeproj
 scripts/           Utility scripts
 ```
@@ -39,22 +38,9 @@ open Lumen.xcworkspace
 
 In Xcode, set `Secrets.xcconfig` as **Base Configuration** for both Debug and Release under Project → Info → Configurations.
 
-```bash
-# Run tests (command line)
-xcodebuild test \
-  -project Apple/lumen.xcodeproj \
-  -scheme lumen \
-  -destination 'platform=iOS Simulator,name=iPhone 16'
+Always use **Xcode MCP** to build, run and test the project.
 
-# Run a single test class
-xcodebuild test \
-  -project Apple/lumen.xcodeproj \
-  -scheme lumenTests \
-  -destination 'platform=iOS Simulator,name=iPhone 16' \
-  -only-testing:lumenTests/AlarmUseCaseTests
-```
-
-CI/CD runs on **Xcode Cloud** (3 workflows: tests on push, iOS 26 tests on main, TestFlight on `v*` tag). Secrets are injected by `ci_scripts/ci_post_clone.sh`.
+CI/CD runs on **Xcode Cloud** (3 workflows: "Xcode 16 - Build", "Test on push (iOS 26/Apple Intelligence)", "TestFlight on `v*` tag"). Secrets are injected by `ci_scripts/ci_post_clone.sh`.
 
 ## Architecture
 
@@ -87,10 +73,10 @@ Config/        Secrets.xcconfig (gitignored), Secrets.xcconfig.sample
 
 ## Swift patterns (non-negotiable)
 
-- **Swift 6 strict concurrency, mode Complete.** Zero data races at compile time.
+- **Swift 6 strict concurrency, mode Complete.** Zero data races at compile time. (use swift-concurrency:swift-concurrency skill)
 - **ViewModels:** `@MainActor @Observable final class`.
 - **Shared mutable state:** `actor` (e.g. `RateLimiter`, `AppStateMachine`).
-- **SwiftData writes off main thread:** `@ModelActor`.
+- **SwiftData writes off main thread:** `@ModelActor`. (use swiftdata-pro skill)
 - **Domain entities:** immutable `Sendable` structs.
 - **No Combine.** Only async/await + `Task` + `AsyncStream` where needed.
 - **No third-party libraries.** URLSession for networking, SwiftData for persistence, manual constructor DI.
@@ -127,11 +113,11 @@ Settings exposes "Export my logs" (JSON via ShareSheet) and "Erase my logs" (Swi
 
 ## Testing strategy
 
-- **Domain layer ≥ 60% coverage** (PALO brief requirement). Pure Swift — no mocks needed for UI.
+- **Domain layer ≥ 60% coverage** Pure Swift — no mocks needed for UI.
 - **Data layer:** in-memory `ModelContainer` + mocked `HTTPClient` protocol.
 - **Feature ViewModels:** mocked Domain protocol implementations, `async` test methods.
-- **UI:** 1-2 XCUITests covering the critical happy path (alarm → ritual → dashboard).
-- Use `XCTest` primarily; `swift-testing` as complement if time allows.
+- **E2E:** maestro testing workflows.
+- Use `swift-testing` and fallback to `XCTest` if not available.
 
 ## Alarm constraints
 
@@ -146,8 +132,9 @@ API keys are never hardcoded. Access via `Bundle.main.object(forInfoDictionaryKe
 
 ## Key documentation
 
-- **Architecture detail:** `Design/palo-docs/ARCHITECTURE.md` and `Project/04_tech/architecture.md`
-- **ADRs (5 decisions):** `Project/04_tech/adr/` — alarm strategy, SwiftData, Swift Concurrency, AI waterfall, ethical monitoring, CI/CD
-- **Data model:** `Project/04_tech/data_model.md`
-- **Sprint breakdown:** `Project/06_roadmap/sprints.md`
-- **PALO deliverables** (to commit by 11 May): `Design/palo-docs/` — ARCHITECTURE, TECHNICAL_DECISIONS, ETHICAL_MONITORING, ARTIFACTS, README
+*These documents must always be updated to reflect current codebase*
+
+- **Architecture detail:** `Apple/docs/ARCHITECTURE.md`
+- **Artifacts details** `Apple/docs/ARTIFACTS.md`
+- **ADRs:** `Apple/docs/TECHNICAL_DECISIONS.md`
+- **Monitoring** `Apple/docs/ETHICAL_MONITORING.md`

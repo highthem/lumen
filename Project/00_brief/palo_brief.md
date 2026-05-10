@@ -1,4 +1,4 @@
-# Brief PALO IT — Lūmen (Morning Ritual)
+# Lūmen - Morning Ritual
 
 **Source :** email de Sami Henchiri (CTO PALO Labs), 21 avril 2026
 **Destinataire :** Haithem Ben Hamouda (candidat AI – Mobile Natif iOS & Android)

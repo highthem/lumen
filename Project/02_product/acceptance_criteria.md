@@ -35,18 +35,14 @@ Pour qu'une feature soit considérée "DONE" et entre en démo de soutenance, el
 - [ ] Les 4 étapes dans l'ordre, transition fluide
 - [ ] Persistance SwiftData à chaque étape (pas de perte si crash app)
 - [ ] Reprise à l'étape non complétée
-- [ ] Skip possible sauf Q1 (Ressenti)
-- [ ] Q1 Ressenti : 5 emojis + tag émotionnel optionnel
-- [ ] Q3 et Q4 respectent les limites de caractères (140 et 30)
+- [ ] Q3 et Q4 supporte 2 modes de saisie: "voice-input" et "text-input"
 
 ## F4 — Synthèse IA
 
 - [ ] Appel OpenAI en primaire (clé via xcconfig)
 - [ ] Fallback Anthropic si OpenAI fail (timeout, 5xx, rate limit)
-- [ ] Fallback offline template si les deux fail ou si `NWPathMonitor` détecte offline
+- [ ] Fallback Apple Intelligence si les deux fail ou si `NWPathMonitor` détecte offline. Si Apple Intelligence pas dispo, reprendre le waterfall au retour online.
 - [ ] Temps génération < 4s cloud, < 1s offline
-- [ ] Streaming supporté côté OpenAI si possible
-- [ ] Format synthèse : intention + focus + rappel (3 sections visibles)
 - [ ] Badge "Hors-ligne" visible si mode offline
 
 ## F5 — Rate limiting + monitoring éthique
@@ -60,11 +56,9 @@ Pour qu'une feature soit considérée "DONE" et entre en démo de soutenance, el
 
 ## F6 — Dashboard
 
-- [ ] 6 cards en grille 2 colonnes
+- [ ] 6 cards
 - [ ] Pré-remplissage automatique depuis réponses questionnaire
 - [ ] Détail par catégorie avec édition possible du jour
-- [ ] Pas de graphiques
-- [ ] Reset silencieux à 3h du matin local
 - [ ] Empty state au premier lancement, CTA alarme
 
 ## F7 — Ask Lumen
@@ -87,7 +81,7 @@ Pour qu'une feature soit considérée "DONE" et entre en démo de soutenance, el
 - [ ] Repo GitHub privé partagé avec shenchiri@palo-it.com
 - [ ] Xcode 16+, build direct sans config additionnelle hors xcconfig keys
 - [ ] 5 documents .md (README, ARCHITECTURE, TECHNICAL_DECISIONS, ETHICAL_MONITORING, ARTIFACTS)
-- [ ] Loom ≤ 5 min OU TestFlight link fonctionnel
+- [ ] TestFlight link fonctionnel
 - [ ] Présentation 10-15 slides
 - [ ] Export JSON monitoring éthique joint à l'email récap
 

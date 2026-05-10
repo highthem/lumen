@@ -80,7 +80,7 @@ lumen/
 ├── Infrastructure/
 │   ├── Notifications/
 │   ├── Audio/
-│   ├── Voice/                           // ADR-007: SpeechRecognizer + SpeechSynthesizer (on-device)
+│   ├── Voice/                      // ADR-007: SpeechRecognizer + SpeechSynthesizer (on-device)
 │   ├── Network/
 │   └── Logging/
 ├── Shared/

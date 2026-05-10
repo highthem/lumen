@@ -1,4 +1,4 @@
-# ADR-001 — Stratégie alarme en background
+# ADR-001 — Stratégie alarme
 
 ## Statut
 Accepté (sous réserve de confirmation Sami sur la question fiabilité Silent/DND)
@@ -76,12 +76,6 @@ iOS limite à **64 notifications programmées en avance** par app. Stratégie :
 | Utilisateur en DND rate le rituel | Message d'onboarding explicite + notice Settings |
 | Snooze en boucle | Cap à 3 snooze, puis auto-stop |
 | iOS limite de 64 notifs atteinte | Replanification au trigger, pas en avance |
-
-## À clarifier avec Sami (question 1 dans l'email envoyé)
-
-> Fiabilité attendue de l'alarme vs modes Silence / Focus / DND. Best-effort acceptable, ou Critical Alerts envisagés ?
-
-Cette décision est révisée si Sami répond "Critical Alerts envisagés". Dans ce cas : on documente demande entitlement, on code comme si on l'avait, on explique en soutenance que la live demo est en mode sans entitlement et qu'un passage prod nécessiterait la validation Apple.
 
 ## Références
 

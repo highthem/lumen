@@ -4,10 +4,6 @@
 >
 > Technical exercise for **PALO IT Labs** — AI / Mobile Native iOS role.
 
-## Status
-
-V1 in development. Target delivery: **11 May 2026**.
-
 ## Quick start
 
 ### Requirements

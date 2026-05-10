@@ -9,13 +9,13 @@
        ↓
 [App ouvre sur écran Timer de présence (60s par défaut)]
        ↓ (après durée ou skip)
-[Q1 — Ressenti]
+[Q1 — Humeur]
        ↓
-[Q2 — Priorité]
+[Q2 — Energie]
        ↓
-[Q3 — Gratitude]
+[Q3 — Priorité]
        ↓
-[Q4 — Intention]
+[Q4 — Gratitude]
        ↓
 [Appel IA waterfall : OpenAI → Anthropic → offline]
        ↓
@@ -44,7 +44,7 @@
 [Questionnaire en cours : par exemple Q2]
        ↓
 [User ferme l'app]
-       ↓ [Plus tard dans la journée]
+       ↓ ou [Plus tard dans la journée]
 [User rouvre Lumen]
        ↓
 [App détecte : rituel incomplet, dernière étape Q2]

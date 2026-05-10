@@ -29,7 +29,7 @@
 
 ## Choix retenu pour V1 (livrable PALO + V1 publique)
 
-**A + B combinés**, C comme posture de communication, D en V1.1.
+**A + B combinés**, C comme posture de communication, D pour l'impact visuel.
 
 **Positionnement V1 :**
 > *"Le seul rituel matinal avec synthèse IA éthique qui démarre à l'alarme."*
@@ -38,7 +38,7 @@
 - A sort "gratuitement" du scope brief PALO (alarme + rituel + dashboard).
 - B est le seul différentiateur défendable face à Fabulous (qui a 7 ans de contenu/SEO).
 - C est une question de voice/copy, pas de code supplémentaire.
-- D est riche mais design-heavy, repoussé pour ne pas mettre en péril la deadline.
+- D est riche avec une touche du luxe.
 
 ## Risques d'angle à surveiller
 
@@ -53,7 +53,7 @@
 - Missions brutales Alarmy
 - Dashboard clinique chiffré Rise
 
-## Ce qu'on peut voler
+## Ce qu'on peut "voler"
 
 - La qualité du story-telling Fabulous (sans le billing)
 - La robustesse du flow Alarmy (sans la brutalité)

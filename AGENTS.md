@@ -4,7 +4,7 @@
 
 This repository contains the Lumen iOS app plus product, design, and delivery documentation. The current implementation is an Xcode scaffold, while the product and architecture direction is documented in detail.
 
-- `Apple/` contains the iOS project. App source lives in `Apple/lumen/`, unit tests in `Apple/lumenTests/`, and UI tests in `Apple/lumenUITests/`.
+- `Apple/` contains the iOS project. App source lives in `Apple/lumen/` and unit tests in `Apple/lumenTests/`.
 - `Apple/lumen/Assets.xcassets/` stores app icons, colors, and image assets.
 - `Apple/lumen/Config/` stores configuration samples. Commit `Secrets.xcconfig.sample`; keep the real `Secrets.xcconfig` local.
 - `Project/` contains product, technical, roadmap, and ADR documentation.
@@ -46,7 +46,7 @@ iOS 26+ Foundation Models or Apple Intelligence code must be conditionally compi
 
 ## Testing Guidelines
 
-Use XCTest as the primary framework. Keep Domain tests fast, deterministic, and independent of UI or persistence, with at least 60% Domain coverage. Test files should live in `Apple/lumenTests/` and mirror production type names, for example `AlarmUseCaseTests.swift` or `RateLimiterTests.swift`.
+Use SwiftTesting as the primary framework. Keep Domain tests fast, deterministic, and independent of UI or persistence, with at least 60% Domain coverage. Test files should live in `Apple/lumenTests/` and mirror production type names, for example `AlarmUseCaseTests.swift` or `RateLimiterTests.swift`.
 
 Use in-memory SwiftData containers and mocked protocols for Data and ViewModel tests. UI tests belong in `Apple/lumenUITests/`; prioritize one or two critical flows such as alarm to ritual to dashboard. Add focused tests for failure states: offline AI fallback, rate limiting, notification actions, denied permissions, and voice fallback to typing.
 

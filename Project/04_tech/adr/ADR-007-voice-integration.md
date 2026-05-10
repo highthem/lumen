@@ -1,8 +1,5 @@
 # ADR-007 — Voice integration (input + output)
 
-## Statut
-Accepté (25 avr 2026) · Révisé le 7 mai 2026 (output : ElevenLabs primary, `AVSpeechSynthesizer` fallback runtime).
-
 ## Contexte
 
 Le brief PALO IT impose un questionnaire matinal en 4 étapes avec persistance locale, mais ne précise pas la modalité d'input. Au réveil, taper sur un clavier iOS est une friction majeure :
@@ -10,7 +7,7 @@ Le brief PALO IT impose un questionnaire matinal en 4 étapes avec persistance l
 - Le clavier prend 50 % de l'écran → casse la posture "espace, calme"
 - L'utilisateur sort de l'expérience contemplative pour entrer dans une expérience "task"
 
-Symétriquement, lire la synthèse IA à l'écran force l'utilisateur à rester scotché au téléphone — contre-productif au moment où il devrait être en train de se préparer pour la journée (café, brossage de dents, etc.).
+Symétriquement, lire la synthèse IA à l'écran force l'utilisateur à rester scotché au téléphone; contre-productif au moment où il devrait être en train de se préparer pour la journée (café, brossage de dents, etc.).
 
 ## Décision
 

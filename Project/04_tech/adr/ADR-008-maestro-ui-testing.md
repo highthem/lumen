@@ -6,8 +6,8 @@ Accepté (2 mai 2026) · Révisé le 7 mai 2026 (suppression de la couche XCUITe
 ## Contexte
 
 Le brief PALO mentionne :
-- Tests Domain ≥ 60 % couverture (unit XCTest)
-- "1-2 XCUITest pour parcours critiques (optionnel V1)"
+- Tests Domain ≥ 60 % couverture
+- "Maestro.dev pour parcours critiques"
 
 On veut élever la rigueur de testing UI sans tomber dans le piège du test brittle XCUITest. Maestro est devenu le standard 2026 pour les UI tests cross-platform mobile, avec une syntaxe déclarative YAML beaucoup plus maintenable que XCUITest.
 
@@ -24,7 +24,6 @@ On veut élever la rigueur de testing UI sans tomber dans le piège du test brit
 - ✅ Syntaxe YAML déclarative, lisible et maintenable
 - ✅ Cross-platform (Android future ready)
 - ✅ Zero-wait automatique (gère animations + network)
-- ❌ iOS simulators only (en mai 2026) — pas de tests automatisés sur device réel
 - ❌ Limites pour tester micro réel + alarme background sans hooks DEBUG
 
 ### Option C — Maestro + XCUITest minimal
@@ -70,7 +69,7 @@ Lancer la suite : `./scripts/test_maestro.sh` (qui appelle `qa_install.sh` pour 
 
 `scripts/test_maestro.sh` peut être appelé depuis Xcode Cloud via `ci_post_xcodebuild.sh`. Coût : +5-10 min par build.
 
-## Scope V1 PALO
+## Scope V1
 
 ### Flows implémentés (20 YAML)
 
@@ -94,17 +93,6 @@ Trois scénarios documentés dans `Project/06_roadmap/test_plan_v1.md`, exécut�
 - **AVAudioSession `.duckOthers`** : démarrer Spotify, déclencher alarme, valider que la musique ducke pendant l'alarme et reprend après Silence.
 
 Chaque scénario est documenté avec capture d'écran ou screencast court dans `test_report_latest.md`.
-
-## Effort
-
-| Tâche | Effort |
-|---|---|
-| Setup Maestro CLI + first flow | 0.25 j |
-| 5 flows smoke | 1 j |
-| 10 flows regression | 1.5 j |
-| 5 flows edge cases | 1 j |
-| Test plan manuel hardware (3 scénarios documentés) | 0.25 j |
-| **Total** | **~4 j** |
 
 ## Conséquences
 

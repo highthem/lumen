@@ -70,7 +70,7 @@ En tant qu'utilisateur, je veux être réveillé de manière fiable et douce pou
 - Édition = mêmes champs qu'en création.
 - Suppression avec confirmation.
 
-## US-A7 — Réveil doux progressif (nice-to-have V1)
+## US-A7 — Réveil doux progressif
 **En tant qu'** utilisateur
 **Je veux** que le son monte progressivement de 0 à 100% sur 30s
 **Afin de** ne pas être brutalement réveillé

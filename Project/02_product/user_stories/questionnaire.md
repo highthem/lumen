@@ -6,7 +6,7 @@ En tant qu'utilisateur, je veux répondre à 4 questions courtes pour cadrer ma 
 ## Les 4 étapes
 
 1. **Humeur** : "Aujourd'hui je me sens…" — `ChromaticSlider` plein écran, drag vertical continu (0→1, 5 paliers : enfoui / fragile / posé / vif / rayonnant)
-2. **Énergie** : "Quelle énergie ce matin ?" — 5 chips (À plat / Faiblard / Moyen / Bien chargé / Au top)
+2. **Énergie** : "Quelle énergie ce matin ?" — 5 positions (À plat / Faiblard / Moyen / Bien chargé / Au top)
 3. **Priorité** : "Sur quoi tu veux poser l'attention ?" — **vocal par défaut** (4 états : default / listening / transcribed / editing) + fallback typing libre
 4. **Gratitude** : "Une gratitude ?" — **vocal par défaut** (mêmes 4 états) + fallback typing (≤ 140 caractères)
 
@@ -55,8 +55,6 @@ Voir `Project/04_tech/adr/ADR-007-voice-integration.md` pour le détail techniqu
 - Vue historique accessible depuis le dashboard.
 - Par jour : les 4 réponses + la synthèse IA générée.
 - Lecture seule en V1.1.
-
-**Note :** repoussé en V1.1 pour ne pas alourdir la V1.
 
 ## US-Q5 — Complétion partielle
 **En tant qu'** utilisateur

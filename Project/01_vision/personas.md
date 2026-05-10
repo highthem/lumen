@@ -2,7 +2,7 @@
 
 ## Persona primaire — "Claire, 34 ans, product lead"
 
-- Product lead dans une scale-up tech, lève à 6h30, premier geste : Instagram puis Slack.
+- Product lead dans une scale-up tech, se lève à 6h30, premier geste : Instagram puis Slack.
 - Ressent une fatigue numérique forte, a essayé Fabulous (trop prescriptif), Rise (trop clinique), Opal (efficace mais culpabilisant).
 - Revenus confortables, iPhone 15 Pro, MacBook Pro. Prête à payer pour une app qui tient sa promesse.
 - Lit Culture Study, écoute On Being, a un Kindle.
@@ -22,7 +22,7 @@
 
 **Job-to-be-done :** "Give me 5 structured minutes before the chaos starts."
 
-## Persona tertiaire (monétisation post-V1) — "Maya, 27 ans, junior anxieuse"
+## Persona tertiaire — "Maya, 27 ans, junior anxieuse"
 
 - Jeune pro, burn-out léger, lectrice de self-help.
 - Essaie tout (Calm, Headspace, Reflectly). Payeur marginal, sensible au prix.
