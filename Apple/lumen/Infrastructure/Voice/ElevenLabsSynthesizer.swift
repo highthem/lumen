@@ -150,6 +150,7 @@ final class ElevenLabsSynthesizer: TextToSpeeching {
             let d = PlayerDelegate(onFinish: { cont.resume() })
             self.currentPlayerDelegate = d
             newPlayer.delegate = d
+            newPlayer.volume = 1.0
             newPlayer.play()
             startProgressTimer(player: newPlayer)
         }

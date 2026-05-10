@@ -99,7 +99,13 @@ struct RootView: View {
         } else {
             mainTabView
                 .task {
+                    var previous: AppStateMachine.State = .idle
                     for await state in await composition.appStateMachine.observeState() {
+                        // When the alarm is silenced (not snoozed), start the ritual.
+                        if case .alarmRinging = previous, case .idle = state {
+                            ritualFlow = .timer
+                        }
+                        previous = state
                         appState = state
                     }
                 }
@@ -113,7 +119,7 @@ struct RootView: View {
                                 Task {
                                     composition.audioPlayer.stop()
                                     _ = try? await composition.snoozeAlarm.execute(alarmId: alarmId)
-                                    await composition.appStateMachine.send(.alarmSilenced)
+                                    await composition.appStateMachine.send(.alarmSnoozed)
                                 }
                             },
                             onSilence: {
@@ -180,13 +186,18 @@ struct RootView: View {
                 buildDashboard: composition.buildDashboardSnapshot,
                 fetchHistory: composition.fetchRitualHistory,
                 alarmRepository: composition.alarmRepository,
+                ritualRepository: composition.ritualRepository,
                 sleepService: composition.sleepHealthService,
                 quoteProvider: composition.quoteProvider
             ),
             refreshKey: dashboardRefreshKey,
             onStartRitual: { ritualFlow = .timer },
             onNavigateToAlarms: { selectedTab = 1 },
-            onAskLumen: { showAskLumen = true }
+            onAskLumen: { showAskLumen = true },
+            onResumeRitual: { ritualId, step in
+                questionnaireInitialStep = step
+                ritualFlow = .questionnaire(ritualId)
+            }
         )
     }
 
@@ -215,7 +226,6 @@ struct RootView: View {
     private var settingsTab: some View {
         SettingsView(
             vm: SettingsViewModel(
-                tts: composition.speechSynthesizer,
                 exportLogs: composition.exportEthicalLogs,
                 eraseLogs: composition.eraseEthicalLogs,
                 eraseRituals: composition.eraseAllRituals,

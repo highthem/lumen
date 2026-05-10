@@ -12,7 +12,7 @@ struct PresenceTimerView: View {
             LumenColor.bgPrimary.ignoresSafeArea()
 
             VStack(spacing: 0) {
-                Eyebrow("Présence · 60 secondes")
+                Eyebrow("Présence · \(Int(vm.totalDuration)) secondes")
                     .frame(maxWidth: .infinity, alignment: .center)
                     .padding(.top, LumenSpacing.xl)
 

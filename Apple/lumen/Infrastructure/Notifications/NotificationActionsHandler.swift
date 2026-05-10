@@ -50,6 +50,7 @@ final class NotificationActionsHandler: NSObject, UNUserNotificationCenterDelega
         switch actionId {
         case LumenNotificationAction.snooze.rawValue:
             _ = try? await snooze.execute(alarmId: alarmId)
+            await appState.send(.alarmSnoozed)
 
         case LumenNotificationAction.silence.rawValue:
             try? await cancel.execute(alarmId: alarmId)

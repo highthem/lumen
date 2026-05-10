@@ -1,28 +1,34 @@
-import XCTest
+import Testing
 @testable import lumen
 
+@Suite("UserAPIKeyStore")
 @MainActor
-final class UserAPIKeyStoreTests: XCTestCase {
-    func testIsValidKeyAcceptsCorrectPrefix() {
-        XCTAssertTrue(UserAPIKeyStore.isValidKey("sk-proj-abcdefghijklmnopqrstuv", for: .openai))
-        XCTAssertTrue(UserAPIKeyStore.isValidKey("sk-ant-api03-abcdefghijklmnopqrstuv", for: .anthropic))
+struct UserAPIKeyStoreTests {
+
+    @Test("isValidKey accepts correct prefix for each provider")
+    func isValidKeyAcceptsCorrectPrefix() {
+        #expect(UserAPIKeyStore.isValidKey("sk-proj-abcdefghijklmnopqrstuv", for: .openai))
+        #expect(UserAPIKeyStore.isValidKey("sk-ant-api03-abcdefghijklmnopqrstuv", for: .anthropic))
     }
 
-    func testIsValidKeyRejectsWrongPrefix() {
-        XCTAssertFalse(UserAPIKeyStore.isValidKey("xyz-not-a-key-1234567890", for: .openai))
+    @Test("isValidKey rejects wrong prefix")
+    func isValidKeyRejectsWrongPrefix() {
+        #expect(!UserAPIKeyStore.isValidKey("xyz-not-a-key-1234567890", for: .openai))
         // Anthropic key fed to OpenAI provider should be rejected.
-        XCTAssertFalse(UserAPIKeyStore.isValidKey("sk-ant-api03-abcdefghijklmnopqrstuv", for: .openai))
+        #expect(!UserAPIKeyStore.isValidKey("sk-ant-api03-abcdefghijklmnopqrstuv", for: .openai))
     }
 
-    func testIsValidKeyRejectsTooShort() {
-        XCTAssertFalse(UserAPIKeyStore.isValidKey("sk-short", for: .openai))
-        XCTAssertFalse(UserAPIKeyStore.isValidKey("", for: .openai))
+    @Test("isValidKey rejects too-short keys")
+    func isValidKeyRejectsTooShort() {
+        #expect(!UserAPIKeyStore.isValidKey("sk-short", for: .openai))
+        #expect(!UserAPIKeyStore.isValidKey("", for: .openai))
     }
 
-    func testMaskHidesMiddleSection() {
+    @Test("mask hides the middle section of a key")
+    func maskHidesMiddleSection() {
         let masked = UserAPIKeyStore.mask("sk-proj-7K2nP8mLqR4vXc9wA3bN6yE1fH5jD0sZ")
-        XCTAssertTrue(masked.hasPrefix("sk-proj"))
-        XCTAssertTrue(masked.hasSuffix("D0sZ"))
-        XCTAssertTrue(masked.contains("•"))
+        #expect(masked.hasPrefix("sk-proj"))
+        #expect(masked.hasSuffix("D0sZ"))
+        #expect(masked.contains("•"))
     }
 }

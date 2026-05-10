@@ -9,10 +9,12 @@ import CryptoKit
 struct RitualContext: Sendable, Hashable {
     var presence: PresenceState
     var sleep: SleepSummary?
+    var presenceDurationSeconds: Int
 
-    init(presence: PresenceState = .notStarted, sleep: SleepSummary? = nil) {
+    init(presence: PresenceState = .notStarted, sleep: SleepSummary? = nil, presenceDurationSeconds: Int = 60) {
         self.presence = presence
         self.sleep = sleep
+        self.presenceDurationSeconds = presenceDurationSeconds
     }
 }
 
@@ -214,8 +216,8 @@ enum PromptBuilder {
 
         // Presence: factual state only. Behavioral guidance lives in the system prompt.
         switch context.presence {
-        case .completed:  lines.append("présence: completed (60 secondes pleines)")
-        case .partial:    lines.append("présence: partial (au moins 30 secondes, puis passé)")
+        case .completed:  lines.append("présence: completed (\(context.presenceDurationSeconds) secondes pleines)")
+        case .partial:    lines.append("présence: partial (au moins \(context.presenceDurationSeconds / 2) secondes, puis passé)")
         case .skipped:    lines.append("présence: skipped (timer non démarré ou passé immédiatement)")
         case .notStarted: break  // ne pas envoyer de signal absent
         }

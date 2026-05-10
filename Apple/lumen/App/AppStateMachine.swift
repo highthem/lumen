@@ -13,6 +13,7 @@ actor AppStateMachine {
     enum Event: Sendable {
         case alarmFired(alarmId: UUID)
         case alarmSilenced
+        case alarmSnoozed
         case ritualStarted(ritualId: UUID)
         case ritualPaused(ritualId: UUID)
         case ritualResumed(ritualId: UUID)
@@ -70,6 +71,10 @@ actor AppStateMachine {
             break
 
         case (.alarmRinging, .alarmSilenced):
+            state = .idle
+            pendingAlarmId = nil
+
+        case (.alarmRinging, .alarmSnoozed):
             state = .idle
             pendingAlarmId = nil
 

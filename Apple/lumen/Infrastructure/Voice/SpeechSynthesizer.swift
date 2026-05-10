@@ -106,6 +106,7 @@ final class SpeechSynthesizer: TextToSpeeching {
             utterance.voice = voice
         }
         utterance.rate = Float(max(0.0, min(1.0, 0.45 * rate)))
+        utterance.volume = 1.0
 
         // Capture references that delegate callbacks (nonisolated) need to
         // route updates back to MainActor state. The continuation closures

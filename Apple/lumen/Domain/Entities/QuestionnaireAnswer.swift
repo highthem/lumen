@@ -5,6 +5,14 @@ enum QuestionnaireStep: String, Sendable, Codable, Hashable {
     case energy
     case priority
     case gratitude
+
+    /// Canonical sequential order used to determine questionnaire progress.
+    static let sequentialOrder: [QuestionnaireStep] = [.mood, .energy, .priority, .gratitude]
+
+    /// 1-based display index (mood = 1, energy = 2, priority = 3, gratitude = 4).
+    var displayIndex: Int {
+        (QuestionnaireStep.sequentialOrder.firstIndex(of: self) ?? 0) + 1
+    }
 }
 
 nonisolated enum AnswerPayload: Sendable, Codable, Hashable {

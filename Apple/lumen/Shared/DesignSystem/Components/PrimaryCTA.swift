@@ -10,6 +10,7 @@ struct PrimaryCTA<Label: View>: View {
             label()
                 .lumenFont(.body)
                 .foregroundStyle(LumenColor.bgPrimary)
+                .padding(.horizontal)
         }
         .contentShape(Rectangle())
         .frame(maxWidth: .infinity, minHeight: 52)

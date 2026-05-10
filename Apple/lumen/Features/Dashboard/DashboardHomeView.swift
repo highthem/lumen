@@ -11,6 +11,7 @@ struct DashboardHomeView: View {
     let onStartRitual: () -> Void
     let onNavigateToAlarms: () -> Void
     let onAskLumen: () -> Void
+    var onResumeRitual: ((UUID, QuestionnaireStep) -> Void)?
 
     @State private var showSleepSheet: Bool = false
     @State private var selectedCategory: DashboardCategory?
@@ -143,7 +144,7 @@ struct DashboardHomeView: View {
                 .padding(.top, 4)
                 .padding(.bottom, LumenSpacing.xl)
 
-            Spacer(minLength: LumenSpacing.huge)
+            Spacer()
 
             PrimaryCTA("Programmer mon réveil") {
                 onNavigateToAlarms()
@@ -158,11 +159,47 @@ struct DashboardHomeView: View {
     private var idleContent: some View {
         VStack(alignment: .leading, spacing: 22) {
             idleHeader
+            if let partial = vm.partialRitual,
+               let nextStep = partial.nextQuestionnaireStep {
+                resumeRitualBanner(ritual: partial, nextStep: nextStep)
+            }
             IdleHeroCard(onStart: onStartRitual)
             StreakStrip(history: vm.weekHistory)
             previewChipsRow
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    // MARK: - Resume ritual banner
+
+    private func resumeRitualBanner(ritual: Ritual, nextStep: QuestionnaireStep) -> some View {
+        HStack(spacing: LumenSpacing.m) {
+            VStack(alignment: .leading, spacing: LumenSpacing.xs2) {
+                Text("Reprendre ton rituel")
+                    .lumenFont(.callout)
+                    .foregroundStyle(LumenColor.textPrimary)
+                Text("Tu en étais à la question \(nextStep.displayIndex)/4")
+                    .lumenFont(.footnote)
+                    .foregroundStyle(LumenColor.textSecondary)
+            }
+            Spacer(minLength: 0)
+            Button {
+                onResumeRitual?(ritual.id, nextStep)
+            } label: {
+                Text("Reprendre")
+                    .lumenFont(.callout)
+                    .foregroundStyle(LumenColor.accent)
+                    .padding(.horizontal, LumenSpacing.m)
+                    .padding(.vertical, LumenSpacing.s)
+                    .background(LumenColor.accent.opacity(0.12))
+                    .clipShape(RoundedRectangle(cornerRadius: LumenRadius.m, style: .continuous))
+            }
+            .buttonStyle(.plain)
+        }
+        .padding(LumenSpacing.m)
+        .background(LumenColor.bgSecondary)
+        .clipShape(RoundedRectangle(cornerRadius: LumenRadius.l, style: .continuous))
+        .accessibilityIdentifier("resume-ritual-banner")
     }
 
     private var previewChipsRow: some View {

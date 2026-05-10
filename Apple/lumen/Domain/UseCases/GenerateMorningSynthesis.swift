@@ -4,15 +4,18 @@ struct GenerateMorningSynthesis: Sendable {
     private let ritualRepository: any RitualRepository
     private let aiService: any AISynthesisService
     private let sleepService: (any SleepHealthProviding)?
+    private let ritualSettings: any RitualSettingsReading
 
     init(
         ritualRepository: any RitualRepository,
         aiService: any AISynthesisService,
-        sleepService: (any SleepHealthProviding)? = nil
+        sleepService: (any SleepHealthProviding)? = nil,
+        ritualSettings: any RitualSettingsReading
     ) {
         self.ritualRepository = ritualRepository
         self.aiService = aiService
         self.sleepService = sleepService
+        self.ritualSettings = ritualSettings
     }
 
     func execute(ritualId: UUID, mode: AIResponseMode) async throws -> AIResponseResult {
@@ -27,7 +30,11 @@ struct GenerateMorningSynthesis: Sendable {
         }
 
         let sleep = await sleepService?.fetchLastNight()
-        let context = RitualContext(presence: ritual.presence, sleep: sleep)
+        let context = RitualContext(
+            presence: ritual.presence,
+            sleep: sleep,
+            presenceDurationSeconds: ritualSettings.presenceDurationSeconds
+        )
 
         let result = try await aiService.synthesize(
             answers: ritual.answers,

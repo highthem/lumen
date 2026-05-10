@@ -1,18 +1,22 @@
-import XCTest
+import Foundation
+import Testing
 @testable import lumen
 
+@Suite("MockSleepHealthService")
 @MainActor
-final class SleepHealthServiceMockTests: XCTestCase {
+struct SleepHealthServiceMockTests {
 
-    func testMockReturnsNilByDefault() async {
+    @Test("mock returns nil summary and false authorized by default")
+    func mockReturnsNilByDefault() async {
         let mock = MockSleepHealthService()
         let summary = await mock.fetchLastNight()
-        XCTAssertNil(summary)
+        #expect(summary == nil)
         let authorized = await mock.isAuthorized
-        XCTAssertFalse(authorized)
+        #expect(!authorized)
     }
 
-    func testMockReturnsConfiguredSummary() async {
+    @Test("mock returns the configured summary when set")
+    func mockReturnsConfiguredSummary() async {
         let fixed = SleepSummary(
             bedtime: Date().addingTimeInterval(-8 * 3600),
             wakeTime: Date(),
@@ -24,24 +28,26 @@ final class SleepHealthServiceMockTests: XCTestCase {
         )
         let mock = MockSleepHealthService(summary: fixed, authorized: true)
         let summary = await mock.fetchLastNight()
-        XCTAssertEqual(summary?.totalAsleep, fixed.totalAsleep)
-        XCTAssertEqual(summary?.quality, .high)
+        #expect(summary?.totalAsleep == fixed.totalAsleep)
+        #expect(summary?.quality == .high)
     }
 
-    func testRequestAuthorizationFlipsFlag() async {
+    @Test("requestAuthorization flips the authorized flag")
+    func requestAuthorizationFlipsFlag() async {
         let mock = MockSleepHealthService(summary: nil, authorized: false)
         let granted = await mock.requestAuthorization()
-        XCTAssertTrue(granted)
+        #expect(granted)
         let authorized = await mock.isAuthorized
-        XCTAssertTrue(authorized)
+        #expect(authorized)
     }
 
-    func testQualityThresholds() {
+    @Test("quality thresholds map sleep duration to correct quality level")
+    func qualityThresholds() {
         let short = SleepSummary(bedtime: Date(), wakeTime: Date(), totalAsleep: 4 * 3600, deep: 0, rem: 0, core: 4 * 3600, awake: 0)
-        XCTAssertEqual(short.quality, .low)
+        #expect(short.quality == .low)
         let medium = SleepSummary(bedtime: Date(), wakeTime: Date(), totalAsleep: 6 * 3600, deep: 0, rem: 0, core: 6 * 3600, awake: 0)
-        XCTAssertEqual(medium.quality, .medium)
+        #expect(medium.quality == .medium)
         let solid = SleepSummary(bedtime: Date(), wakeTime: Date(), totalAsleep: 8 * 3600, deep: 0, rem: 0, core: 8 * 3600, awake: 0)
-        XCTAssertEqual(solid.quality, .high)
+        #expect(solid.quality == .high)
     }
 }

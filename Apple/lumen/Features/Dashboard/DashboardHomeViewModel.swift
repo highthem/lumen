@@ -21,6 +21,8 @@ final class DashboardHomeViewModel {
     var quote: Quote?
     /// 7-day completion window powering the streak strip + footer.
     var weekHistory: WeekHistory = .empty
+    /// Non-nil when the user has a partial ritual today — drives the resume banner.
+    var partialRitual: Ritual?
 
     /// Mutually-exclusive state used by the View's outer switch.
     var displayState: DashboardState {
@@ -33,18 +35,21 @@ final class DashboardHomeViewModel {
     private let buildDashboard: BuildDashboardSnapshot
     private let fetchHistory: FetchRitualHistory
     private let alarmRepository: any AlarmRepository
+    private let ritualRepository: any RitualRepository
     private let quoteProvider: any QuoteProviding
 
     init(
         buildDashboard: BuildDashboardSnapshot,
         fetchHistory: FetchRitualHistory,
         alarmRepository: any AlarmRepository,
+        ritualRepository: any RitualRepository,
         sleepService: any SleepHealthProviding,
         quoteProvider: any QuoteProviding
     ) {
         self.buildDashboard = buildDashboard
         self.fetchHistory = fetchHistory
         self.alarmRepository = alarmRepository
+        self.ritualRepository = ritualRepository
         self.sleepService = sleepService
         self.quoteProvider = quoteProvider
         self.hasAnyRitual = UserDefaults.standard.bool(forKey: "lumen.hasAnyRitual")
@@ -72,6 +77,12 @@ final class DashboardHomeViewModel {
             hasRitualToday = false
         }
         weekHistory = (try? await fetchHistory.execute()) ?? .empty
+        if let ritual = try? await ritualRepository.fetchByDate(Date()),
+           ritual.state == .partial {
+            partialRitual = ritual
+        } else {
+            partialRitual = nil
+        }
     }
 
     /// Earliest active alarm by time-of-day. Returns nil if none.

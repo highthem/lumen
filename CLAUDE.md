@@ -79,6 +79,7 @@ Config/        Secrets.xcconfig (gitignored), Secrets.xcconfig.sample
 - **SwiftData writes off main thread:** `@ModelActor`. (use swiftdata-pro skill)
 - **Domain entities:** immutable `Sendable` structs.
 - **No Combine.** Only async/await + `Task` + `AsyncStream` where needed.
+- **SwiftTesting** preferred over *XCTest*. (use swift-testing-pro skill)
 - **No third-party libraries.** URLSession for networking, SwiftData for persistence, manual constructor DI.
 - **iOS 26+ APIs** (Foundation Models / Apple Intelligence) must be gated with `#if canImport(FoundationModels)` AND `@available(iOS 26.0, *)`. Do not use `MeshGradient` (iOS 18+) or Liquid Glass APIs.
 

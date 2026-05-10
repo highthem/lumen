@@ -64,7 +64,7 @@ extension SynthesisViewModel {
     static var preview: SynthesisViewModel {
         let ritualRepo = PreviewRitualRepository()
         let ai = PreviewAISynthesisService()
-        let generate = GenerateMorningSynthesis(ritualRepository: ritualRepo, aiService: ai)
+        let generate = GenerateMorningSynthesis(ritualRepository: ritualRepo, aiService: ai, ritualSettings: UserDefaultsRitualSettings())
         let speak = SpeakSynthesis(tts: MaestroTextToSpeech())
         return SynthesisViewModel(
             ritualId: Ritual.preview.id,
@@ -89,6 +89,7 @@ extension DashboardHomeViewModel {
             buildDashboard: build,
             fetchHistory: history,
             alarmRepository: alarmRepo,
+            ritualRepository: ritualRepo,
             sleepService: sleep,
             quoteProvider: JSONQuoteProvider()
         )
@@ -106,6 +107,7 @@ extension DashboardHomeViewModel {
             buildDashboard: build,
             fetchHistory: history,
             alarmRepository: alarmRepo,
+            ritualRepository: ritualRepo,
             sleepService: sleep,
             quoteProvider: JSONQuoteProvider()
         )
@@ -121,6 +123,7 @@ extension DashboardHomeViewModel {
             buildDashboard: build,
             fetchHistory: history,
             alarmRepository: alarmRepo,
+            ritualRepository: ritualRepo,
             sleepService: sleep,
             quoteProvider: JSONQuoteProvider()
         )
@@ -158,7 +161,6 @@ extension SettingsViewModel {
         let logs = PreviewEthicalLogRepository()
         let rituals = PreviewRitualRepository()
         return SettingsViewModel(
-            tts: MaestroTextToSpeech(),
             exportLogs: ExportEthicalLogs(logRepository: logs),
             eraseLogs: EraseEthicalLogs(logRepository: logs),
             eraseRituals: EraseAllRituals(repository: rituals),

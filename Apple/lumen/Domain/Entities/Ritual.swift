@@ -35,4 +35,16 @@ nonisolated struct Ritual: Identifiable, Sendable, Codable, Hashable {
         self.synthesisInsights = synthesisInsights?.isEmpty == true ? nil : synthesisInsights
         self.completedAt = completedAt
     }
+
+    /// Returns the next unanswered questionnaire step, in sequential order
+    /// (mood → energy → priority → gratitude). Returns `nil` when all four
+    /// steps are answered. This is purely a function of the `answers` array
+    /// and requires no schema migration.
+    var nextQuestionnaireStep: QuestionnaireStep? {
+        let answeredSteps = Set(answers.map(\.step))
+        for step in QuestionnaireStep.sequentialOrder {
+            if !answeredSteps.contains(step) { return step }
+        }
+        return nil
+    }
 }

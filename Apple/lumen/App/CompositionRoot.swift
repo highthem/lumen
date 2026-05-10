@@ -256,7 +256,7 @@ final class CompositionRoot {
         // Use cases
         self.startRitual = StartRitual(ritualRepository: ritualRepo)
         self.saveQuestionnaireAnswer = SaveQuestionnaireAnswer(ritualRepository: ritualRepo)
-        self.generateMorningSynthesis = GenerateMorningSynthesis(ritualRepository: ritualRepo, aiService: synthesisService, sleepService: sleep)
+        self.generateMorningSynthesis = GenerateMorningSynthesis(ritualRepository: ritualRepo, aiService: synthesisService, sleepService: sleep, ritualSettings: UserDefaultsRitualSettings())
         self.buildDashboardSnapshot = BuildDashboardSnapshot(ritualRepository: ritualRepo, sleepService: sleep)
         self.fetchRitualHistory = FetchRitualHistory(repository: ritualRepo)
         self.eraseAllRituals = EraseAllRituals(repository: ritualRepo)

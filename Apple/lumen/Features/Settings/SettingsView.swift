@@ -17,16 +17,11 @@ struct SettingsView: View {
     var body: some View {
         NavigationStack {
             Form {
-                rituelSection
-                soundSection
-                voiceSection
-                aiSection
-                quotaSection
-                #if DEBUG
-                advancedSection
-                #endif
-                ethicalSection
+                presenceSection
+                voixSection
                 appearanceSection
+                aiSection
+                ethicalSection
                 aboutSection
             }
             .scrollContentBackground(.hidden)
@@ -44,7 +39,6 @@ struct SettingsView: View {
                 }
             }
             .task {
-                await vm.load()
                 await keyStore.load()
             }
             .accessibilityIdentifier("settings-screen")
@@ -95,24 +89,16 @@ struct SettingsView: View {
 
     // MARK: - Sections
 
-    private var rituelSection: some View {
-        Section("Rituel") {
-            HStack {
-                Text("Durée du timer de présence")
-                Spacer()
-                Text("60 s")
-                    .foregroundStyle(LumenColor.textSecondary)
+    private var presenceSection: some View {
+        Section("Présence") {
+            Picker("Durée du timer de présence", selection: $vm.presenceDurationSeconds) {
+                Text("30 s").tag(30)
+                Text("1 min").tag(60)
+                Text("1 min 30").tag(90)
+                Text("2 min").tag(120)
             }
+            .accessibilityIdentifier("presence-duration-picker")
 
-            Button("Effacer mon historique de rituels", role: .destructive) {
-                showEraseRitualsAlert = true
-            }
-            .accessibilityIdentifier("settings-erase-rituals-button")
-        }
-    }
-
-    private var soundSection: some View {
-        Section("Sons") {
             Picker("Respiration", selection: $vm.breathingSoundId) {
                 ForEach(vm.breathingSounds) { sound in
                     Text(sound.displayName).tag(sound.id)
@@ -121,7 +107,7 @@ struct SettingsView: View {
         }
     }
 
-    private var voiceSection: some View {
+    private var voixSection: some View {
         Section("Voix") {
             LumenToggle(isOn: $vm.voiceModeEnabled, label: "Mode vocal par défaut")
                 .accessibilityIdentifier("voice-default-toggle")
@@ -135,32 +121,10 @@ struct SettingsView: View {
                     .foregroundStyle(LumenColor.textSecondary)
             }
 
-            if !vm.availableVoices.isEmpty {
-                Picker("Voix", selection: $vm.selectedVoiceId) {
-                    ForEach(vm.availableVoices) { voice in
-                        Text("\(voice.name) (\(voice.lang.uppercased()))")
-                            .tag(voice.id)
-                    }
-                }
-            }
-
-            LumenSegmentedControl(
-                options: vm.speedOptions,
-                selection: $vm.selectedSpeed,
-                label: { $0.label }
-            )
-
             Text("L'audio reste sur ton téléphone. Aucun envoi à Apple ou ailleurs.")
                 .lumenFont(.footnote)
                 .italic()
                 .foregroundStyle(LumenColor.textTertiary)
-
-            Button("Vérifier les permissions") {
-                if let url = URL(string: UIApplication.openSettingsURLString) {
-                    UIApplication.shared.open(url)
-                }
-            }
-            .foregroundStyle(LumenColor.accent)
         }
     }
 
@@ -188,29 +152,14 @@ struct SettingsView: View {
             ])
 
             Text(keyStore.hasKey
-                 ? "Lumen AI utilise ta clé personnelle. Aucune réponse n'est stockée sur nos serveurs."
-                 : "Lumen AI s'appuie sur OpenAI et Anthropic. Aucune réponse n'est stockée sur nos serveurs.")
-                .lumenFont(.footnoteSerif)
-                .italic()
-                .foregroundStyle(LumenColor.textTertiary)
-                .fixedSize(horizontal: false, vertical: true)
-        }
-    }
-
-    private var quotaSection: some View {
-        Section("Quotas") {
-            Text(keyStore.hasKey
                  ? "Illimité · clé personnelle active."
                  : "3 synthèses par jour · 3 questions « Ask Lumen ».")
                 .lumenFont(.chipLabel)
                 .fontWeight(.regular)
                 .foregroundStyle(LumenColor.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
-        }
-    }
 
-    private var advancedSection: some View {
-        Section {
+            #if DEBUG
             NavigationLink {
                 SettingsAdvancedView(vm: makeAdvancedVM())
             } label: {
@@ -228,6 +177,15 @@ struct SettingsView: View {
                 }
             }
             .accessibilityIdentifier("settings-advanced-link")
+            #endif
+
+            Text(keyStore.hasKey
+                 ? "Lumen AI utilise ta clé personnelle. Aucune donnée ne quitte ton appareil vers nos serveurs."
+                 : "Génération distante, sans stockage. Tes réponses ne traversent jamais nos serveurs.")
+                .lumenFont(.footnoteSerif)
+                .italic()
+                .foregroundStyle(LumenColor.textTertiary)
+                .fixedSize(horizontal: false, vertical: true)
         }
     }
 
@@ -254,6 +212,11 @@ struct SettingsView: View {
             Button("Effacer mes logs", role: .destructive) {
                 showEraseAlert = true
             }
+
+            Button("Effacer mon historique de rituels", role: .destructive) {
+                showEraseRitualsAlert = true
+            }
+            .accessibilityIdentifier("settings-erase-rituals-button")
         }
     }
 

@@ -4,7 +4,8 @@ import Observation
 @MainActor
 @Observable
 final class PresenceTimerViewModel {
-    var remaining: TimeInterval = 60.0
+    private(set) var totalDuration: TimeInterval
+    var remaining: TimeInterval
     var quote: Quote?
     var isComplete = false
 
@@ -38,10 +39,14 @@ final class PresenceTimerViewModel {
         self.audioPlayer = audioPlayer
         self.soundProvider = soundProvider
         self.ritualRepository = ritualRepository
+        let stored = UserDefaults.standard.object(forKey: "lumen.settings.presenceDurationSeconds") as? Int ?? 60
+        let validated = [30, 60, 90, 120].contains(stored) ? stored : 60
+        self.totalDuration = TimeInterval(validated)
+        self.remaining = TimeInterval(validated)
     }
 
     /// Time spent in presence so far. Used to classify partial vs skipped.
-    var elapsed: TimeInterval { 60.0 - remaining }
+    var elapsed: TimeInterval { totalDuration - remaining }
 
     func start() async {
         quote = await quoteProvider.random(lang: "fr")
@@ -82,7 +87,7 @@ final class PresenceTimerViewModel {
     func skip() {
         countdownTask?.cancel()
         Task { audioPlayer.stop() }
-        let endState: PresenceState = elapsed >= 30 ? .partial : .skipped
+        let endState: PresenceState = elapsed >= totalDuration / 2 ? .partial : .skipped
         Task { await persistPresence(endState) }
         isComplete = true
     }

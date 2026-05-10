@@ -1,116 +1,103 @@
-import XCTest
+import Testing
 @testable import lumen
 
+@Suite("ContentSafetyDetector")
 @MainActor
-final class ContentSafetyDetectorTests: XCTestCase {
+struct ContentSafetyDetectorTests {
 
     private let sut = ContentSafetyDetector()
 
-    // MARK: - Self-harm detection
+    // MARK: - Self-harm detection (parametric)
 
-    func testFRSelfHarmCue_suicide() {
-        let flags = sut.detect(in: "Je pense au suicide")
-        XCTAssertTrue(flags.contains(.selfHarmCue))
+    @Test(
+        "detects selfHarmCue in flagged inputs",
+        arguments: [
+            "Je pense au suicide",
+            "J'ai envie de me tuer aujourd'hui",
+            "Je veux en finir avec tout",
+            "I want to kill myself",
+            "thinking about ending my life",
+            "urge to harm myself",
+            "KILL MYSELF",          // case insensitive
+        ]
+    )
+    func detectsSelfHarmCue(input: String) {
+        let flags = sut.detect(in: input)
+        #expect(flags.contains(.selfHarmCue))
     }
 
-    func testFRSelfHarmCue_meTuer() {
-        let flags = sut.detect(in: "J'ai envie de me tuer aujourd'hui")
-        XCTAssertTrue(flags.contains(.selfHarmCue))
+    // MARK: - Violent language (parametric)
+
+    @Test(
+        "detects violentLanguage in flagged inputs",
+        arguments: [
+            "I want to shoot someone",
+            "j'ai envie de frapper mon patron",
+        ]
+    )
+    func detectsViolentLanguage(input: String) {
+        let flags = sut.detect(in: input)
+        #expect(flags.contains(.violentLanguage))
     }
 
-    func testFRSelfHarmCue_enFinir() {
-        let flags = sut.detect(in: "Je veux en finir avec tout")
-        XCTAssertTrue(flags.contains(.selfHarmCue))
+    // MARK: - Medical advice (parametric)
+
+    @Test(
+        "detects medicalAdviceRequest in flagged inputs",
+        arguments: [
+            "can you diagnose my symptoms",
+            "besoin d'un diagnostic médical",
+        ]
+    )
+    func detectsMedicalAdvice(input: String) {
+        let flags = sut.detect(in: input)
+        #expect(flags.contains(.medicalAdviceRequest))
     }
 
-    func testENSelfHarmCue_killMyself() {
-        let flags = sut.detect(in: "I want to kill myself")
-        XCTAssertTrue(flags.contains(.selfHarmCue))
+    // MARK: - Legal advice (parametric)
+
+    @Test(
+        "detects legalAdviceRequest in flagged inputs",
+        arguments: [
+            "I want to sue them for everything",
+            "je vais poursuivre en justice cette entreprise",
+        ]
+    )
+    func detectsLegalAdvice(input: String) {
+        let flags = sut.detect(in: input)
+        #expect(flags.contains(.legalAdviceRequest))
     }
 
-    func testENSelfHarmCue_endMyLife() {
-        let flags = sut.detect(in: "thinking about ending my life")
-        XCTAssertTrue(flags.contains(.selfHarmCue))
-    }
+    // MARK: - Benign text returns empty (parametric)
 
-    func testENSelfHarmCue_harmMyself() {
-        let flags = sut.detect(in: "urge to harm myself")
-        XCTAssertTrue(flags.contains(.selfHarmCue))
-    }
-
-    // MARK: - Case insensitive
-
-    func testCaseInsensitive() {
-        let flags = sut.detect(in: "KILL MYSELF")
-        XCTAssertTrue(flags.contains(.selfHarmCue))
-    }
-
-    // MARK: - Violent language
-
-    func testENViolentLanguage_shoot() {
-        let flags = sut.detect(in: "I want to shoot someone")
-        XCTAssertTrue(flags.contains(.violentLanguage))
-    }
-
-    func testFRViolentLanguage_frapper() {
-        let flags = sut.detect(in: "j'ai envie de frapper mon patron")
-        XCTAssertTrue(flags.contains(.violentLanguage))
-    }
-
-    // MARK: - Medical advice
-
-    func testMedicalAdvice_EN() {
-        let flags = sut.detect(in: "can you diagnose my symptoms")
-        XCTAssertTrue(flags.contains(.medicalAdviceRequest))
-    }
-
-    func testMedicalAdvice_FR() {
-        let flags = sut.detect(in: "besoin d'un diagnostic médical")
-        XCTAssertTrue(flags.contains(.medicalAdviceRequest))
-    }
-
-    // MARK: - Legal advice
-
-    func testLegalAdvice_EN() {
-        let flags = sut.detect(in: "I want to sue them for everything")
-        XCTAssertTrue(flags.contains(.legalAdviceRequest))
-    }
-
-    func testLegalAdvice_FR() {
-        let flags = sut.detect(in: "je vais poursuivre en justice cette entreprise")
-        XCTAssertTrue(flags.contains(.legalAdviceRequest))
-    }
-
-    // MARK: - Benign text returns empty
-
-    func testBenignText_morning() {
-        let flags = sut.detect(in: "Je me sens bien ce matin, plein d'énergie")
-        XCTAssertTrue(flags.isEmpty)
-    }
-
-    func testBenignText_gratitude() {
-        let flags = sut.detect(in: "I am grateful for my family and friends")
-        XCTAssertTrue(flags.isEmpty)
-    }
-
-    func testBenignText_empty() {
-        let flags = sut.detect(in: "")
-        XCTAssertTrue(flags.isEmpty)
+    @Test(
+        "benign text returns empty flags",
+        arguments: [
+            "Je me sens bien ce matin, plein d'énergie",
+            "I am grateful for my family and friends",
+            "",
+        ]
+    )
+    func benignTextReturnsEmpty(input: String) {
+        let flags = sut.detect(in: input)
+        #expect(flags.isEmpty)
     }
 
     // MARK: - Multiple flags in one text
 
-    func testMultipleFlagsDetected() {
+    @Test("multiple flags are detected in a single text")
+    func multipleFlagsDetected() {
         let flags = sut.detect(in: "I want to kill myself and I need medical advice to diagnose this")
-        XCTAssertTrue(flags.contains(.selfHarmCue))
-        XCTAssertTrue(flags.contains(.medicalAdviceRequest))
+        #expect(flags.contains(.selfHarmCue))
+        #expect(flags.contains(.medicalAdviceRequest))
     }
 
     // MARK: - Distinct flags (no duplicates)
 
-    func testDistinctFlags() {
+    @Test("repeated trigger words do not produce duplicate flags")
+    func distinctFlags() {
         let flags = sut.detect(in: "suicide suicide suicide")
         let selfHarmCount = flags.filter { $0 == .selfHarmCue }.count
-        XCTAssertEqual(selfHarmCount, 1, "Should not return duplicate flags")
+        #expect(selfHarmCount == 1)
     }
 }

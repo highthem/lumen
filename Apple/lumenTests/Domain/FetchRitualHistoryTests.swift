@@ -1,26 +1,33 @@
-import XCTest
+import Foundation
+import Testing
 @testable import lumen
 
-@MainActor
-final class FetchRitualHistoryTests: XCTestCase {
+@Suite("FetchRitualHistory")
+struct FetchRitualHistoryTests {
 
     private let calendar = Calendar(identifier: .gregorian)
-    private lazy var today: Date = calendar.startOfDay(for: Date())
+    private let today: Date
 
-    func testEmptyRepoYieldsZeroCompletionAndZeroStreak() async throws {
+    init() {
+        today = Calendar(identifier: .gregorian).startOfDay(for: Date())
+    }
+
+    @Test("empty repository yields zero completion and zero streak")
+    func emptyRepoYieldsZeroCompletionAndZeroStreak() async throws {
         let repo = HistoryRepo(rituals: [])
         let sut = FetchRitualHistory(repository: repo)
 
         let history = try await sut.execute(reference: today)
 
-        XCTAssertEqual(history.days.count, 7)
-        XCTAssertEqual(history.completedCount, 0)
-        XCTAssertEqual(history.consecutiveStreak, 0)
-        XCTAssertTrue(history.days.allSatisfy { !$0.isCompleted })
-        XCTAssertTrue(history.days.last?.isToday == true)
+        #expect(history.days.count == 7)
+        #expect(history.completedCount == 0)
+        #expect(history.consecutiveStreak == 0)
+        #expect(history.days.allSatisfy { !$0.isCompleted })
+        #expect(history.days.last?.isToday == true)
     }
 
-    func testThreeConsecutiveCompletedEndingTodayProducesStreakThree() async throws {
+    @Test("three consecutive completed days ending today produces streak of 3")
+    func threeConsecutiveCompletedEndingTodayProducesStreakThree() async throws {
         let dates = [-2, -1, 0].map { offset in
             calendar.date(byAdding: .day, value: offset, to: today)!
         }
@@ -30,11 +37,12 @@ final class FetchRitualHistoryTests: XCTestCase {
 
         let history = try await sut.execute(reference: today)
 
-        XCTAssertEqual(history.completedCount, 3)
-        XCTAssertEqual(history.consecutiveStreak, 3)
+        #expect(history.completedCount == 3)
+        #expect(history.consecutiveStreak == 3)
     }
 
-    func testGapEndingYesterdayCountsBackFromYesterday() async throws {
+    @Test("gap ending yesterday counts back from yesterday")
+    func gapEndingYesterdayCountsBackFromYesterday() async throws {
         // Days: today (incomplete), -1 done, -2 done, -3 done, -4 incomplete
         let dones = [-3, -2, -1].map { offset in
             ritual(at: calendar.date(byAdding: .day, value: offset, to: today)!, completed: true)
@@ -44,12 +52,13 @@ final class FetchRitualHistoryTests: XCTestCase {
 
         let history = try await sut.execute(reference: today)
 
-        XCTAssertEqual(history.completedCount, 3)
-        XCTAssertEqual(history.consecutiveStreak, 3)
-        XCTAssertFalse(history.days.last?.isCompleted ?? true) // today is empty
+        #expect(history.completedCount == 3)
+        #expect(history.consecutiveStreak == 3)
+        #expect(history.days.last?.isCompleted == false) // today is empty
     }
 
-    func testPartialOrNotStartedRitualsDoNotCount() async throws {
+    @Test("partial or notStarted rituals do not count toward streak")
+    func partialOrNotStartedRitualsDoNotCount() async throws {
         let yesterday = calendar.date(byAdding: .day, value: -1, to: today)!
         let partial = Ritual(
             id: UUID(),
@@ -63,8 +72,8 @@ final class FetchRitualHistoryTests: XCTestCase {
 
         let history = try await sut.execute(reference: today)
 
-        XCTAssertEqual(history.completedCount, 0)
-        XCTAssertEqual(history.consecutiveStreak, 0)
+        #expect(history.completedCount == 0)
+        #expect(history.consecutiveStreak == 0)
     }
 
     // MARK: - Helpers

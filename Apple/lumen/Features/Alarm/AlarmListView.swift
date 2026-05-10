@@ -19,20 +19,33 @@ struct AlarmListView: View {
                 }
                 #endif
 
-                ForEach(vm.alarms) { alarm in
-                    alarmRow(alarm)
-                        .listRowBackground(LumenColor.bgSecondary)
-                        .listRowSeparatorTint(LumenColor.divider)
-                        .swipeActions {
-                            Button(role: .destructive) {
-                                Task { await vm.delete(alarm) }
-                            } label: {
-                                Label("Supprimer", systemImage: "trash")
+                if vm.alarms.isEmpty {
+                    ContentUnavailableView {
+                        Label("Aucun réveil", systemImage: "alarm")
+                            .lumenFont(.title1)
+                    } description: {
+                        Text("Crée un réveil pour démarrer ton rituel matinal.")
+                            .lumenFont(.bodyBold)
+                    } actions: {
+                        PrimaryCTA("Créer un réveil") { creating = true }
+                    }
+                    .accessibilityIdentifier("alarm-empty-state")
+                } else {
+                    ForEach(vm.alarms) { alarm in
+                        alarmRow(alarm)
+                            .listRowBackground(LumenColor.bgSecondary)
+                            .listRowSeparatorTint(LumenColor.divider)
+                            .swipeActions {
+                                Button(role: .destructive) {
+                                    Task { await vm.delete(alarm) }
+                                } label: {
+                                    Label("Supprimer", systemImage: "trash")
+                                }
                             }
-                        }
-                        .onTapGesture {
-                            editingAlarm = alarm
-                        }
+                            .onTapGesture {
+                                editingAlarm = alarm
+                            }
+                    }
                 }
             }
             .scrollContentBackground(.hidden)

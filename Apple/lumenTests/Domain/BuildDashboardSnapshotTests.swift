@@ -1,10 +1,13 @@
-import XCTest
+import Foundation
+import Testing
 @testable import lumen
 
+@Suite("BuildDashboardSnapshot")
 @MainActor
-final class BuildDashboardSnapshotTests: XCTestCase {
+struct BuildDashboardSnapshotTests {
 
-    func testNoRitualReturnsEmptySnapshotWithSleepFromService() async throws {
+    @Test("no ritual returns empty snapshot with sleep from service")
+    func noRitualReturnsEmptySnapshotWithSleepFromService() async throws {
         let ritualRepo = InMemoryRitualRepository()
         let sleep = SleepSummary(
             bedtime: Date().addingTimeInterval(-8 * 3600),
@@ -20,15 +23,16 @@ final class BuildDashboardSnapshotTests: XCTestCase {
 
         let snapshot = try await sut.execute(date: Date())
 
-        XCTAssertNil(snapshot.mood)
-        XCTAssertNil(snapshot.energy)
-        XCTAssertNil(snapshot.priority)
-        XCTAssertNil(snapshot.gratitude)
-        XCTAssertEqual(snapshot.presence, .notStarted)
-        XCTAssertEqual(snapshot.sleep?.totalAsleep, sleep.totalAsleep)
+        #expect(snapshot.mood == nil)
+        #expect(snapshot.energy == nil)
+        #expect(snapshot.priority == nil)
+        #expect(snapshot.gratitude == nil)
+        #expect(snapshot.presence == .notStarted)
+        #expect(snapshot.sleep?.totalAsleep == sleep.totalAsleep)
     }
 
-    func testFullRitualPopulatesAllAnswerFields() async throws {
+    @Test("full ritual populates all answer fields")
+    func fullRitualPopulatesAllAnswerFields() async throws {
         let ritualId = UUID()
         let ritual = Ritual(
             id: ritualId,
@@ -48,25 +52,27 @@ final class BuildDashboardSnapshotTests: XCTestCase {
 
         let snapshot = try await sut.execute(date: Date())
 
-        XCTAssertEqual(snapshot.mood?.level, 7)
-        XCTAssertEqual(snapshot.mood?.tag, "posé")
-        XCTAssertEqual(snapshot.energy, .charged)
-        XCTAssertEqual(snapshot.priority?.text, "Bloquer 90 min pour le brief.")
-        XCTAssertEqual(snapshot.gratitude, "Le silence.")
-        XCTAssertEqual(snapshot.presence, .completed)
+        #expect(snapshot.mood?.level == 7)
+        #expect(snapshot.mood?.tag == "posé")
+        #expect(snapshot.energy == .charged)
+        #expect(snapshot.priority?.text == "Bloquer 90 min pour le brief.")
+        #expect(snapshot.gratitude == "Le silence.")
+        #expect(snapshot.presence == .completed)
     }
 
-    func testSleepNilWhenServiceUnauthorized() async throws {
+    @Test("sleep is nil when service is unauthorized")
+    func sleepNilWhenServiceUnauthorized() async throws {
         let ritualRepo = InMemoryRitualRepository()
         let sleepService = MockSleepHealthService(summary: nil, authorized: false)
         let sut = BuildDashboardSnapshot(ritualRepository: ritualRepo, sleepService: sleepService)
 
         let snapshot = try await sut.execute(date: Date())
 
-        XCTAssertNil(snapshot.sleep)
+        #expect(snapshot.sleep == nil)
     }
 
-    func testPresenceReadFromRitual() async throws {
+    @Test("presence is read from the ritual entity")
+    func presenceReadFromRitual() async throws {
         let ritualId = UUID()
         let ritual = Ritual(
             id: ritualId,
@@ -81,10 +87,11 @@ final class BuildDashboardSnapshotTests: XCTestCase {
 
         let snapshot = try await sut.execute(date: Date())
 
-        XCTAssertEqual(snapshot.presence, .skipped)
+        #expect(snapshot.presence == .skipped)
     }
 
-    func testSynthesisInsightsFlowIntoSnapshot() async throws {
+    @Test("synthesis insights flow into the snapshot")
+    func synthesisInsightsFlowIntoSnapshot() async throws {
         let ritualId = UUID()
         let ritual = Ritual(
             id: ritualId,
@@ -106,8 +113,8 @@ final class BuildDashboardSnapshotTests: XCTestCase {
 
         let snapshot = try await sut.execute(date: Date())
 
-        XCTAssertEqual(snapshot.insights?[.mood], "Posé. Une bonne assise.")
-        XCTAssertEqual(snapshot.insights?[.gratitude], "Le silence, avant le bruit.")
+        #expect(snapshot.insights?[.mood] == "Posé. Une bonne assise.")
+        #expect(snapshot.insights?[.gratitude] == "Le silence, avant le bruit.")
     }
 }
 

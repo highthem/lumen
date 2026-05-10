@@ -1,4 +1,5 @@
-import XCTest
+import Foundation
+import Testing
 import SwiftData
 @testable import lumen
 
@@ -122,12 +123,14 @@ private func makeAnswers(ritualId: UUID) -> [QuestionnaireAnswer] {
 
 // MARK: - Tests
 
+@Suite("WaterfallAISynthesisService")
 @MainActor
-final class WaterfallAISynthesisServiceTests: XCTestCase {
+struct WaterfallAISynthesisServiceTests {
 
     // MARK: - Case 1: safety short-circuit on selfHarmCue
 
-    func testSelfHarmCueReturnsSupportTemplate() async throws {
+    @Test("selfHarmCue returns support template without calling cloud provider")
+    func selfHarmCueReturnsSupportTemplate() async throws {
         let ritualId = UUID()
         let logRepo = MockEthicalLogRepository()
         let ethicalLogger = EthicalLogger(repository: logRepo)
@@ -155,16 +158,18 @@ final class WaterfallAISynthesisServiceTests: XCTestCase {
         let result = try await sut.synthesize(answers: answers, ritualId: ritualId, mode: .auto)
 
         guard case .ready(let response) = result else {
-            return XCTFail("Expected .ready with support template")
+            Issue.record("Expected .ready with support template")
+            return
         }
-        XCTAssertEqual(response.provider, .supportTemplate)
+        #expect(response.provider == .supportTemplate)
         let prompts = await openai.capturedPrompts
-        XCTAssertTrue(prompts.isEmpty, "Cloud provider must not be called for selfHarmCue")
+        #expect(prompts.isEmpty)
     }
 
     // MARK: - Case 2: rate limit throws
 
-    func testRateLimitedThrows() async {
+    @Test("rate limited throws AIError.rateLimited")
+    func rateLimitedThrows() async {
         let ritualId = UUID()
         let logRepo = MockEthicalLogRepository()
         let ethicalLogger = EthicalLogger(repository: logRepo)
@@ -189,17 +194,18 @@ final class WaterfallAISynthesisServiceTests: XCTestCase {
 
         do {
             _ = try await sut.synthesize(answers: makeAnswers(ritualId: ritualId), ritualId: ritualId, mode: .auto)
-            XCTFail("Should have thrown AIError.rateLimited")
+            Issue.record("Should have thrown AIError.rateLimited")
         } catch AIError.rateLimited {
             // Expected
         } catch {
-            XCTFail("Unexpected error: \(error)")
+            Issue.record("Unexpected error: \(error)")
         }
     }
 
     // MARK: - Case 3: first cloud provider succeeds
 
-    func testFirstCloudProviderSucceeds() async throws {
+    @Test("first cloud provider succeeds — second is not called")
+    func firstCloudProviderSucceeds() async throws {
         let ritualId = UUID()
         let logRepo = MockEthicalLogRepository()
         let ethicalLogger = EthicalLogger(repository: logRepo)
@@ -226,16 +232,18 @@ final class WaterfallAISynthesisServiceTests: XCTestCase {
         let result = try await sut.synthesize(answers: makeAnswers(ritualId: ritualId), ritualId: ritualId, mode: .auto)
 
         guard case .ready(let response) = result else {
-            return XCTFail("Expected .ready")
+            Issue.record("Expected .ready")
+            return
         }
-        XCTAssertEqual(response.provider, .openai)
+        #expect(response.provider == .openai)
         let anthropicPrompts = await anthropic.capturedPrompts
-        XCTAssertTrue(anthropicPrompts.isEmpty, "Anthropic should not be called if OpenAI succeeds")
+        #expect(anthropicPrompts.isEmpty)
     }
 
     // MARK: - Case 4: first cloud fails, fallback to second
 
-    func testFallbackToSecondCloudProvider() async throws {
+    @Test("first cloud fails — falls back to second cloud provider")
+    func fallbackToSecondCloudProvider() async throws {
         let ritualId = UUID()
         let logRepo = MockEthicalLogRepository()
         let ethicalLogger = EthicalLogger(repository: logRepo)
@@ -262,14 +270,16 @@ final class WaterfallAISynthesisServiceTests: XCTestCase {
         let result = try await sut.synthesize(answers: makeAnswers(ritualId: ritualId), ritualId: ritualId, mode: .auto)
 
         guard case .ready(let response) = result else {
-            return XCTFail("Expected .ready from anthropic fallback")
+            Issue.record("Expected .ready from anthropic fallback")
+            return
         }
-        XCTAssertEqual(response.provider, .anthropic)
+        #expect(response.provider == .anthropic)
     }
 
     // MARK: - Case 5: offline → queued
 
-    func testOfflineQueuesRequest() async throws {
+    @Test("offline with no on-device AI queues the request")
+    func offlineQueuesRequest() async throws {
         let ritualId = UUID()
         let logRepo = MockEthicalLogRepository()
         let ethicalLogger = EthicalLogger(repository: logRepo)
@@ -294,7 +304,8 @@ final class WaterfallAISynthesisServiceTests: XCTestCase {
         let result = try await sut.synthesize(answers: makeAnswers(ritualId: ritualId), ritualId: ritualId, mode: .auto)
 
         guard case .queued = result else {
-            return XCTFail("Expected .queued when offline and no on-device AI")
+            Issue.record("Expected .queued when offline and no on-device AI")
+            return
         }
     }
 }

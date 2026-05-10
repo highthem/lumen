@@ -1,28 +1,33 @@
-import XCTest
+import Foundation
+import Testing
 @testable import lumen
 
-@MainActor
-final class PresenceStateTests: XCTestCase {
+@Suite("PresenceState")
+struct PresenceStateTests {
 
-    func testCompletedAfterFullElapsed() {
-        XCTAssertEqual(classifySkip(elapsed: 60), .partial)
-        XCTAssertEqual(classifySkip(elapsed: 30), .partial)
-        XCTAssertEqual(classifySkip(elapsed: 31), .partial)
+    @Test("classifySkip returns .partial when elapsed >= 30 seconds")
+    func completedAfterFullElapsed() {
+        #expect(classifySkip(elapsed: 60) == .partial)
+        #expect(classifySkip(elapsed: 30) == .partial)
+        #expect(classifySkip(elapsed: 31) == .partial)
     }
 
-    func testSkippedBefore30Seconds() {
-        XCTAssertEqual(classifySkip(elapsed: 0), .skipped)
-        XCTAssertEqual(classifySkip(elapsed: 5), .skipped)
-        XCTAssertEqual(classifySkip(elapsed: 29.9), .skipped)
+    @Test("classifySkip returns .skipped before 30 seconds")
+    func skippedBefore30Seconds() {
+        #expect(classifySkip(elapsed: 0) == .skipped)
+        #expect(classifySkip(elapsed: 5) == .skipped)
+        #expect(classifySkip(elapsed: 29.9) == .skipped)
     }
 
-    func testNotStartedIsDefault() {
-        XCTAssertEqual(PresenceState.notStarted.rawValue, "notStarted")
+    @Test("notStarted is the default raw value")
+    func notStartedIsDefault() {
+        #expect(PresenceState.notStarted.rawValue == "notStarted")
     }
 
-    func testDisplayNamesAreNonEmpty() {
+    @Test("all cases have non-empty display names")
+    func displayNamesAreNonEmpty() {
         for state in PresenceState.allCases {
-            XCTAssertFalse(state.displayName.isEmpty, "Empty display name for \(state)")
+            #expect(!state.displayName.isEmpty)
         }
     }
 

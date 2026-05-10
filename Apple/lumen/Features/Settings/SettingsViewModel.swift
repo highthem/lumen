@@ -30,11 +30,6 @@ enum AppAppearance: String, CaseIterable, Identifiable, Sendable {
     }
 }
 
-struct SpeedOption: Identifiable, Hashable, Sendable {
-    let id: Double
-    let label: String
-}
-
 @MainActor
 @Observable
 final class SettingsViewModel {
@@ -52,12 +47,11 @@ final class SettingsViewModel {
         didSet { UserDefaults.standard.set(elevenLabsEnabled, forKey: Self.elevenLabsEnabledKey) }
     }
     let elevenLabsKeyAvailable: Bool
-    var selectedVoiceId: String {
-        didSet { UserDefaults.standard.set(selectedVoiceId, forKey: voiceIdKey) }
-    }
-    var selectedSpeed: SpeedOption
     var appearance: AppAppearance {
         didSet { UserDefaults.standard.set(appearance.rawValue, forKey: AppAppearance.storageKey) }
+    }
+    var presenceDurationSeconds: Int {
+        didSet { UserDefaults.standard.set(presenceDurationSeconds, forKey: "lumen.settings.presenceDurationSeconds") }
     }
     var breathingSoundId: String {
         didSet {
@@ -69,37 +63,29 @@ final class SettingsViewModel {
             }
         }
     }
-    var availableVoices: [TTSVoice] = []
 
-    let speedOptions: [SpeedOption] = [
-        SpeedOption(id: 0.8, label: "Lent"),
-        SpeedOption(id: 1.0, label: "Normal"),
-        SpeedOption(id: 1.2, label: "Rapide")
-    ]
-
-    private let tts: any TextToSpeeching
     private let exportLogs: ExportEthicalLogs
     private let eraseLogs: EraseEthicalLogs
     private let eraseRituals: EraseAllRituals
     private let soundProvider: any SoundProviding
     private let audioPlayer: any AudioPlaying
-    private let voiceIdKey = "lumen.settings.voiceId"
     private let breathingSoundKey = "lumen.settings.breathingSoundId"
 
     init(
-        tts: any TextToSpeeching,
         exportLogs: ExportEthicalLogs,
         eraseLogs: EraseEthicalLogs,
         eraseRituals: EraseAllRituals,
         soundProvider: any SoundProviding,
         audioPlayer: any AudioPlaying
     ) {
-        self.tts = tts
         self.exportLogs = exportLogs
         self.eraseLogs = eraseLogs
         self.eraseRituals = eraseRituals
         self.soundProvider = soundProvider
         self.audioPlayer = audioPlayer
+
+        let storedDuration = UserDefaults.standard.object(forKey: "lumen.settings.presenceDurationSeconds") as? Int
+        self.presenceDurationSeconds = [30, 60, 90, 120].contains(storedDuration ?? 60) ? (storedDuration ?? 60) : 60
 
         // M1: default ON when key has never been set
         self.voiceModeEnabled = Self.isVoiceModeEnabled
@@ -111,12 +97,6 @@ final class SettingsViewModel {
             .flatMap { AppAppearance(rawValue: $0) } ?? .system
         self.appearance = storedAppearance
 
-        self.selectedSpeed = SpeedOption(id: 1.0, label: "Normal")
-
-        // M2: pick FR voice by default; resolved in load() when voices are available
-        let persisted = UserDefaults.standard.string(forKey: "lumen.settings.voiceId")
-        self.selectedVoiceId = persisted ?? ""
-
         let defaultBreathing = soundProvider.defaultSound(for: .breathing)?.id ?? "breath-aube"
         self.breathingSoundId = UserDefaults.standard.string(forKey: breathingSoundKey) ?? defaultBreathing
     }
@@ -127,17 +107,6 @@ final class SettingsViewModel {
 
     func stopPreview() {
         Task { audioPlayer.stop() }
-    }
-
-    func load() async {
-        availableVoices = tts.availableVoices()
-        let persisted = UserDefaults.standard.string(forKey: voiceIdKey)
-        if let persisted, availableVoices.contains(where: { $0.id == persisted }) {
-            selectedVoiceId = persisted
-        } else {
-            let preferred = availableVoices.first(where: { $0.lang.hasPrefix("fr") })
-            selectedVoiceId = preferred?.id ?? availableVoices.first?.id ?? ""
-        }
     }
 
     func exportLogsFile() async throws -> URL {
