@@ -5,7 +5,14 @@ import SwiftUI
 /// JSX reference: `Design/designs/screens/screens-shell.jsx:358–392`.
 struct PriorityHeroCard: View {
     let text: String
+    let insight: String?
     let onTap: () -> Void
+
+    init(text: String, insight: String? = nil, onTap: @escaping () -> Void) {
+        self.text = text
+        self.insight = insight
+        self.onTap = onTap
+    }
 
     private var status: String { "en cours" }
 
@@ -39,6 +46,15 @@ struct PriorityHeroCard: View {
                         .foregroundStyle(LumenColor.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
                         .frame(maxWidth: .infinity, alignment: .leading)
+
+                    if let insight, !insight.isEmpty {
+                        Text(insight)
+                            .font(.system(size: 14, weight: .regular, design: .serif))
+                            .italic()
+                            .lineLimit(2)
+                            .foregroundStyle(LumenColor.textSecondary)
+                            .padding(.top, 4)
+                    }
                 }
                 .padding(.top, 20)
                 .padding(.horizontal, 22)

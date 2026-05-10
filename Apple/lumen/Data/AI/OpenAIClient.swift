@@ -19,7 +19,7 @@ final class OpenAIClient: AIProviderClient {
         let body: [String: Any] = [
             "model": "gpt-4o-mini",
             "response_format": ["type": "json_object"],
-            "max_tokens": 250,
+            "max_tokens": 700,
             "temperature": 0.7,
             "messages": [
                 ["role": "system", "content": prompt.system],
@@ -80,12 +80,6 @@ final class OpenAIClient: AIProviderClient {
         try await APIKeyResolver.resolve(infoKey: "OPENAI_API_KEY")
     }
 
-    private struct GenerationOutput: Decodable {
-        let intention: String
-        let focus: [String]
-        let reminder: String
-    }
-
     private struct UsageInfo {
         let tokenIn: Int?
         let tokenOut: Int?
@@ -96,19 +90,20 @@ final class OpenAIClient: AIProviderClient {
               let choices = root["choices"] as? [[String: Any]],
               let message = choices.first?["message"] as? [String: Any],
               let content = message["content"] as? String,
-              let contentData = content.data(using: .utf8),
-              let output = try? JSONDecoder().decode(GenerationOutput.self, from: contentData)
+              let contentData = content.data(using: .utf8)
         else {
             throw AIError.decodeFailed
         }
-        return AIResponse(
-            ritualId: ritualId,
-            intention: output.intention,
-            focus: output.focus,
-            reminder: output.reminder,
-            provider: .openai,
-            mode: mode
-        )
+        do {
+            return try AIResponse.decodeGeneratedJSON(
+                contentData,
+                ritualId: ritualId,
+                provider: .openai,
+                mode: mode
+            )
+        } catch {
+            throw AIError.decodeFailed
+        }
     }
 
     private func extractUsage(from data: Data) throws -> UsageInfo {

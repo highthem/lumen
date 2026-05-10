@@ -4,10 +4,12 @@ import SwiftUI
 /// 16pt padding, 20pt radius. JSX reference: `screens-shell.jsx:485–498`.
 struct PresenceCard: View {
     let state: PresenceState
+    let insight: String?
     let onTap: () -> Void
 
-    init(state: PresenceState, onTap: @escaping () -> Void = {}) {
+    init(state: PresenceState, insight: String? = nil, onTap: @escaping () -> Void = {}) {
         self.state = state
+        self.insight = insight
         self.onTap = onTap
     }
 
@@ -24,6 +26,14 @@ struct PresenceCard: View {
                         .foregroundStyle(textColor)
                         .fixedSize(horizontal: false, vertical: true)
                         .italic(state == .skipped || state == .notStarted)
+                }
+                if let insight, !insight.isEmpty {
+                    Text(insight)
+                        .font(.system(size: 12, weight: .regular, design: .serif))
+                        .italic()
+                        .lineLimit(2)
+                        .foregroundStyle(LumenColor.textSecondary)
+                        .padding(.top, 4)
                 }
             }
             .padding(LumenSpacing.m)

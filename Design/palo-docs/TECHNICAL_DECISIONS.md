@@ -106,6 +106,8 @@ Architecture Decision Records (ADRs) — every non-trivial technical choice in L
 
 **Privacy.** Foundation Models requests are 100 % on-device — no data leaves the device when used. Cloud requests send only the questionnaire answers (no PII), prompt is hashed for monitoring.
 
+**Prompt schema update.** The morning synthesis now uses a richer literary schema: `imageKey`, `intention`, `focus`, `reminder`, and optional `categoryInsights` keyed by dashboard category. `imageKey` is synthesis-screen only, while `categoryInsights` propagates to the dashboard cards and category details. The decoder remains tolerant so legacy provider outputs without the new optional fields do not crash the waterfall.
+
 **Demo plan.** Three scenarios in the technical defence: normal cloud path, airplane-mode on A17 Pro+ iOS 26 (Apple Intelligence path), airplane-mode on incompatible device (queue + deferred completion).
 
 ---

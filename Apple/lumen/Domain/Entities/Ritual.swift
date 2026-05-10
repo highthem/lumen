@@ -13,6 +13,7 @@ nonisolated struct Ritual: Identifiable, Sendable, Codable, Hashable {
     var answers: [QuestionnaireAnswer]
     var presence: PresenceState
     var synthesisId: UUID?
+    var synthesisInsights: [DashboardCategory: String]?
     var completedAt: Date?
 
     init(
@@ -22,6 +23,7 @@ nonisolated struct Ritual: Identifiable, Sendable, Codable, Hashable {
         answers: [QuestionnaireAnswer] = [],
         presence: PresenceState = .notStarted,
         synthesisId: UUID? = nil,
+        synthesisInsights: [DashboardCategory: String]? = nil,
         completedAt: Date? = nil
     ) {
         self.id = id
@@ -30,6 +32,7 @@ nonisolated struct Ritual: Identifiable, Sendable, Codable, Hashable {
         self.answers = answers
         self.presence = presence
         self.synthesisId = synthesisId
+        self.synthesisInsights = synthesisInsights?.isEmpty == true ? nil : synthesisInsights
         self.completedAt = completedAt
     }
 }

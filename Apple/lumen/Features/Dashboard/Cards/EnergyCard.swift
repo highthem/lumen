@@ -4,7 +4,14 @@ import SwiftUI
 /// name + numeric level caption). JSX reference: `screens-shell.jsx:422–455`.
 struct EnergyCard: View {
     let energy: EnergyLevel?
+    let insight: String?
     let onTap: () -> Void
+
+    init(energy: EnergyLevel?, insight: String? = nil, onTap: @escaping () -> Void) {
+        self.energy = energy
+        self.insight = insight
+        self.onTap = onTap
+    }
 
     var body: some View {
         Button(action: onTap) {
@@ -25,6 +32,7 @@ struct EnergyCard: View {
                                 .font(.system(size: 11))
                                 .foregroundStyle(LumenColor.textTertiary)
                         }
+                        insightText
                     }
                 }
             }
@@ -44,6 +52,18 @@ struct EnergyCard: View {
     private var displayValue: String {
         guard let energy else { return "non renseigné" }
         return energy.displayName.lowercased()
+    }
+
+    @ViewBuilder
+    private var insightText: some View {
+        if let insight, !insight.isEmpty {
+            Text(insight)
+                .font(.system(size: 12, weight: .regular, design: .serif))
+                .italic()
+                .lineLimit(2)
+                .foregroundStyle(LumenColor.textSecondary)
+                .padding(.top, 4)
+        }
     }
 }
 

@@ -2,9 +2,16 @@ import SwiftUI
 
 struct CategoryDetailView: View {
     let category: DashboardCategory
+    let insight: String?
     let onAskLumen: () -> Void
 
     @State private var todayContent: String = ""
+
+    init(category: DashboardCategory, insight: String? = nil, onAskLumen: @escaping () -> Void) {
+        self.category = category
+        self.insight = insight
+        self.onAskLumen = onAskLumen
+    }
 
     var body: some View {
         ZStack {
@@ -14,6 +21,16 @@ struct CategoryDetailView: View {
                 VStack(alignment: .leading, spacing: LumenSpacing.l) {
                     SectionTitle(category.displayName)
                         .padding(.top, LumenSpacing.l)
+
+                    if let insight, !insight.isEmpty {
+                        Text(insight)
+                            .lumenFont(.title2)
+                            .italic()
+                            .foregroundStyle(LumenColor.textPrimary.opacity(LumenOpacity.pressed))
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .accessibilityIdentifier("category-insight")
+                    }
 
                     detailContent
 

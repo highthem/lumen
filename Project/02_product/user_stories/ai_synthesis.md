@@ -136,6 +136,19 @@ Pattern **waterfall IA** (réutilisé du projet Skoul) :
 - Aligné avec la posture privacy-first ("ta clé, ton usage, ton paiement")
 - Permet aux power users (devs, early adopters) d'utiliser Lumen sans limite
 
+## US-AI9 — Synthèse littéraire avec imageKey + insights par catégorie
+**En tant qu'** utilisateur
+**Je veux** recevoir une synthèse qui ressemble à un miroir écrit, pas à un formulaire de coaching
+**Afin de** sentir que mes réponses, mon sommeil et ma présence ont été réellement lus
+
+**Critères d'acceptation :**
+- Le prompt système demande un JSON avec `imageKey`, `intention`, `focus`, `reminder` et `categoryInsights`.
+- `imageKey` est un titre court et concret affiché au-dessus de l'intention sur l'écran de synthèse.
+- `categoryInsights` peut contenir `mood`, `energy`, `priority`, `gratitude`, `presence`, `sleep`, uniquement quand le signal existe.
+- Les réponses legacy sans `imageKey` ni `categoryInsights` restent acceptées sans crash.
+- Les cartes du dashboard affichent l'insight de catégorie quand il existe, sinon elles conservent l'affichage brut actuel.
+- La voix reste orale, brève, ancrée dans les inputs et évite les tournures interdites du prompt.
+
 ## Out of scope V1
 - Conversation multi-tour avec l'IA
 - Personnalisation du ton (formel / chaleureux / direct)

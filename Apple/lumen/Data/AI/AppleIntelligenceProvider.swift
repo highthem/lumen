@@ -22,21 +22,17 @@ final class AppleIntelligenceProvider: AIProviderClient {
         let latencyMs = Int(Date().timeIntervalSince(start) * 1000)
 
         guard let data = result.content.data(using: .utf8),
-              let parsed = try? JSONDecoder().decode(GenerationOutput.self, from: data) else {
+              let response = try? AIResponse.decodeGeneratedJSON(
+                data,
+                ritualId: ritualId,
+                provider: .apple,
+                mode: mode
+              ) else {
             throw AIError.decodeFailed
         }
 
         return SynthesisAttempt(
-            response: AIResponse(
-                id: UUID(),
-                ritualId: ritualId,
-                intention: parsed.intention,
-                focus: parsed.focus,
-                reminder: parsed.reminder,
-                provider: .apple,
-                mode: mode,
-                generatedAt: Date()
-            ),
+            response: response,
             latencyMs: latencyMs,
             tokenIn: nil,
             tokenOut: nil
@@ -57,10 +53,4 @@ final class AppleIntelligenceProviderStub: AIProviderClient {
     ) async throws -> SynthesisAttempt {
         throw AIError.providerFailed("apple-intelligence-unavailable")
     }
-}
-
-private struct GenerationOutput: Decodable {
-    let intention: String
-    let focus: [String]
-    let reminder: String
 }

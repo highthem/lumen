@@ -83,6 +83,32 @@ final class BuildDashboardSnapshotTests: XCTestCase {
 
         XCTAssertEqual(snapshot.presence, .skipped)
     }
+
+    func testSynthesisInsightsFlowIntoSnapshot() async throws {
+        let ritualId = UUID()
+        let ritual = Ritual(
+            id: ritualId,
+            date: Date(),
+            state: .completed,
+            answers: [
+                QuestionnaireAnswer(ritualId: ritualId, payload: .mood(level: 2, tag: "posé")),
+                QuestionnaireAnswer(ritualId: ritualId, payload: .gratitude(text: "Le silence."))
+            ],
+            presence: .completed,
+            synthesisInsights: [
+                .mood: "Posé. Une bonne assise.",
+                .gratitude: "Le silence, avant le bruit."
+            ]
+        )
+        let ritualRepo = InMemoryRitualRepository(seed: ritual)
+        let sleepService = MockSleepHealthService()
+        let sut = BuildDashboardSnapshot(ritualRepository: ritualRepo, sleepService: sleepService)
+
+        let snapshot = try await sut.execute(date: Date())
+
+        XCTAssertEqual(snapshot.insights?[.mood], "Posé. Une bonne assise.")
+        XCTAssertEqual(snapshot.insights?[.gratitude], "Le silence, avant le bruit.")
+    }
 }
 
 // MARK: - In-memory ritual repository for tests

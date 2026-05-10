@@ -77,6 +77,7 @@ struct SynthesisView: View {
             // V11 hero: 42pt serif italic quote (the response's `heroQuote`,
             // which surfaces the prompt's calm `intention` line).
             heroQuoteBlock(
+                imageKey: response.imageKey,
                 text: response.heroQuote,
                 isSupport: response.provider == .supportTemplate
             )
@@ -203,9 +204,19 @@ struct SynthesisView: View {
     /// V11 single hero quote — 48pt serif italic, accent color (or muted if
     /// support template), centered with a max width so long quotes wrap
     /// nicely on iPad without becoming a paragraph.
-    private func heroQuoteBlock(text: String, isSupport: Bool) -> some View {
+    private func heroQuoteBlock(imageKey: String?, text: String, isSupport: Bool) -> some View {
         VStack(alignment: .leading, spacing: LumenSpacing.s) {
             Eyebrow("Intention")
+            if let imageKey, !imageKey.isEmpty {
+                Text(imageKey)
+                    .lumenFont(.title1)
+                    .italic()
+                    .multilineTextAlignment(.leading)
+                    .foregroundStyle(isSupport ? LumenColor.textPrimary : LumenColor.accent)
+                    .frame(maxWidth: LumenSize.heroQuoteMax, alignment: .leading)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityIdentifier("synthesis-image-key")
+            }
             Text(text)
                 .lumenFont(.synthesisHero)
                 .italic()

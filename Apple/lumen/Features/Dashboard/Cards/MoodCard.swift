@@ -4,7 +4,14 @@ import SwiftUI
 /// caption). JSX reference: `screens-shell.jsx:396–420`.
 struct MoodCard: View {
     let mood: MoodSummary?
+    let insight: String?
     let onTap: () -> Void
+
+    init(mood: MoodSummary?, insight: String? = nil, onTap: @escaping () -> Void) {
+        self.mood = mood
+        self.insight = insight
+        self.onTap = onTap
+    }
 
     var body: some View {
         Button(action: onTap) {
@@ -28,6 +35,7 @@ struct MoodCard: View {
                                 .font(.system(size: 11))
                                 .foregroundStyle(LumenColor.textTertiary)
                         }
+                        insightText
                     }
                 }
             }
@@ -47,6 +55,18 @@ struct MoodCard: View {
     private var displayValue: String {
         if let tag = mood?.tag, !tag.isEmpty { return tag.lowercased() }
         return "non renseigné"
+    }
+
+    @ViewBuilder
+    private var insightText: some View {
+        if let insight, !insight.isEmpty {
+            Text(insight)
+                .font(.system(size: 12, weight: .regular, design: .serif))
+                .italic()
+                .lineLimit(2)
+                .foregroundStyle(LumenColor.textSecondary)
+                .padding(.top, 4)
+        }
     }
 }
 

@@ -45,7 +45,8 @@ struct BuildDashboardSnapshot: Sendable {
             gratitude: gratitude,
             presence: ritual.presence,
             sleep: sleep,
-            aiIntention: nil
+            aiIntention: nil,
+            insights: ritual.synthesisInsights
         )
     }
 }

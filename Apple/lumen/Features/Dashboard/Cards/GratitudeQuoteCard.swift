@@ -5,7 +5,14 @@ import SwiftUI
 /// JSX reference: `Design/designs/screens/screens-shell.jsx:458–480`.
 struct GratitudeQuoteCard: View {
     let text: String
+    let insight: String?
     let onTap: () -> Void
+
+    init(text: String, insight: String? = nil, onTap: @escaping () -> Void) {
+        self.text = text
+        self.insight = insight
+        self.onTap = onTap
+    }
 
     var body: some View {
         Button(action: onTap) {
@@ -34,6 +41,14 @@ struct GratitudeQuoteCard: View {
                         .foregroundStyle(LumenColor.accent)
                         .padding(.top, 6)
                         .accessibilityHidden(true)
+                }
+                if let insight, !insight.isEmpty {
+                    Text(insight)
+                        .font(.system(size: 13, weight: .regular, design: .serif))
+                        .italic()
+                        .lineLimit(2)
+                        .foregroundStyle(LumenColor.textSecondary)
+                        .padding(.top, 4)
                 }
             }
             .padding(.horizontal, 20)

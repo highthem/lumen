@@ -19,7 +19,11 @@ struct DashboardHomeView: View {
         NavigationStack {
             content
                 .navigationDestination(item: $selectedCategory) { category in
-                    CategoryDetailView(category: category, onAskLumen: onAskLumen)
+                    CategoryDetailView(
+                        category: category,
+                        insight: vm.snapshot?.insights?[category],
+                        onAskLumen: onAskLumen
+                    )
                 }
         }
     }
@@ -193,31 +197,31 @@ struct DashboardHomeView: View {
             postHeader
 
             if let priority = s?.priority?.text, !priority.isEmpty {
-                PriorityHeroCard(text: priority) {
+                PriorityHeroCard(text: priority, insight: s?.insights?[.priority]) {
                     selectedCategory = .priority
                 }
             }
 
             HStack(spacing: 10) {
-                MoodCard(mood: s?.mood) {
+                MoodCard(mood: s?.mood, insight: s?.insights?[.mood]) {
                     if vm.hasRitualToday { selectedCategory = .mood }
                 }
-                EnergyCard(energy: s?.energy) {
+                EnergyCard(energy: s?.energy, insight: s?.insights?[.energy]) {
                     if vm.hasRitualToday { selectedCategory = .energy }
                 }
             }
 
             if let gratitude = s?.gratitude, !gratitude.isEmpty {
-                GratitudeQuoteCard(text: gratitude) {
+                GratitudeQuoteCard(text: gratitude, insight: s?.insights?[.gratitude]) {
                     selectedCategory = .gratitude
                 }
             }
 
             HStack(spacing: 10) {
-                PresenceCard(state: s?.presence ?? .notStarted) {
+                PresenceCard(state: s?.presence ?? .notStarted, insight: s?.insights?[.presence]) {
                     if vm.hasRitualToday { selectedCategory = .presence }
                 }
-                SleepCard(summary: s?.sleep) {
+                SleepCard(summary: s?.sleep, insight: s?.insights?[.sleep]) {
                     if s?.sleep == nil {
                         showSleepSheet = true
                     } else if vm.hasRitualToday {

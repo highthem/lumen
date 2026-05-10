@@ -5,7 +5,14 @@ import SwiftUI
 /// to activate Apple Santé. JSX reference: `screens-shell.jsx:501–525`.
 struct SleepCard: View {
     let summary: SleepSummary?
+    let insight: String?
     let onTap: () -> Void
+
+    init(summary: SleepSummary?, insight: String? = nil, onTap: @escaping () -> Void) {
+        self.summary = summary
+        self.insight = insight
+        self.onTap = onTap
+    }
 
     var body: some View {
         Button(action: onTap) {
@@ -16,6 +23,14 @@ struct SleepCard: View {
                     populated(summary)
                 } else {
                     emptyContent
+                }
+                if let insight, !insight.isEmpty {
+                    Text(insight)
+                        .font(.system(size: 12, weight: .regular, design: .serif))
+                        .italic()
+                        .lineLimit(2)
+                        .foregroundStyle(LumenColor.textSecondary)
+                        .padding(.top, 4)
                 }
             }
             .padding(LumenSpacing.m)

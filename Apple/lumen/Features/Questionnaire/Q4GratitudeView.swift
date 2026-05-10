@@ -37,6 +37,7 @@ struct Q4GratitudeView: View {
 
             ghostActionsRow
                 .frame(maxWidth: .infinity, minHeight: LumenSize.blockMin)
+                .padding(.bottom)
         }
         .padding(.horizontal, LumenSpacing.l)
         .padding(.top, LumenSpacing.xl0)

@@ -57,6 +57,7 @@ actor SwiftDataRitualRepository: RitualRepository {
     func attachSynthesis(_ response: AIResponse, ritualId: UUID) async throws {
         guard let entity = try fetchEntity(id: ritualId) else { throw RitualError.notFound }
         entity.synthesisId = response.id
+        entity.synthesisInsights = response.categoryInsights
         try modelContext.save()
     }
 
@@ -67,6 +68,7 @@ actor SwiftDataRitualRepository: RitualRepository {
         entity.answers = ritual.answers
         entity.presence = ritual.presence
         entity.synthesisId = ritual.synthesisId
+        entity.synthesisInsights = ritual.synthesisInsights
         entity.completedAt = ritual.completedAt
         try modelContext.save()
     }

@@ -18,7 +18,7 @@ final class AnthropicClient: AIProviderClient {
 
         let body: [String: Any] = [
             "model": "claude-haiku-4-5-20251001",
-            "max_tokens": 250,
+            "max_tokens": 700,
             "system": prompt.system,
             "messages": [
                 ["role": "user", "content": prompt.user]
@@ -91,12 +91,6 @@ final class AnthropicClient: AIProviderClient {
         try await APIKeyResolver.resolve(infoKey: "ANTHROPIC_API_KEY")
     }
 
-    private struct GenerationOutput: Decodable {
-        let intention: String
-        let focus: [String]
-        let reminder: String
-    }
-
     private struct UsageInfo {
         let tokenIn: Int?
         let tokenOut: Int?
@@ -106,19 +100,20 @@ final class AnthropicClient: AIProviderClient {
         guard let root = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
               let content = root["content"] as? [[String: Any]],
               let text = content.first?["text"] as? String,
-              let textData = text.data(using: .utf8),
-              let output = try? JSONDecoder().decode(GenerationOutput.self, from: textData)
+              let textData = text.data(using: .utf8)
         else {
             throw AIError.decodeFailed
         }
-        return AIResponse(
-            ritualId: ritualId,
-            intention: output.intention,
-            focus: output.focus,
-            reminder: output.reminder,
-            provider: .anthropic,
-            mode: mode
-        )
+        do {
+            return try AIResponse.decodeGeneratedJSON(
+                textData,
+                ritualId: ritualId,
+                provider: .anthropic,
+                mode: mode
+            )
+        } catch {
+            throw AIError.decodeFailed
+        }
     }
 
     private func extractUsage(from data: Data) -> UsageInfo {
