@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lumen QA Release Sign-off</title>
+  <style>
+    :root { color-scheme: light; --bg:#f6f7fb; --panel:#ffffff; --ink:#111827; --muted:#6b7280; --line:#e5e7eb; --brand:#111827; --accent:#2563eb; --good:#16a34a; --warn:#d97706; --bad:#dc2626; --soft:#eef2ff; }
+    * { box-sizing:border-box; }
+    body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif; background:linear-gradient(180deg,#f8fafc 0%,#eef2ff 100%); color:var(--ink); }
+    header { padding:28px 18px 18px; }
+    .wrap { max-width:1120px; margin:0 auto; }
+    .hero { background:rgba(255,255,255,.82); border:1px solid rgba(255,255,255,.9); box-shadow:0 24px 80px rgba(15,23,42,.10); border-radius:28px; padding:24px; display:grid; gap:18px; }
+    .eyebrow { color:var(--accent); font-weight:800; font-size:12px; letter-spacing:.12em; text-transform:uppercase; }
+    h1 { margin:4px 0; font-size:clamp(28px,5vw,52px); line-height:.98; letter-spacing:-.05em; }
+    .sub { color:var(--muted); font-size:16px; line-height:1.5; max-width:780px; }
+    main { padding:0 18px 40px; }
+    .grid { display:grid; grid-template-columns:1fr; gap:16px; }
+    @media (min-width:900px) { .grid { grid-template-columns:360px 1fr; align-items:start; } .sticky { position:sticky; top:16px; } }
+    section,.card { background:var(--panel); border:1px solid var(--line); border-radius:22px; padding:18px; box-shadow:0 10px 30px rgba(15,23,42,.06); }
+    h2 { font-size:18px; margin:0 0 12px; letter-spacing:-.02em; }
+    h3 { font-size:15px; margin:18px 0 8px; }
+    label { display:block; font-weight:700; font-size:12px; color:#374151; margin:12px 0 6px; }
+    input,textarea,select { width:100%; border:1px solid var(--line); border-radius:14px; padding:12px 13px; font:inherit; background:#fff; color:var(--ink); }
+    textarea { min-height:92px; resize:vertical; }
+    .checks { display:grid; gap:10px; }
+    .check { display:grid; grid-template-columns:auto 1fr auto; gap:10px; align-items:start; padding:12px; border:1px solid var(--line); border-radius:16px; background:#fbfdff; }
+    .check input { width:auto; margin-top:2px; }
+    .check small { color:var(--muted); display:block; margin-top:2px; }
+    .pillrow { display:flex; flex-wrap:wrap; gap:8px; }
+    .pill { border:1px solid var(--line); background:#f9fafb; color:#374151; border-radius:999px; padding:7px 10px; font-size:12px; font-weight:700; }
+    .bar { height:12px; background:#e5e7eb; border-radius:999px; overflow:hidden; margin:10px 0 12px; }
+    .bar > div { height:100%; width:0%; background:linear-gradient(90deg,#2563eb,#16a34a); transition:.25s ease; }
+    .stats { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:14px; }
+    .stat { background:#f8fafc; border:1px solid var(--line); border-radius:16px; padding:12px; }
+    .stat b { font-size:24px; } .stat span { display:block; color:var(--muted); font-size:12px; }
+    .actions { display:grid; gap:10px; margin-top:12px; }
+    button { border:0; border-radius:16px; padding:13px 14px; font:inherit; font-weight:800; cursor:pointer; }
+    .primary { background:var(--brand); color:white; } .secondary { background:var(--soft); color:#1e3a8a; } .ghost { background:#fff; color:#374151; border:1px solid var(--line); }
+    .danger { color:var(--bad); }
+    .status { padding:10px 12px; border-radius:14px; background:#f8fafc; color:var(--muted); font-size:13px; }
+    .signoff { display:grid; grid-template-columns:1fr; gap:10px; }
+    @media (min-width:720px) { .signoff { grid-template-columns:1fr 1fr; } }
+    .footer-note { color:var(--muted); font-size:12px; line-height:1.45; margin-top:10px; }
+    .required { color:var(--bad); } .pass { color:var(--good); } .warn { color:var(--warn); }
+  </style>
+</head>
+<body>
+  <header><div class="wrap hero">
+    <div><div class="eyebrow">Release QA Checklist</div><h1>Lumen sign-off</h1><p class="sub">Interactive release/build gate for iOS alarm, ritual, voice, AI synthesis, dashboard. Fill the build metadata, complete only relevant checks, capture blockers, then save a signed report before shipping, submitting, or deploying.</p></div>
+    <div class="pillrow" id="targets"></div>
+  </div></header>
+  <main><div class="wrap grid">
+    <aside class="sticky card">
+      <h2>Release metadata</h2>
+      <label>Release/build name <span class="required">*</span></label><input id="releaseName" placeholder="e.g. 1.4.0 (128), TestFlight 2026-06-29">
+      <label>Branch / commit / PR</label><input id="sourceRef" placeholder="branch, commit SHA, PR URL">
+      <label>Environment</label><select id="environment"><option>Local/dev</option><option>Staging/TestFlight/Beta</option><option>Release candidate</option><option>Production-ready pending approval</option></select>
+      <label>QA owner <span class="required">*</span></label><input id="qaOwner" placeholder="Name">
+      <label>Release decision</label><select id="decision"><option>GO — ready for review/release approval</option><option>NO-GO — blockers found</option><option>CONDITIONAL — listed follow-ups required</option></select>
+      <div class="stats" aria-live="polite"><div class="stat"><b id="doneCount">0</b><span>done</span></div><div class="stat"><b id="totalCount">0</b><span>checks</span></div><div class="stat"><b id="percentCount">0%</b><span>complete</span></div></div>
+      <div class="bar"><div id="progressBar"></div></div>
+      <div class="actions"><button class="primary" id="saveReport">Save signed report</button><button class="secondary" id="copyMarkdown">Copy markdown</button><button class="ghost" id="saveDraft">Save draft locally</button><button class="ghost danger" id="clearDraft">Clear draft</button></div>
+      <div class="status" id="status">Draft auto-saves in this browser.</div>
+      <p class="footer-note">The save button downloads a Markdown sign-off report. Browser storage is local only; attach the generated report to the release/PR when needed.</p>
+    </aside>
+    <div class="grid-main">
+      <section><h2>1. Release scope</h2><label>What changed?</label><textarea id="scope" placeholder="User-visible changes, affected platforms, migration/assets/config notes"></textarea><label>Known risks / rollback plan</label><textarea id="rollback" placeholder="How to back out, disable, or pause if something breaks"></textarea></section>
+      <section><h2>2. Critical product flows</h2><div class="checks" id="criticalChecks"></div></section>
+      <section><h2>3. Platform and regression checks</h2><div class="checks" id="platformChecks"></div></section>
+      <section><h2>4. Privacy, security, release gates</h2><div class="checks" id="riskChecks"></div></section>
+      <section><h2>5. Evidence and sign-off</h2><label>Test evidence</label><textarea id="evidence" placeholder="Commands run, devices/browsers checked, screenshots/report links, CI status"></textarea><label>Open blockers / follow-ups</label><textarea id="blockers" placeholder="Use NONE only if there are no blockers"></textarea><div class="signoff"><div><label>Signed by <span class="required">*</span></label><input id="signedBy" placeholder="Name"></div><div><label>Role</label><input id="signedRole" placeholder="QA / Engineering / Product"></div></div><label><input type="checkbox" id="approvalGate" style="width:auto"> I confirm this report is a QA sign-off only; production deploys, app-store submissions, public publishing, payments, or certification submissions still require Haithem approval.</label></section>
+    </div>
+  </div></main>
+<script>
+const CONFIG = {"projectName": "Lumen", "repoName": "highthem/lumen", "productArea": "iOS alarm, ritual, voice, AI synthesis, dashboard", "releaseTargets": ["iOS app", "Xcode Cloud build", "TestFlight candidate"], "criticalFlows": ["Fresh install → permissions rationale → first alarm setup", "Alarm fires → ritual/timer starts → completion recorded", "Questionnaire/voice or typing input → AI synthesis fallback path", "Dashboard shows last ritual and no private transcript leakage", "Offline/denied permissions fallback states"], "platformChecks": ["iPhone current simulator smoke", "Small screen layout", "Dark/light mode", "VoiceOver labels on main CTAs", "Notification permission and alarm scheduling behavior"], "riskChecks": ["No raw voice/audio/transcripts persisted", "Secrets.xcconfig not committed", "AI monitoring keeps hashed/minimal data only", "No cloud transcription fallback without approval"]};
+const STORE_KEY = `qa-release-checklist:${CONFIG.repoName}`;
+const groups = [['criticalChecks', CONFIG.criticalFlows], ['platformChecks', CONFIG.platformChecks], ['riskChecks', CONFIG.riskChecks]];
+function el(id) { return document.getElementById(id); }
+function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function render() {
+  el('targets').innerHTML = CONFIG.releaseTargets.map(t => `<span class="pill">${escapeHtml(t)}</span>`).join('');
+  groups.forEach(([id, items]) => { el(id).innerHTML = items.map((text, i) => `<label class="check"><input type="checkbox" data-check="${id}-${i}"><span>${escapeHtml(text)}<small>Mark when verified for this build/release, or document why not applicable in evidence.</small></span><select data-result="${id}-${i}"><option>Pass</option><option>N/A</option><option>Blocked</option></select></label>`).join(''); });
+}
+function fields() { return ['releaseName','sourceRef','environment','qaOwner','decision','scope','rollback','evidence','blockers','signedBy','signedRole','approvalGate']; }
+function collect() {
+  const data = { project: CONFIG.projectName, repo: CONFIG.repoName, generatedAt: new Date().toISOString(), fields: {}, checks: [] };
+  fields().forEach(id => { const n=el(id); data.fields[id] = n.type === 'checkbox' ? n.checked : n.value; });
+  document.querySelectorAll('[data-check]').forEach(cb => { const key=cb.dataset.check; data.checks.push({ key, label: cb.closest('.check').querySelector('span').childNodes[0].textContent, done: cb.checked, result: document.querySelector(`[data-result="${key}"]`).value }); });
+  return data;
+}
+function restore(data) { if(!data) return; fields().forEach(id => { if(data.fields && id in data.fields) { const n=el(id); if(n.type === 'checkbox') n.checked = !!data.fields[id]; else n.value = data.fields[id]; } }); (data.checks||[]).forEach(c => { const cb=document.querySelector(`[data-check="${c.key}"]`); const rs=document.querySelector(`[data-result="${c.key}"]`); if(cb) cb.checked=!!c.done; if(rs) rs.value=c.result||'Pass'; }); updateProgress(); }
+function updateProgress() { const checks=[...document.querySelectorAll('[data-check]')]; const done=checks.filter(c=>c.checked).length; const pct=checks.length ? Math.round(done/checks.length*100) : 0; el('doneCount').textContent=done; el('totalCount').textContent=checks.length; el('percentCount').textContent=pct+'%'; el('progressBar').style.width=pct+'%'; localStorage.setItem(STORE_KEY, JSON.stringify(collect())); }
+function markdown(data) {
+  const f=data.fields; const lines=[]; const complete=data.checks.filter(c=>c.done).length;
+  lines.push(`# ${data.project} QA Release Sign-off`, '', `Generated: ${data.generatedAt}`, `Repo: ${data.repo}`, `Release/build: ${f.releaseName || 'UNSET'}`, `Source ref: ${f.sourceRef || 'UNSET'}`, `Environment: ${f.environment}`, `QA owner: ${f.qaOwner || 'UNSET'}`, `Decision: ${f.decision}`, `Completion: ${complete}/${data.checks.length} checks`, '', '## Scope', f.scope || 'UNSET', '', '## Risk / rollback plan', f.rollback || 'UNSET', '', '## Checks');
+  data.checks.forEach(c => lines.push(`- [${c.done ? 'x':' '}] (${c.result}) ${c.label}`));
+  lines.push('', '## Evidence', f.evidence || 'UNSET', '', '## Blockers / follow-ups', f.blockers || 'UNSET', '', '## Sign-off', `Signed by: ${f.signedBy || 'UNSET'}`, `Role: ${f.signedRole || 'UNSET'}`, `Approval gate confirmed: ${f.approvalGate ? 'yes':'no'}`, '', '> Production deploys, app-store submissions, public publishing, payments, or certification submissions still require Haithem approval.');
+  return lines.join('\\n');
+}
+function validate(data) { const missing=[]; ['releaseName','qaOwner','signedBy'].forEach(id => { if(!data.fields[id]) missing.push(id); }); if(!data.fields.approvalGate) missing.push('approvalGate'); return missing; }
+function download(name, content, type) { const blob=new Blob([content],{type}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(a.href); }
+document.addEventListener('input', updateProgress); document.addEventListener('change', updateProgress);
+el('saveDraft').onclick=()=>{ localStorage.setItem(STORE_KEY, JSON.stringify(collect())); el('status').textContent='Draft saved locally.'; };
+el('clearDraft').onclick=()=>{ if(confirm('Clear this local QA draft?')) { localStorage.removeItem(STORE_KEY); location.reload(); } };
+el('copyMarkdown').onclick=async()=>{ const md=markdown(collect()); await navigator.clipboard.writeText(md); el('status').textContent='Markdown copied.'; };
+el('saveReport').onclick=()=>{ const data=collect(); const missing=validate(data); if(missing.length) { el('status').innerHTML=`<span class="warn">Missing required sign-off fields: ${missing.join(', ')}</span>`; return; } const safe=(data.fields.releaseName||'release').replace(/[^a-z0-9._-]+/gi,'-').replace(/^-|-$/g,'').toLowerCase(); download(`${CONFIG.projectName.toLowerCase().replace(/[^a-z0-9]+/g,'-')}-qa-signoff-${safe}.md`, markdown(data), 'text/markdown'); el('status').innerHTML='<span class="pass">Signed report downloaded.</span>'; };
+render(); restore(JSON.parse(localStorage.getItem(STORE_KEY) || 'null'));
+</script>
+</body>
+</html>
